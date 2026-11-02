@@ -8,8 +8,11 @@ Nazwy przycisków u Meta czasem się zmieniają, więc mogą się trochę różn
 1. Instagram: Ustawienia -> Typ konta i narzędzia -> przełącz na konto profesjonalne (Firma). Jeśli już jest, pomiń.
 2. Połącz konto IG ze stroną PageHub na Facebooku: Meta Business Suite -> Ustawienia -> Konta -> Konta na Instagramie
    (albo w ustawieniach strony na Facebooku: Połączone konta -> Instagram).
-3. Instagram: Ustawienia -> Wiadomości i odpowiedzi na relacje -> Narzędzia do wiadomości -> Połączone narzędzia
-   -> włącz **Zezwalaj na dostęp do wiadomości**. Bez tego nie przyjdą powiadomienia o DM-ach.
+3. W aplikacji Instagram na telefonie: Ustawienia i aktywność -> Wiadomości i odpowiedzi na relacje
+   -> Kontrola wiadomości (ang. Message controls) -> Połączone narzędzia -> włącz **Zezwalaj na dostęp do wiadomości**.
+   - Opcja pojawia się dopiero, gdy konto jest profesjonalne i połączone ze stroną na Facebooku (punkty 1 i 2).
+   - Nie możesz znaleźć? Wpisz "połączone narzędzia" albo "dostęp do wiadomości" w wyszukiwarkę na górze ustawień.
+   - Nadal brak? Pomiń. Publikacja i komentarze działają bez tego, a test z kroku 6 pokaże, czy DM-y są dostępne.
 
 ## 2. Aplikacja Meta i token (15 min)
 1. Wejdź na https://developers.facebook.com -> Moje aplikacje -> Utwórz aplikację.
