@@ -1,0 +1,183 @@
+
+<title>PageHub Instagram</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* layout: one column of posts in publishing order; each post = slide strip + two caption panes */
+:root {
+  --bg: #0B0F14; --panel: #121821; --line: #243040; --fg: #E6EDF3;
+  --muted: #8B98A8; --accent: #1C98C3; --accent-ink: #0B0F14; --ok: #3FB68B;
+  --display: "IBM Plex Mono", "DejaVu Sans Mono", ui-monospace, monospace;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #F3F6F8; --panel: #FFFFFF; --line: #D5DEE6; --fg: #0F1720;
+  --muted: #5A6878; --accent: #13789C; --accent-ink: #FFFFFF; --ok: #1F8A63; color-scheme: light } }
+:root[data-theme="light"] {
+  --bg: #F3F6F8; --panel: #FFFFFF; --line: #D5DEE6; --fg: #0F1720;
+  --muted: #5A6878; --accent: #13789C; --accent-ink: #FFFFFF; --ok: #1F8A63; color-scheme: light }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 1000px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px; }
+header { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font: 500 13px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 700 clamp(28px, 5vw, 40px)/1.15 var(--display); letter-spacing: -.02em; text-wrap: balance; margin: 0; }
+.how { color: var(--muted); max-width: 62ch; margin: 0; }
+.how b { color: var(--fg); font-weight: 600; }
+article { display: flex; flex-direction: column; gap: 18px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { font: 500 13px var(--display); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); }
+.chip.when { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+h2 { font: 700 clamp(20px, 3.4vw, 26px)/1.25 var(--display); margin: 0; text-wrap: balance; }
+.strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+.strip img { flex: none; width: min(300px, 72vw); aspect-ratio: 4 / 5; height: auto; max-width: 100%;
+  border-radius: 10px; border: 1px solid var(--line); scroll-snap-align: start; background: #0B0F14; }
+.hint { font-size: 13px; color: var(--muted); margin: -6px 0 0; }
+.panes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; }
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pane-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pane-title { font: 500 13px var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.copy { font: 600 14px var(--body); color: var(--accent-ink); background: var(--accent); border: 0;
+  border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+.copy:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.copy.done { background: var(--ok); }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: 15px/1.55 var(--body); }
+.alt { font-size: 14px; color: var(--muted); }
+.alt b { color: var(--fg); font-weight: 600; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (prefers-reduced-motion: reduce) { .strip { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">PageHub · Instagram</span>
+    <h1>Karuzele na 2-8 listopada 2026</h1>
+    <p class="how">Przejrzyj, popraw co chcesz i zaplanuj w <b>Meta Business Suite</b>: wgraj slajdy w kolejności, wklej podpis, ustaw godzinę z etykiety. Wszystkie pliki są też w paczce ZIP w czacie.</p>
+  </header>
+  <article>
+  <div class="meta"><span class="chip when">wtorek 3.11, 19:00</span>
+  <span class="chip">Edukacja</span><span class="chip">9 slajdów</span></div>
+  <h2>5 rzeczy, które spowalniają stronę firmy</h2>
+  <div class="strip"><img src="k1/01.png" alt="Okładka karuzeli PageHub: napis Ponad 3 sekundy? Tracisz klientów oraz 5 rzeczy, które spowalniają stronę Twojej firmy, na ciemnym tle w stylu okna przeglądarki." loading="lazy" width="1080" height="1350"><img src="k1/02.png" alt="Slajd 2 z 9" loading="lazy" width="1080" height="1350"><img src="k1/03.png" alt="Slajd 3 z 9" loading="lazy" width="1080" height="1350"><img src="k1/04.png" alt="Slajd 4 z 9" loading="lazy" width="1080" height="1350"><img src="k1/05.png" alt="Slajd 5 z 9" loading="lazy" width="1080" height="1350"><img src="k1/06.png" alt="Slajd 6 z 9" loading="lazy" width="1080" height="1350"><img src="k1/07.png" alt="Slajd 7 z 9" loading="lazy" width="1080" height="1350"><img src="k1/08.png" alt="Slajd 8 z 9" loading="lazy" width="1080" height="1350"><img src="k1/09.png" alt="Slajd 9 z 9" loading="lazy" width="1080" height="1350"></div>
+  <p class="hint">Przewiń w bok. Przytrzymaj grafikę (telefon) albo kliknij prawym (komputer), żeby zapisać.</p>
+  <div class="panes">
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Instagram</span>
+  <button class="copy" type="button" data-target="ig1">Kopiuj</button></div>
+  <p class="text" id="ig1">53% osób zamyka stronę na telefonie, jeśli ładuje się dłużej niż 3 sekundy.
+
+To dane Google z 2017 roku. Jeśli Twoja strona jest wolna, część klientów nigdy nie zobaczy oferty, nie zadzwoni i nie przyjdzie, a Ty nawet nie będziesz wiedzieć, że w ogóle byli.
+
+Winne są zwykle te same rzeczy: ciężkie zdjęcia, zbędne wtyczki, tani hosting, rozbudowany szablon i film w tle.
+
+Wynik sprawdzisz za darmo na pagespeed.web.dev. Zapisz ten post, żeby mieć listę pod ręką.
+
+#stronywww #stronainternetowa #małybiznes #przemyśl #webdesign</p>
+</div>
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Facebook</span>
+  <button class="copy" type="button" data-target="fb1">Kopiuj</button></div>
+  <p class="text" id="fb1">Ile czeka klient, zanim zamknie Twoją stronę? Według Google ponad połowa osób na telefonie odpuszcza po 3 sekundach.
+
+Najczęstsze powody wolnej strony: zdjęcia wrzucone prosto z aparatu, wtyczki, których nikt nie używa, najtańszy hosting, rozbudowany szablon z kreatora i film w tle na stronie głównej.
+
+Sprawdź swoją stronę za darmo: https://pagespeed.web.dev
+
+Wynik Cię zaskoczył? Napisz do nas. W PageHub piszemy strony od zera, bez zbędnego kodu: https://pagehub.pl</p>
+</div>
+  </div>
+  <p class="alt"><b>Tekst alternatywny okładki:</b> Okładka karuzeli PageHub: napis Ponad 3 sekundy? Tracisz klientów oraz 5 rzeczy, które spowalniają stronę Twojej firmy, na ciemnym tle w stylu okna przeglądarki.</p>
+</article><article>
+  <div class="meta"><span class="chip when">czwartek 5.11, 19:00</span>
+  <span class="chip">Edukacja</span><span class="chip">9 slajdów</span></div>
+  <h2>Test strony na telefonie w 5 minut</h2>
+  <div class="strip"><img src="k2/01.png" alt="Okładka karuzeli PageHub: napis 5 błędów Twojej strony na telefonie oraz Sprawdzisz je w 5 minut, zanim zauważy je klient." loading="lazy" width="1080" height="1350"><img src="k2/02.png" alt="Slajd 2 z 9" loading="lazy" width="1080" height="1350"><img src="k2/03.png" alt="Slajd 3 z 9" loading="lazy" width="1080" height="1350"><img src="k2/04.png" alt="Slajd 4 z 9" loading="lazy" width="1080" height="1350"><img src="k2/05.png" alt="Slajd 5 z 9" loading="lazy" width="1080" height="1350"><img src="k2/06.png" alt="Slajd 6 z 9" loading="lazy" width="1080" height="1350"><img src="k2/07.png" alt="Slajd 7 z 9" loading="lazy" width="1080" height="1350"><img src="k2/08.png" alt="Slajd 8 z 9" loading="lazy" width="1080" height="1350"><img src="k2/09.png" alt="Slajd 9 z 9" loading="lazy" width="1080" height="1350"></div>
+  <p class="hint">Przewiń w bok. Przytrzymaj grafikę (telefon) albo kliknij prawym (komputer), żeby zapisać.</p>
+  <div class="panes">
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Instagram</span>
+  <button class="copy" type="button" data-target="ig2">Kopiuj</button></div>
+  <p class="text" id="ig2">5 minut i telefon. Tyle trwa test, którego Twoja strona może nie zdać.
+
+Klient szuka lokalnej firmy w kolejce, w autobusie, wieczorem na kanapie. Rzadko przy biurku.
+
+Sprawdź 5 rzeczy: czy tekst da się czytać bez powiększania, czy numer telefonu można kliknąć, czy przyciski nie są za małe, czy adres i godziny widać od razu i czy formularz w ogóle działa.
+
+Coś nie przeszło? Napisz TELEFON w komentarzu, sprawdzimy Twoją stronę i podeślemy, co poprawić.
+
+#stronywww #stronadlafirmy #lokalnybiznes #przemyśl #podkarpacie</p>
+</div>
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Facebook</span>
+  <button class="copy" type="button" data-target="fb2">Kopiuj</button></div>
+  <p class="text" id="fb2">Prosty test na dziś. Weź telefon i otwórz stronę swojej firmy dokładnie tak, jak zrobiłby to klient, który pierwszy raz szuka kogoś z Twojej branży.
+
+Sprawdź 5 rzeczy:
+1. Czy tekst da się czytać bez powiększania?
+2. Czy numer telefonu można kliknąć?
+3. Czy przyciski trafiasz za pierwszym razem?
+4. Czy adres i godziny otwarcia widać od razu?
+5. Czy formularz kontaktowy naprawdę wysyła wiadomość?
+
+Pięć razy tak? Świetnie. Jeśli coś nie zagrało, napisz do nas, sprawdzimy stronę i podpowiemy, co poprawić: https://pagehub.pl</p>
+</div>
+  </div>
+  <p class="alt"><b>Tekst alternatywny okładki:</b> Okładka karuzeli PageHub: napis 5 błędów Twojej strony na telefonie oraz Sprawdzisz je w 5 minut, zanim zauważy je klient.</p>
+</article><article>
+  <div class="meta"><span class="chip when">sobota 7.11, 10:00</span>
+  <span class="chip">Kulisy</span><span class="chip">9 slajdów</span></div>
+  <h2>Jak powstaje strona w PageHub, krok po kroku</h2>
+  <div class="strip"><img src="k3/01.png" alt="Okładka karuzeli PageHub: napis Bez szablonu: tak powstaje Twoja strona oraz 5 kroków od pierwszej rozmowy do publikacji." loading="lazy" width="1080" height="1350"><img src="k3/02.png" alt="Slajd 2 z 9" loading="lazy" width="1080" height="1350"><img src="k3/03.png" alt="Slajd 3 z 9" loading="lazy" width="1080" height="1350"><img src="k3/04.png" alt="Slajd 4 z 9" loading="lazy" width="1080" height="1350"><img src="k3/05.png" alt="Slajd 5 z 9" loading="lazy" width="1080" height="1350"><img src="k3/06.png" alt="Slajd 6 z 9" loading="lazy" width="1080" height="1350"><img src="k3/07.png" alt="Slajd 7 z 9" loading="lazy" width="1080" height="1350"><img src="k3/08.png" alt="Slajd 8 z 9" loading="lazy" width="1080" height="1350"><img src="k3/09.png" alt="Slajd 9 z 9" loading="lazy" width="1080" height="1350"></div>
+  <p class="hint">Przewiń w bok. Przytrzymaj grafikę (telefon) albo kliknij prawym (komputer), żeby zapisać.</p>
+  <div class="panes">
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Instagram</span>
+  <button class="copy" type="button" data-target="ig3">Kopiuj</button></div>
+  <p class="text" id="ig3">Każdą stronę w PageHub piszemy od zera. Pokazujemy, jak to wygląda od środka.
+
+Bez kreatora i bez gotowego motywu. Zaczynamy od rozmowy o Twoich klientach, potem projekt pod branżę, kod w Angularze, prosty panel do samodzielnych zmian i publikacja razem z Google Search Console.
+
+Efekt: strona, która ma tylko to, czego potrzebujesz, i którą aktualizujesz sam.
+
+Masz stronę, która odstaje od reszty Twojej firmy? Napisz do nas wiadomość.
+
+#stronywww #webdesign #angular #przemyśl #stronadlafirmy</p>
+</div>
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Facebook</span>
+  <button class="copy" type="button" data-target="fb3">Kopiuj</button></div>
+  <p class="text" id="fb3">Jak powstaje strona w PageHub? Bez ani jednego gotowego szablonu po drodze.
+
+Najpierw rozmowa: kto jest Twoim klientem i co ma zrobić na stronie. Potem projekt pod Twoją branżę. Kod piszemy od zera w Angularze, więc strona jest szybka na telefonie i od razu czytelna dla Google. Na koniec dostajesz prosty panel, w którym sam zmienisz teksty, zdjęcia i cennik, a my podpinamy domenę, hosting i Google Search Console.
+
+Przykład naszej pracy: envisionstudio.pl, strona dla trenera personalnego z Przemyśla.
+
+Chcesz podobną? Napisz do nas albo zajrzyj na https://pagehub.pl</p>
+</div>
+  </div>
+  <p class="alt"><b>Tekst alternatywny okładki:</b> Okładka karuzeli PageHub: napis Bez szablonu: tak powstaje Twoja strona oraz 5 kroków od pierwszej rozmowy do publikacji.</p>
+</article>
+  <footer>Wygenerowano automatycznie. Nic nie zostało opublikowane. Źródła i plan tygodnia: plan.md w repo.</footer>
+</div>
+
+<script>
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.copy');
+  if (!btn) return;
+  const src = document.getElementById(btn.dataset.target);
+  const text = src.innerText;
+  const done = () => { btn.textContent = 'Skopiowano'; btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Kopiuj'; btn.classList.remove('done'); }, 1800); };
+  try { await navigator.clipboard.writeText(text); done(); }
+  catch (_) {
+    const r = document.createRange(); r.selectNodeContents(src);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = 'Zaznaczono, skopiuj ręcznie';
+  }
+});
+</script>

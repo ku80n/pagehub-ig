@@ -1,0 +1,72 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "wtorek 3.11, 19:00",
+    "pillar": "Edukacja",
+    "topic": "5 rzeczy, które spowalniają stronę firmy",
+    "caption_ig": "53% osób zamyka stronę na telefonie, jeśli ładuje się dłużej niż 3 sekundy.\n\nTo dane Google z 2017 roku. Jeśli Twoja strona jest wolna, część klientów nigdy nie zobaczy oferty, nie zadzwoni i nie przyjdzie, a Ty nawet nie będziesz wiedzieć, że w ogóle byli.\n\nWinne są zwykle te same rzeczy: ciężkie zdjęcia, zbędne wtyczki, tani hosting, rozbudowany szablon i film w tle.\n\nWynik sprawdzisz za darmo na pagespeed.web.dev. Zapisz ten post, żeby mieć listę pod ręką.\n\n#stronywww #stronainternetowa #małybiznes #przemyśl #webdesign",
+    "caption_fb": "Ile czeka klient, zanim zamknie Twoją stronę? Według Google ponad połowa osób na telefonie odpuszcza po 3 sekundach.\n\nNajczęstsze powody wolnej strony: zdjęcia wrzucone prosto z aparatu, wtyczki, których nikt nie używa, najtańszy hosting, rozbudowany szablon z kreatora i film w tle na stronie głównej.\n\nSprawdź swoją stronę za darmo: https://pagespeed.web.dev\n\nWynik Cię zaskoczył? Napisz do nas. W PageHub piszemy strony od zera, bez zbędnego kodu: https://pagehub.pl",
+    "alt": "Okładka karuzeli PageHub: napis Ponad 3 sekundy? Tracisz klientów oraz 5 rzeczy, które spowalniają stronę Twojej firmy, na ciemnym tle w stylu okna przeglądarki."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "szybkość strony",
+      "title": "Ponad 3 sekundy? *Tracisz* klientów",
+      "subtitle": "5 rzeczy, które spowalniają stronę Twojej firmy"
+    },
+    {
+      "type": "text",
+      "title": "53% nie czeka",
+      "body": "Ponad połowa osób zamyka stronę na telefonie, jeśli ładuje się dłużej niż *3 sekundy*.\n\nŹródło: Google, 2017"
+    },
+    {
+      "type": "text",
+      "kicker": "powód 1/5",
+      "title": "Zdjęcia prosto z aparatu",
+      "body": "Zdjęcie z telefonu potrafi ważyć kilka megabajtów. Na stronie wystarczy ułamek tego i nikt nie zobaczy różnicy."
+    },
+    {
+      "type": "text",
+      "kicker": "powód 2/5",
+      "title": "Wtyczki, których nikt nie używa",
+      "body": "Czat, slider, licznik odwiedzin, trzy skrypty statystyk. Każdy dodatek telefon musi pobrać, zanim pokaże stronę."
+    },
+    {
+      "type": "text",
+      "kicker": "powód 3/5",
+      "title": "Najtańszy hosting",
+      "body": "Serwer za kilka złotych często dzieli moc z wieloma innymi stronami. Gdy one mają ruch, Twoja czeka."
+    },
+    {
+      "type": "text",
+      "kicker": "powód 4/5",
+      "title": "Szablon na każdą okazję",
+      "body": "Gotowy motyw ma kod do sklepu, bloga i galerii. Twoja strona ładuje to wszystko, nawet jeśli używa małej części."
+    },
+    {
+      "type": "text",
+      "kicker": "powód 5/5",
+      "title": "Film w tle na start",
+      "body": "Na komputerze wygląda świetnie. Na telefonie przy słabym zasięgu klient patrzy na pusty ekran."
+    },
+    {
+      "type": "list",
+      "title": "Sprawdź u siebie",
+      "items": [
+        "Zdjęcia zmniejszone przed wrzuceniem",
+        "Tylko dodatki, z których ktoś korzysta",
+        "Hosting, który nie dzieli mocy z tłumem",
+        "Kod bez zbędnych części szablonu",
+        "Bez filmu w tle na telefonie"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Ile ładuje się *Twoja* strona?",
+      "body": "Wpisz jej adres na pagespeed.web.dev. Zapisz ten post, żeby wrócić do listy.",
+      "button": "Zapisz"
+    }
+  ]
+}
