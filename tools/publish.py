@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""
+publish.py - publish the carousels whose time has come, on Instagram and Facebook.
+
+Runs hourly from GitHub Actions. A carousel is due when its meta.publish_at is
+in the past but less than LATE_LIMIT ago, it is not marked "skip", and it is
+not in state/published.json yet. Everything it does is recorded in state/ so
+a rerun never posts twice.
+
+The Instagram API only takes JPEG from a public URL and cannot schedule, so:
+  1. slides are converted to JPEG,
+  2. deployed to a small Netlify site (the public URL),
+  3. published through the Graph API at the hour they are due.
+
+Usage
+  python3 tools/publish.py              # publish what is due
+  python3 tools/publish.py --dry-run    # show what would happen, no network
+  python3 tools/publish.py --check      # verify every secret and connection
+  python3 tools/publish.py --dry-run --now 2026-11-03T19:05:00+01:00
+
+Pause everything: create the file config/PAUZA. Delete it to resume.
+"""
+
+import argparse
+import io
+import json
+import sys
+import urllib.request
+import zipfile
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
+from common import ROOT, ApiError, _request, env, graph, load_state, save_state, telegram, wait
+
+TZ = ZoneInfo("Europe/Warsaw")
+LATE_LIMIT = timedelta(hours=12)     # older than this and the slot is gone
+MAX_ATTEMPTS = 3                     # hourly retries before giving up
+NETLIFY = "https://api.netlify.com/api/v1"
+
+
+def now_local(override=None):
+    if override:
+        return datetime.fromisoformat(override).astimezone(TZ)
+    return datetime.now(timezone.utc).astimezone(TZ)
+
+
+def all_posts():
+    for spec_path in sorted(ROOT.glob("weeks/*/k*.json")):
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        key = f"{spec_path.parent.name}/{spec_path.stem}"
+        yield key, spec_path, spec
+
+
+def due_posts(now, published, failures):
+    due, missed = [], []
+    for key, path, spec in all_posts():
+        meta = spec.get("meta", {})
+        if key in published or meta.get("skip") or not meta.get("publish_at"):
+            continue
+        if failures.get(key, {}).get("count", 0) >= MAX_ATTEMPTS:
+            continue
+        at = datetime.fromisoformat(meta["publish_at"]).astimezone(TZ)
+        if at <= now < at + LATE_LIMIT:
+            due.append((key, path, spec))
+        elif now >= at + LATE_LIMIT:
+            missed.append((key, path, spec))
+    return due, missed
+
+
+def jpegs(path, spec):
+    """Slides as JPEG bytes, in order. The API refuses PNG."""
+    from PIL import Image
+    slide_dir = path.with_suffix("")
+    pngs = sorted(slide_dir.glob("*.png"))
+    if len(pngs) != len(spec["slides"]):
+        raise ApiError(f"{path.name}: {len(pngs)} plików PNG zamiast {len(spec['slides'])}")
+    if not 2 <= len(pngs) <= 10:
+        raise ApiError(f"{path.name}: karuzela przez API musi mieć 2-10 slajdów, ma {len(pngs)}")
+    out = []
+    for p in pngs:
+        buf = io.BytesIO()
+        Image.open(p).convert("RGB").save(buf, "JPEG", quality=92, optimize=True)
+        out.append((p.stem + ".jpg", buf.getvalue()))
+    return out
+
+
+# ---------------------------------------------------------------- netlify
+
+def netlify_deploy(files):
+    """Deploy {path: bytes} as the whole media site. Returns the public base URL."""
+    token, site = env("NETLIFY_AUTH_TOKEN"), env("NETLIFY_SITE_ID")
+    auth = {"Authorization": f"Bearer {token}"}
+    info = _request("GET", f"{NETLIFY}/sites/{site}", headers=auth)
+    base = (info.get("ssl_url") or info.get("url")).rstrip("/")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("index.html", "<!doctype html><title>media</title>")
+        z.writestr("robots.txt", "User-agent: *\nDisallow: /\n")
+        for name, data in files.items():
+            z.writestr(name, data)
+    dep = _request("POST", f"{NETLIFY}/sites/{site}/deploys", raw=buf.getvalue(),
+                   headers={**auth, "Content-Type": "application/zip"}, timeout=180)
+    for _ in range(60):
+        state = _request("GET", f"{NETLIFY}/deploys/{dep['id']}", headers=auth).get("state")
+        if state == "ready":
+            break
+        if state == "error":
+            raise ApiError("Netlify: deploy zakończony błędem")
+        wait(5)
+    else:
+        raise ApiError("Netlify: deploy nie skończył się w 5 minut")
+    # Meta fetches the files itself, so make sure they are really public first.
+    first = next(iter(files))
+    with urllib.request.urlopen(urllib.request.Request(f"{base}/{first}", method="HEAD"), timeout=30) as r:
+        if r.status != 200:
+            raise ApiError(f"Netlify: {first} zwraca {r.status}")
+    return base
+
+
+# ---------------------------------------------------------------- instagram / facebook
+
+def publish_instagram(urls, caption):
+    token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
+    children = [graph("POST", f"{ig}/media", token, image_url=u, is_carousel_item="true")["id"]
+                for u in urls]
+    carousel = graph("POST", f"{ig}/media", token, media_type="CAROUSEL",
+                     children=",".join(children), caption=caption)["id"]
+    for _ in range(30):
+        status = graph("GET", carousel, token, fields="status_code").get("status_code")
+        if status == "FINISHED":
+            break
+        if status in ("ERROR", "EXPIRED"):
+            raise ApiError(f"Instagram: kontener karuzeli w stanie {status}")
+        wait(5)
+    media_id = graph("POST", f"{ig}/media_publish", token, creation_id=carousel)["id"]
+    permalink = graph("GET", media_id, token, fields="permalink").get("permalink", "")
+    return media_id, permalink
+
+
+def publish_facebook(urls, message):
+    token, page = env("META_PAGE_TOKEN"), env("FB_PAGE_ID")
+    photo_ids = [graph("POST", f"{page}/photos", token, url=u, published="false")["id"] for u in urls]
+    attached = {f"attached_media[{i}]": json.dumps({"media_fbid": pid}) for i, pid in enumerate(photo_ids)}
+    return graph("POST", f"{page}/feed", token, message=message, **attached)["id"]
+
+
+# ---------------------------------------------------------------- check mode
+
+def check():
+    """Touch every connection once and report in plain Polish."""
+    ok, bad = [], []
+
+    def step(name, fn):
+        try:
+            ok.append(f"{name}: {fn()}")
+        except Exception as e:  # noqa: BLE001 - report every failure, keep going
+            bad.append(f"{name}: {e}")
+
+    token = env("META_PAGE_TOKEN", required=False)
+    step("Token Meta", lambda: graph("GET", "me", token, fields="name")["name"])
+    step("Konto Instagram", lambda: "@" + graph("GET", env("IG_USER_ID"), token, fields="username")["username"])
+    step("Limit publikacji", lambda: json.dumps(graph("GET", f"{env('IG_USER_ID')}/content_publishing_limit",
+                                                       token, fields="quota_usage").get("data", [{}])[0]))
+    step("Strona Facebook", lambda: graph("GET", env("FB_PAGE_ID"), token, fields="name")["name"])
+    step("Wiadomości IG", lambda: f"{len(graph('GET', env('FB_PAGE_ID') + '/conversations', token, platform='instagram', limit=1).get('data', []))} rozmów widocznych")
+    step("Netlify", lambda: _request("GET", f"{NETLIFY}/sites/{env('NETLIFY_SITE_ID')}",
+                                     headers={"Authorization": f"Bearer {env('NETLIFY_AUTH_TOKEN')}"})["ssl_url"])
+    try:
+        telegram("PageHub: test połączenia.\n\n" + "\n".join(["OK  " + o for o in ok] + ["BŁĄD  " + b for b in bad]))
+        ok.append("Telegram: wiadomość testowa wysłana")
+    except Exception as e:  # noqa: BLE001
+        bad.append(f"Telegram: {e}")
+    print("\n".join(["OK    " + o for o in ok] + ["BŁĄD  " + b for b in bad]))
+    return 0 if not bad else 1
+
+
+# ---------------------------------------------------------------- main
+
+def run(now, dry_run=False):
+    if (ROOT / "config" / "PAUZA").exists():
+        print("config/PAUZA istnieje - publikacja wstrzymana")
+        return 0
+    published = load_state("published.json", {})
+    failures = load_state("publish_failures.json", {})
+    due, missed = due_posts(now, published, failures)
+
+    for key, _, spec in missed:
+        published[key] = {"status": "missed", "noted_at": now.isoformat()}
+        telegram(f"PageHub: karuzela {key} ({spec['meta'].get('when', '')}) nie wyszła na czas "
+                 "i została pominięta. Sprawdź zakładkę Actions w repo.", dry_run)
+    if not due:
+        print(f"{now:%Y-%m-%d %H:%M}: nic do publikacji")
+        if missed and not dry_run:
+            save_state("published.json", published)
+        return 0
+
+    media = {}
+    for key, path, spec in due:
+        for name, data in jpegs(path, spec):
+            media[f"{key}/{name}"] = data
+    if dry_run:
+        for key, _, spec in due:
+            n = len([m for m in media if m.startswith(key + "/")])
+            print(f"[dry-run] {key}: {n} JPEG -> Netlify -> karuzela IG + post FB")
+            print("          podpis IG:", spec["meta"]["caption_ig"].splitlines()[0])
+        return 0
+
+    base = netlify_deploy(media)
+    code = 0
+    for key, _, spec in due:
+        meta = spec["meta"]
+        urls = [f"{base}/{m}" for m in sorted(media) if m.startswith(key + "/")]
+        try:
+            media_id, link = publish_instagram(urls, meta["caption_ig"])
+            published[key] = {"status": "published", "ig_media_id": media_id, "permalink": link,
+                              "cta_keyword": meta.get("cta_keyword", ""), "at": now.isoformat()}
+            save_state("published.json", published)
+            failures.pop(key, None)
+            print(f"{key}: opublikowano na Instagramie {link}")
+        except ApiError as e:
+            code = 1
+            f = failures.setdefault(key, {"count": 0})
+            f["count"] += 1
+            f["last_error"] = str(e)
+            if f["count"] in (1, MAX_ATTEMPTS):
+                last = " To była ostatnia próba." if f["count"] == MAX_ATTEMPTS else " Spróbuję ponownie za godzinę."
+                telegram(f"PageHub: nie udało się opublikować {key} na Instagramie.\n{e}{last}")
+            save_state("publish_failures.json", failures)
+            continue
+        if env("FB_PAGE_ID", required=False) and env("PUBLISH_FB", required=False) != "false":
+            try:
+                post_id = publish_facebook(urls, meta.get("caption_fb") or meta["caption_ig"])
+                published[key]["fb_post_id"] = post_id
+            except ApiError as e:
+                published[key]["fb_error"] = str(e)
+                telegram(f"PageHub: {key} jest na Instagramie, ale Facebook odrzucił post.\n{e}")
+            save_state("published.json", published)
+    save_state("publish_failures.json", failures)
+    return code
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Publish due carousels.")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--now", help="ISO time override, for testing")
+    args = ap.parse_args()
+    if args.check:
+        sys.exit(check())
+    sys.exit(run(now_local(args.now), dry_run=args.dry_run))
+
+
+if __name__ == "__main__":
+    main()

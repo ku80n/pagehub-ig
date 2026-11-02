@@ -1,0 +1,85 @@
+name: Instagram PageHub
+
+# Co godzinę od 6 do 23 czasu polskiego: publikuje karuzele, których termin minął,
+# i wysyła na Telegram potencjalnych klientów z komentarzy i wiadomości.
+on:
+  schedule:
+    - cron: "7 5-22 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check = test połączeń, dry-run = próba bez publikacji, run = normalne uruchomienie"
+        type: choice
+        options: [check, dry-run, run]
+        default: check
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram
+  cancel-in-progress: false
+
+jobs:
+  instagram:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      PUBLISH_FB: ${{ vars.PUBLISH_FB }}
+      NORMAL_RUN: ${{ github.event_name == 'schedule' || inputs.mode == 'run' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet pillow
+
+      - name: Czy sekrety są ustawione
+        id: cfg
+        run: |
+          if [ -z "$META_PAGE_TOKEN" ] || [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Sekrety nie są jeszcze ustawione (SETUP.md). Pomijam."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test połączeń
+        if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'check'
+        working-directory: tools
+        run: python3 publish.py --check
+
+      - name: Próba bez publikacji
+        if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'dry-run'
+        working-directory: tools
+        run: python3 publish.py --dry-run
+
+      - name: Publikacja
+        if: steps.cfg.outputs.configured == 'true' && env.NORMAL_RUN == 'true'
+        working-directory: tools
+        run: python3 publish.py
+
+      - name: Potencjalni klienci
+        if: always() && steps.cfg.outputs.configured == 'true' && env.NORMAL_RUN == 'true'
+        working-directory: tools
+        run: python3 leads.py
+
+      - name: Zapisz stan
+        if: always() && steps.cfg.outputs.configured == 'true' && env.NORMAL_RUN == 'true'
+        run: |
+          git config user.name "pagehub-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Stan publikacji i leadów"
+          for i in 1 2 3; do git pull --rebase --quiet && git push --quiet && exit 0; sleep 5; done
+          exit 1

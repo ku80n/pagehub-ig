@@ -16,7 +16,8 @@
 ## Publikacja
 - 3 karuzele tygodniowo
 - Domyślne terminy: wtorek 19:00, czwartek 19:00, sobota 10:00
-- Planowanie: Meta Business Suite (ręcznie, po przejrzeniu)
+- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook)
+- Pauza: plik `config/PAUZA` w repo
 
 ## Podpisy
 - Po polsku

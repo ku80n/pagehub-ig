@@ -3,8 +3,11 @@
   "ig": "@pagehub.pl",
   "meta": {
     "when": "wtorek 3.11, 19:00",
+    "publish_at": "2026-11-03T19:00:00+01:00",
     "pillar": "Edukacja",
     "topic": "5 rzeczy, które spowalniają stronę firmy",
+    "cta_keyword": "",
+    "reply_hint": "",
     "caption_ig": "53% osób zamyka stronę na telefonie, jeśli ładuje się dłużej niż 3 sekundy.\n\nTo dane Google z 2017 roku. Jeśli Twoja strona jest wolna, część klientów nigdy nie zobaczy oferty, nie zadzwoni i nie przyjdzie, a Ty nawet nie będziesz wiedzieć, że w ogóle byli.\n\nWinne są zwykle te same rzeczy: ciężkie zdjęcia, zbędne wtyczki, tani hosting, rozbudowany szablon i film w tle.\n\nWynik sprawdzisz za darmo na pagespeed.web.dev. Zapisz ten post, żeby mieć listę pod ręką.\n\n#stronywww #stronainternetowa #małybiznes #przemyśl #webdesign",
     "caption_fb": "Ile czeka klient, zanim zamknie Twoją stronę? Według Google ponad połowa osób na telefonie odpuszcza po 3 sekundach.\n\nNajczęstsze powody wolnej strony: zdjęcia wrzucone prosto z aparatu, wtyczki, których nikt nie używa, najtańszy hosting, rozbudowany szablon z kreatora i film w tle na stronie głównej.\n\nSprawdź swoją stronę za darmo: https://pagespeed.web.dev\n\nWynik Cię zaskoczył? Napisz do nas. W PageHub piszemy strony od zera, bez zbędnego kodu: https://pagehub.pl",
     "alt": "Okładka karuzeli PageHub: napis Ponad 3 sekundy? Tracisz klientów oraz 5 rzeczy, które spowalniają stronę Twojej firmy, na ciemnym tle w stylu okna przeglądarki."
