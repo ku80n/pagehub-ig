@@ -23,9 +23,11 @@ MONTHS = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca",
 def week_label(monday):
     d0 = date.fromisoformat(monday)
     d1 = d0 + timedelta(days=6)
+    # nowrap spans keep "2-8" and "30 listopada" from breaking at the hyphen or space
     if d0.month == d1.month:
-        return f"{d0.day}-{d1.day} {MONTHS[d1.month - 1]} {d1.year}"
-    return f"{d0.day} {MONTHS[d0.month - 1]} - {d1.day} {MONTHS[d1.month - 1]} {d1.year}"
+        return f'<span class="nw">{d0.day}-{d1.day}</span> {MONTHS[d1.month - 1]} {d1.year}'
+    return (f'<span class="nw">{d0.day} {MONTHS[d0.month - 1]}</span> - '
+            f'<span class="nw">{d1.day} {MONTHS[d1.month - 1]} {d1.year}</span>')
 
 
 def esc(t):
@@ -83,6 +85,7 @@ h2 { font: 700 clamp(20px, 3.4vw, 26px)/1.25 var(--display); margin: 0; text-wra
 .text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: 15px/1.55 var(--body); }
 .alt { font-size: 14px; color: var(--muted); }
 .alt b { color: var(--fg); font-weight: 600; }
+.nw { white-space: nowrap; }
 footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
 @media (prefers-reduced-motion: reduce) { .strip { scroll-behavior: auto; } }
 </style>
