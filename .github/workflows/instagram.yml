@@ -73,6 +73,11 @@ jobs:
         working-directory: tools
         run: python3 leads.py
 
+      - name: Ważność tokenu Meta
+        if: always() && steps.cfg.outputs.configured == 'true' && env.NORMAL_RUN == 'true'
+        working-directory: tools
+        run: python3 token_watch.py
+
       - name: Zapisz stan
         if: always() && steps.cfg.outputs.configured == 'true' && env.NORMAL_RUN == 'true'
         run: |

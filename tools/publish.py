@@ -162,7 +162,16 @@ def check():
     step("Limit publikacji", lambda: json.dumps(graph("GET", f"{env('IG_USER_ID')}/content_publishing_limit",
                                                        token, fields="quota_usage").get("data", [{}])[0]))
     step("Strona Facebook", lambda: graph("GET", env("FB_PAGE_ID"), token, fields="name")["name"])
-    step("Wiadomości IG", lambda: f"{len(graph('GET', env('FB_PAGE_ID') + '/conversations', token, platform='instagram', limit=1).get('data', []))} rozmów widocznych")
+    step("Wiadomości IG", lambda: "dostęp jest" + (", widać rozmowy" if graph(
+        "GET", env("FB_PAGE_ID") + "/conversations", token, platform="instagram", limit=1).get("data") else ""))
+
+    def token_validity():
+        from token_watch import status
+        problems, summary = status()
+        if problems:
+            raise ApiError("; ".join(problems))
+        return summary
+    step("Ważność tokenu", token_validity)
     step("Netlify", lambda: _request("GET", f"{NETLIFY}/sites/{env('NETLIFY_SITE_ID')}",
                                      headers={"Authorization": f"Bearer {env('NETLIFY_AUTH_TOKEN')}"})["ssl_url"])
     try:
