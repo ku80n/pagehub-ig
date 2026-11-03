@@ -6,7 +6,7 @@ Many TTS voices read "Masz pięć minut?" with the same falling tone as a statem
 Polish yes/no questions rise at the end, so for every sentence that ends with "?"
 this bends the pitch of its last ~0.4 s upwards (PSOLA in Praat via parselmouth:
 the voice itself is untouched, only the melody changes). Sentences are found at
-the pauses between them, the same way make_reel.py finds them.
+the pauses between them (make_reel.py uses the same function).
 
 Usage (in code)
   from prosody import lift_questions
@@ -25,35 +25,51 @@ def sentences(text):
     return [s.strip() for s in re.findall(r"[^.!?]+[.!?]*", text) if s.strip()]
 
 
-def segments(x, sr, count):
-    """`count` sentences at the `count - 1` longest pauses (same rule as make_reel)."""
+def segments(x, sr, sents):
+    """(start, end) in seconds of every sentence of a clip.
+
+    A boundary is the pause closest to where the sentence should start judging by
+    the letters before it, longer pauses preferred. Expressive voices sometimes
+    pause longer inside a sentence than between two, so "the longest pauses" is not
+    enough. Returns None when it cannot split the clip sensibly."""
+    count, dur = len(sents), len(x) / sr
+    if count <= 1:
+        return [(0.0, dur)]
     hop = int(0.01 * sr)
     frames = len(x) // hop
     rms = np.sqrt(np.mean(x[: frames * hop].reshape(frames, hop) ** 2, axis=1))
-    quiet = rms < max(rms.max() * 0.04, 1e-4)
+    quiet = rms < max(rms.max() * 0.06, 1e-4)
     pauses, i = [], 0
     while i < frames:
         if quiet[i]:
             j = i
             while j < frames and quiet[j]:
                 j += 1
-            if i > 0 and j < frames and j - i >= 6:
-                pauses.append((j - i, i, j))
+            if i > 0 and j < frames and j - i >= 4:
+                pauses.append((i * hop / sr, j * hop / sr))
             i = j
         else:
             i += 1
-    cut = sorted(sorted(pauses, reverse=True)[: max(0, count - 1)], key=lambda p: p[1])
-    if len(cut) != count - 1:
-        return None
-    edges = [0] + [c[1] * hop / sr for c in cut] + [len(x) / sr]
-    return list(zip(edges[:-1], edges[1:]))
+    letters = [len(re.sub(r"\W", "", s)) for s in sents]
+    edges, last = [0.0], 0.0
+    for k in range(1, count):
+        target = dur * sum(letters[:k]) / sum(letters)
+        options = [(abs((a + b) / 2 - target) - 0.5 * (b - a), b) for a, b in pauses if a > last + 0.25]
+        if not options:
+            return None
+        _, b = min(options)
+        last = b - 0.04
+        edges.append(last)
+    edges.append(dur)
+    segs = list(zip(edges[:-1], edges[1:]))
+    return segs if min(b - a for a, b in segs) >= 0.3 else None
 
 
 def end_moves(x, sr, text):
     """Pitch movement (semitones) over the last ~0.1 s of every sentence, None when
     it cannot be measured. A spoken yes/no question ends clearly up (> +2)."""
     sents = sentences(text)
-    segs = segments(x, sr, len(sents))
+    segs = segments(x, sr, sents)
     if not segs:
         return [None] * len(sents)
     import parselmouth
@@ -79,7 +95,7 @@ def lift_questions(x, sr, text, rise=RISE_ST, only=None):
     sents = sentences(text)
     if not any(s.endswith("?") for s in sents):
         return x
-    segs = segments(x, sr, len(sents))
+    segs = segments(x, sr, sents)
     if not segs:
         return x
     import parselmouth

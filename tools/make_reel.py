@@ -45,6 +45,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FONTS = ROOT / "assets" / "fonts"
+sys.path.insert(0, str(ROOT / "tools"))
+from prosody import segments, sentences  # noqa: E402
 
 W, H, FPS = 1080, 1920, 30
 SR = 48000
@@ -554,31 +556,6 @@ def _resample(x, sr_in, sr_out):
     return np.fft.irfft(out, n_out) * (n_out / len(x))
 
 
-def _segments(x, sr, count):
-    """Split a voice clip into `count` sentences at its `count - 1` longest pauses."""
-    hop = int(0.01 * sr)
-    frames = len(x) // hop
-    rms = np.sqrt(np.mean(x[: frames * hop].reshape(frames, hop) ** 2, axis=1))
-    quiet = rms < max(rms.max() * 0.04, 1e-4)
-    pauses, i = [], 0
-    while i < frames:
-        if quiet[i]:
-            j = i
-            while j < frames and quiet[j]:
-                j += 1
-            if i > 0 and j < frames and j - i >= 6:
-                pauses.append((j - i, i, j))
-            i = j
-        else:
-            i += 1
-    cut = sorted(sorted(pauses, reverse=True)[: max(0, count - 1)], key=lambda p: p[1])
-    edges = [0.0] + [c[2] * hop / sr - 0.04 for c in cut] + [len(x) / sr]
-    segs = list(zip(edges[:-1], edges[1:]))
-    if len(segs) != count or min(b - a for a, b in segs) < 0.3:
-        return [(0.0, len(x) / sr)]
-    return segs
-
-
 def load_voices(spec_path):
     """The narrator clips of one Reel (or Nones), at SR, with their sentences."""
     folder = pathlib.Path(spec_path).with_suffix("")
@@ -597,8 +574,8 @@ def load_voices(spec_path):
         x = _resample(x, sr, SR)
         rms = np.sqrt(np.mean(x[np.abs(x) > 0.02] ** 2)) if (np.abs(x) > 0.02).any() else 0.1
         x = np.clip(x * (0.16 / max(rms, 1e-4)), -0.98, 0.98)       # same loudness on every screen
-        sentences = len([s for s in re.split(r"[.!?]+", texts.get(part, "")) if s.strip()]) or 1
-        out.append({"samples": x, "seconds": len(x) / SR, "segments": _segments(x, SR, sentences)})
+        segs = segments(x, SR, sentences(texts.get(part, ""))) or [(0.0, len(x) / SR)]
+        out.append({"samples": x, "seconds": len(x) / SR, "segments": segs})
     return out if any(out) else None
 
 
