@@ -4,15 +4,17 @@ make_reel.py - turn a carousel spec into a short 9:16 Reel where the text types
 itself out in a PageHub-style code editor, with original sound.
 
 Two screens. First the carousel's cover, exactly as it is, on screen from the
-very first frame (the hook). Then a bullet list of the headings of the other
-slides, typed one by one, each finished with a "ping". The recap and the
-call-to-action slides are left out of the list: they are not points.
+very first frame (the hook) and long enough to read all of it. Then a bullet
+list of the headings of the other slides, typed one by one, ending with
+"reszta w opisie" and a single "ping". The recap and the call-to-action slides
+are left out of the list: they are not points.
 The window sits inside the Reels safe zone, away from the like/comment rail
 and the caption.
 
-Sound: synthesised here, so there is nothing to license and nothing Instagram
-can mute. Clicky mechanical keys at a real typist's rhythm, a ping after each
-heading, a soft whoosh between the screens and a quiet lo-fi bed underneath.
+Sound: real clicky-switch recordings (Kailh Box White, MIT licence, see
+assets/sounds) played at a real typist's rhythm, a soft whoosh between the
+screens, one ping at the very end, and a synthwave bed generated here, so there
+is nothing to license and nothing Instagram can mute.
 
 Usage
   python3 make_reel.py weeks/2026-11-02/k1.json                # -> weeks/.../k1/reel.mp4
@@ -60,8 +62,9 @@ TW = WX + WW - 52 - TX           # text width
 CONTENT_TOP, CONTENT_BOTTOM = WY + BAR_H + 40, WY + WH - 70
 
 # pacing (characters per second, seconds)
-CPS = {"kicker": 60, "title": 34, "subtitle": 70, "body": 78, "item": 70, "bullet": 30}
-PING_GAP = 0.38                  # pause after each heading's ping before the next one types
+CPS = {"kicker": 60, "title": 34, "subtitle": 70, "body": 78, "item": 70, "bullet": 30, "outro": 26}
+BULLET_GAP = 0.18                # short pause between headings
+OUTRO = "reszta w opisie \u2193"
 HOLD, HOLD_LAST, CLEAR = 0.95, 2.2, 0.25
 
 
@@ -121,15 +124,17 @@ def block(kind, text, color, fnt, indent=0, gap_before=0, lh=1.4, prefix=None):
 def reel_slides(slides):
     """Cover as it is, then one screen listing the headings of the other slides."""
     heads = [s["title"] for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
-    return [slides[0], {"type": "bullets", "items": heads}]
+    return [slides[0], {"type": "bullets", "items": heads, "outro": OUTRO}]
 
 
-def bullet_blocks(items):
-    """Biggest font size at which every heading still fits in the window."""
+def bullet_blocks(items, outro=None):
+    """Biggest font size at which every heading (and the outro line) still fits."""
     for size in (46, 42, 38, 34, 30):
         fnt = font("DejaVuSansMono-Bold.ttf", size)
         blocks = [block("bullet", it, FG, fnt, indent=int(size * 1.1), gap_before=0 if i == 0 else int(size * 0.75),
                         lh=1.22, prefix="\u2022") for i, it in enumerate(items)]
+        if outro:
+            blocks.append(block("outro", outro, ACCENT, F["kicker"], gap_before=int(size * 1.4), lh=1.3))
         if sum(b["gap"] + b["lh"] * len(b["lines"]) for b in blocks) <= CONTENT_BOTTOM - CONTENT_TOP - 40:
             return blocks
     return blocks
@@ -139,7 +144,7 @@ def layout(slide, first):
     kind = slide.get("type", "text")
     blocks = []
     if kind == "bullets":
-        blocks = bullet_blocks(slide["items"])
+        blocks = bullet_blocks(slide["items"], slide.get("outro"))
     if slide.get("kicker") and kind != "bullets":
         blocks.append(block("kicker", "// " + slide["kicker"], ACCENT, F["kicker"], lh=1.3))
     if slide.get("title") and kind != "bullets":
@@ -189,11 +194,16 @@ def timeline(slides):
                 text = " ".join(w for ln in b["lines"] for _, w, _ in ln) + " "
                 for k, ch in enumerate(text):
                     events.append((t + k / CPS[b["kind"]], "space" if ch == " " else "key"))
-                t += dur + 0.12
-                if b["kind"] == "bullet":
-                    events.append((t - 0.08, "ping"))
-                    t += PING_GAP
-        t += HOLD_LAST if last else (1.7 if first else HOLD)   # the cover is the hook: let it sit
+                t += dur + (BULLET_GAP if b["kind"] == "bullet" else 0.12)
+        if last:
+            events.append((t, "ping"))                    # one ping, when the last line is done
+            t += HOLD_LAST
+        elif first:
+            # the cover is the hook: keep it up long enough to read every word of it
+            words = sum(len(ln) for b in blocks for ln in b["lines"])
+            t = max(t + 1.0, start + 1.2 + 0.3 * words)
+        else:
+            t += HOLD
         plan.append({"blocks": blocks, "start": start, "end": t})
         if not last:
             events.append((t, "whoosh"))
@@ -302,6 +312,9 @@ def frame_at(plan, chromes, t):
 
 # ---------------------------------------------------------------- sound
 
+SOUNDS = ROOT / "assets" / "sounds" / "kailh_box_white"
+
+
 def _env(n, attack, decay):
     t = np.arange(n) / SR
     return np.minimum(1, t / max(attack, 1e-4)) * np.exp(-t / decay)
@@ -312,50 +325,154 @@ def _lowpass(x, taps):
     return np.convolve(x, k / k.sum(), mode="same")
 
 
+def _fir(cut, taps=129):
+    """Windowed-sinc low-pass at `cut` Hz."""
+    m = np.arange(taps) - (taps - 1) / 2
+    h = np.sinc(2 * cut / SR * m) * np.hamming(taps)
+    return h / h.sum()
+
+
+def _fftconv(x, h):
+    size = len(x) + len(h) - 1
+    nfft = 1 << (size - 1).bit_length()
+    return np.fft.irfft(np.fft.rfft(x, nfft) * np.fft.rfft(h, nfft), nfft)[: len(x)]
+
+
+def _put(buf, sig, t):
+    i = int(t * SR)
+    if 0 <= i < len(buf):
+        s = sig[: len(buf) - i]
+        buf[i:i + len(s)] += s
+
+
 def _ring(k, freq, decay, phase=0.0):
     """A damped resonance: what a keycap, plate or case does when it is hit."""
     return np.sin(2 * np.pi * freq * k + phase) * np.exp(-k / decay)
 
 
-def _snap(k, freqs, decays, gains):
-    """The click itself: a bank of short metallic resonances, hit all at once."""
-    out = np.zeros_like(k)
-    for f, d, g in zip(freqs, decays, gains):
-        out += _ring(k, f, d) * g
-    return out * np.minimum(1, k / 0.00015)
+def _read_wav(path):
+    with wave.open(str(path)) as w:
+        x = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(float) / 32768
+        x = x.reshape(-1, w.getnchannels()).mean(axis=1)
+        if w.getframerate() != SR:
+            x = np.interp(np.arange(0, len(x), w.getframerate() / SR), np.arange(len(x)), x)
+    return x
 
 
-def mech_key(rng, space=False):
-    """One keystroke on a clicky mechanical switch (the 'blue switch' sound):
-    the sharp click of the click jacket on the way down, the plastic bottom-out
-    right after it, and a quieter second click when the key comes back up.
-    Every key is a little different, so it never sounds like a loop."""
+def _samples():
+    downs = [_read_wav(p) for p in sorted(SOUNDS.glob("down*.wav"))]
+    ups = [_read_wav(p) for p in sorted(SOUNDS.glob("up*.wav"))]
+    if not downs or not ups:
+        raise RuntimeError(f"brak nagrań klawiszy w {SOUNDS}")
+    soften = _fir(9500, 31)                 # the raw clicks are very bright; take the sting off
+    return [np.convolve(d, soften, "same") for d in downs], [np.convolve(u, soften, "same") for u in ups]
+
+
+def key_sound(rng, downs, ups, space=False):
+    """One keystroke from real clicky-switch recordings (Kailh Box White): the click
+    going down, a soft bottom-out knock under it, and the click coming back up.
+    Pitch and level vary a little, so it never sounds like one sample on repeat."""
     ln = int(0.16 * SR)
+    out = np.zeros(ln)
+    rate = rng.uniform(0.94, 1.06) * (0.88 if space else 1.0)
+
+    def warp(x):
+        return np.interp(np.arange(0, len(x) - 1, rate), np.arange(len(x)), x)
+
+    down = warp(downs[rng.integers(len(downs))])
+    out[: len(down)] += down * rng.uniform(0.9, 1.15)
     k = np.arange(ln) / SR
-    sig = np.zeros(ln)
-    detune = rng.uniform(0.93, 1.07)
-    # 1) click on the way down: crisp, a few kHz, gone within ~5 ms
-    click = _snap(k, [3100 * detune, 4300 * detune, 5900 * detune, 2200 * detune],
-                  [0.0035, 0.0025, 0.0016, 0.0045], [1.0, 0.75, 0.4, 0.35])
-    sig += click * (0.75 if space else 1.0)
-    # 2) bottom-out a few ms later: the keycap hitting the plate
-    bo = int(rng.uniform(0.007, 0.012) * SR)
-    kb = k[: ln - bo]
-    low = rng.uniform(150, 190) if space else rng.uniform(330, 420)
-    knock = (_ring(kb, low, 0.016 if space else 0.008) * (0.9 if space else 0.5)
-             + _ring(kb, low * 3.1, 0.004) * 0.35
-             + _snap(kb, [1900 * detune], [0.002], [0.3]))
-    sig[bo:] += knock * np.minimum(1, kb / 0.0004)
-    if space:
-        # stabiliser rattle on the long bar
-        for d in (0.018, 0.027):
-            j = int(d * SR)
-            sig[j:] += _snap(k[: ln - j], [2600, 3900], [0.0012, 0.0008], [0.25, 0.15])
-    # 3) the release click, quieter and a touch higher
-    up = int(rng.uniform(0.06, 0.09) * SR)
-    ku = k[: ln - up]
-    sig[up:] += _snap(ku, [3500 * detune, 5000 * detune], [0.0025, 0.0015], [0.45, 0.3])
-    return _lowpass(sig, 2) * rng.uniform(0.11, 0.15)
+    bo = int(rng.uniform(0.008, 0.012) * SR)
+    low = rng.uniform(150, 180) if space else rng.uniform(300, 380)
+    out[bo:] += (_ring(k[: ln - bo], low, 0.014 if space else 0.007) * (0.10 if space else 0.05)) \
+        * np.minimum(1, k[: ln - bo] / 0.0005)
+    up = warp(ups[rng.integers(len(ups))])
+    j = int(rng.uniform(0.06, 0.09) * SR)
+    out[j:j + len(up)] += up[: ln - j] * rng.uniform(0.45, 0.6)
+    return out
+
+
+def synthwave(total, rng):
+    """Retro synthwave bed in A minor at 100 BPM: pulsing octave bass, detuned saw
+    pads, a 16th-note arpeggio with a dotted-eighth echo, kick, gated-reverb snare
+    and hats, with the bass and pads ducking under the kick. Stereo (L, R)."""
+    n = int((total + 1.0) * SR)
+    beat = 60 / 100
+    bar = 4 * beat
+    prog = [(57, [57, 60, 64]), (53, [53, 57, 60]), (48, [48, 52, 55]), (55, [55, 59, 62])]  # Am F C G
+
+    def hz(m):
+        return 440 * 2 ** ((m - 69) / 12)
+
+    def saw(f, k):
+        return 2 * ((f * k + rng.uniform()) % 1.0) - 1
+
+    bass, pad_l, pad_r, arp, drums, snare_bus = (np.zeros(n) for _ in range(6))
+    lk = int(0.3 * SR)
+    kk = np.arange(lk) / SR
+    kick = np.sin(2 * np.pi * np.cumsum(45 + 105 * np.exp(-kk / 0.035)) / SR) * np.exp(-kk / 0.16)
+    kick[: int(0.002 * SR)] += np.linspace(0.6, 0, int(0.002 * SR))
+    ls = int(0.25 * SR)
+    ks = np.arange(ls) / SR
+    snare = (_lowpass(rng.standard_normal(ls), 3) * np.exp(-ks / 0.09) * 0.8
+             + np.sin(2 * np.pi * 185 * ks) * np.exp(-ks / 0.05) * 0.6)
+    lh = int(0.05 * SR)
+    hat = np.diff(rng.standard_normal(lh), prepend=0) * _env(lh, 0.0005, 0.012)
+    kicks, t_bar, b = [], 0.0, 0
+    while t_bar < total + 0.5:
+        root, triad = prog[b % 4]
+        for e in range(8):                                  # bass: octave-pulsing eighths
+            ln = int(beat / 2 * SR * 0.92)
+            k = np.arange(ln) / SR
+            note = root - 24 + (12 if e % 2 else 0)
+            _put(bass, saw(hz(note), k) * np.minimum(1, k / 0.003) * np.exp(-k / 0.22), t_bar + e * beat / 2)
+        ln = int(bar * SR)                                  # pads: three detuned saws per note
+        k = np.arange(ln) / SR
+        shape = np.minimum(1, k / 0.35) * np.minimum(1, (bar - k) / 0.12)
+        pl, pr = np.zeros(ln), np.zeros(ln)
+        for m in triad:
+            pl += saw(hz(m + 12 - 0.08), k) + saw(hz(m + 12), k) * 0.7
+            pr += saw(hz(m + 12 + 0.08), k) + saw(hz(m + 12), k) * 0.7
+        _put(pad_l, pl * shape / 6, t_bar)
+        _put(pad_r, pr * shape / 6, t_bar)
+        tones = [triad[0] + 12, triad[1] + 12, triad[2] + 12, triad[0] + 24]
+        for e in range(16):                                 # arpeggio: plucked square 16ths
+            ln = int(beat / 4 * SR)
+            k = np.arange(ln) / SR
+            sq = np.sign(np.sin(2 * np.pi * hz(tones[e % 4] + 12) * k))
+            _put(arp, sq * np.minimum(1, k / 0.002) * np.exp(-k / 0.05), t_bar + e * beat / 4)
+        for q in range(4):                                  # drums
+            tq = t_bar + q * beat
+            kicks.append(tq)
+            _put(drums, kick, tq)
+            if q in (1, 3):
+                _put(snare_bus, snare, tq)
+            _put(drums, hat * 0.18, tq + beat / 2)
+            _put(drums, hat * 0.08, tq)
+        t_bar += bar
+        b += 1
+    bass = np.convolve(bass, _fir(700), "same")
+    pad_l = np.convolve(pad_l, _fir(2000), "same")
+    pad_r = np.convolve(pad_r, _fir(2000), "same")
+    arp = np.convolve(arp, _fir(3200), "same")
+    d = int(0.75 * beat * SR)                               # dotted-eighth echo on the arp
+    arp_l, arp_r = arp.copy(), arp.copy()
+    for r in range(1, 4):
+        (arp_r if r % 2 else arp_l)[d * r:] += arp[: -d * r] * 0.4 ** r
+    gate = int(0.3 * SR)                                    # 80s gated reverb on the snare
+    ir = rng.standard_normal(gate) * np.exp(-np.arange(gate) / SR / 0.22)
+    ir[-int(0.01 * SR):] *= np.linspace(1, 0, int(0.01 * SR))
+    ir /= np.sqrt((ir ** 2).sum())
+    wet = _fftconv(snare_bus, ir)
+    duck = np.ones(n)                                       # sidechain pump from the kick
+    for tk in kicks:
+        i = int(tk * SR)
+        seg = np.arange(min(int(0.3 * SR), max(0, n - i))) / SR
+        duck[i:i + len(seg)] = np.minimum(duck[i:i + len(seg)], 1 - 0.55 * np.exp(-seg / 0.12))
+    core = bass * 0.5 * duck + drums * 0.55 + snare_bus * 0.35 + wet * 0.35
+    left = core + pad_l * 0.32 * duck + arp_l * 0.1
+    right = core + pad_r * 0.32 * duck + arp_r * 0.1
+    return left, right
 
 
 def sound(events, total, seed=7):
@@ -363,83 +480,50 @@ def sound(events, total, seed=7):
     n = int((total + 0.5) * SR)
     left, right = np.zeros(n), np.zeros(n)
 
-    def add(sig, t, pan=0.0, dst=(left, right)):
-        i = max(0, int(t * SR))
-        if i >= n:
-            return
-        sig = sig[: n - i]
-        dst[0][i:i + len(sig)] += sig * (1 - pan)
-        dst[1][i:i + len(sig)] += sig * (1 + pan)
+    def add(sig, t, pan=0.0):
+        _put(left, sig * (1 - pan), t)
+        _put(right, sig * (1 + pan), t)
 
-    # Mechanical keyboard. The text types faster than a person could, so a sound per
-    # character would be a buzz: keystrokes play at a real typist's rhythm instead
-    # (about 9-13 a second) for as long as text is being typed.
-    last_key = -1.0
-    gap = rng.uniform(0.075, 0.11)
-    pings = [0]
+    downs, ups = _samples()
+    # The text types faster than a person could, so a sound per character would be
+    # a buzz: keystrokes play at a real typist's rhythm (about 9-13 a second)
+    # for as long as text is being typed.
+    last_key, gap = -1.0, rng.uniform(0.075, 0.11)
     for t, kind in events:
         if kind in ("key", "space"):
             if t - last_key < gap:
                 continue
             last_key, gap = t, rng.uniform(0.075, 0.11)
-            add(mech_key(rng, space=kind == "space"), t + rng.uniform(-0.006, 0.006), rng.uniform(-0.25, 0.25))
+            add(key_sound(rng, downs, ups, kind == "space") * 1.6, t + rng.uniform(-0.006, 0.006),
+                rng.uniform(-0.25, 0.25))
         elif kind == "whoosh":
             ln = int(0.45 * SR)
-            sweep = _lowpass(rng.standard_normal(ln), 24)
-            add(sweep * np.sin(np.linspace(0, np.pi, ln)) ** 2 * 0.3, t - 0.1)
+            add(_lowpass(rng.standard_normal(ln), 24) * np.sin(np.linspace(0, np.pi, ln)) ** 2 * 0.25, t - 0.1)
         elif kind == "ping":
-            # a soft notification ding, climbing a step each time (A minor pentatonic)
-            notes = [81, 84, 86, 88, 91, 93, 96, 98]
-            f0 = 440 * 2 ** ((notes[min(pings[0], len(notes) - 1)] - 69) / 12)
-            pings[0] += 1
-            ln = int(0.6 * SR)
+            # one bright ding with a short stereo echo, to close the reel
+            ln = int(1.2 * SR)
             k = np.arange(ln) / SR
-            ding = (np.sin(2 * np.pi * f0 * k) + 0.35 * np.sin(2 * np.pi * 2 * f0 * k) * np.exp(-k / 0.08)
-                    + 0.15 * np.sin(2 * np.pi * 3.01 * f0 * k) * np.exp(-k / 0.05))
-            add(ding * _env(ln, 0.002, 0.22) * 0.22, t, 0.1)
+            f0 = 440 * 2 ** ((88 - 69) / 12)                 # E6
+            ding = (np.sin(2 * np.pi * f0 * k) + 0.4 * np.sin(2 * np.pi * 2 * f0 * k) * np.exp(-k / 0.1)
+                    + 0.2 * np.sin(2 * np.pi * 3.01 * f0 * k) * np.exp(-k / 0.06)) * _env(ln, 0.002, 0.35)
+            add(ding * 0.32, t, 0.0)
+            add(ding * 0.14, t + 0.18, -0.6)
+            add(ding * 0.07, t + 0.36, 0.6)
         elif kind == "pop":
             ln = int(0.18 * SR)
             k = np.arange(ln) / SR
             freq = 660 + 440 * np.exp(-k / 0.03)
             add(np.sin(2 * np.pi * np.cumsum(freq) / SR) * _env(ln, 0.002, 0.05) * 0.3, t)
 
-    # music bed: Am9 - Fmaj7 - Cmaj7 - G6 at 84 BPM, soft keys, bass, kick and hat
-    bed = (np.zeros(n), np.zeros(n))
-    beat = 60 / 84
-    chords = [[57, 60, 64, 67, 71], [53, 57, 60, 64], [48, 55, 59, 64], [55, 59, 62, 64]]
-    t, bar = 0.0, 0
-    while t < total + 0.5:
-        notes = chords[bar % 4]
-        ln = int(4 * beat * SR)
-        k = np.arange(ln) / SR
-        chord = np.zeros(ln)
-        for m in notes:
-            f = 440 * 2 ** ((m - 69) / 12)
-            chord += np.sin(2 * np.pi * f * k) + 0.3 * np.sin(4 * np.pi * f * k) * np.exp(-k / 0.4)
-        chord *= np.minimum(1, k / 0.25) * np.exp(-k / 3.5) / len(notes)
-        add(chord, t, -0.1, bed)
-        bass_f = 440 * 2 ** ((notes[0] - 12 - 69) / 12)
-        add(np.sin(2 * np.pi * bass_f * k) * np.minimum(1, k / 0.02) * np.exp(-k / 1.2) * 0.6, t, 0, bed)
-        for b in range(4):
-            bt = t + b * beat
-            if b in (0, 2):
-                lk = int(0.22 * SR)
-                kk = np.arange(lk) / SR
-                kick = np.sin(2 * np.pi * np.cumsum(50 + 70 * np.exp(-kk / 0.03)) / SR) * np.exp(-kk / 0.09)
-                add(kick * 0.7, bt, 0, bed)
-            lh = int(0.04 * SR)
-            hat = np.diff(rng.standard_normal(lh), prepend=0) * _env(lh, 0.0005, 0.008) * 0.12
-            add(hat, bt + beat / 2, 0.15, bed)
-        t += 4 * beat
-        bar += 1
-    bed = tuple(_lowpass(ch, 9) for ch in bed)          # warm, out of the way of the clicks
-
+    bed_l, bed_r = synthwave(total, rng)
+    bed_l, bed_r = bed_l[:n], bed_r[:n]
     fade = np.ones(n)
-    fi, fo, end = int(0.6 * SR), int(1.2 * SR), min(n, int(total * SR))
+    fi, fo, end = int(0.3 * SR), int(1.5 * SR), min(n, int(total * SR))
     fade[:fi] = np.linspace(0, 1, fi)
     fade[end - fo:end] = np.linspace(1, 0, fo)
     fade[end:] = 0
-    mix = np.stack([(left + bed[0] * 0.22) * fade, (right + bed[1] * 0.22) * fade], axis=1)
+    music = 0.42
+    mix = np.stack([(left + bed_l * music) * fade, (right + bed_r * music) * fade], axis=1)
     if not np.isfinite(mix).all():
         raise RuntimeError("dźwięk rolki zawiera błędne próbki, nie publikuję cichej rolki")
     mix *= 0.89 / max(np.abs(mix).max(), 1e-6)
