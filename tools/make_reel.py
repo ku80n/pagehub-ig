@@ -289,34 +289,45 @@ def _ring(k, freq, decay, phase=0.0):
     return np.sin(2 * np.pi * freq * k + phase) * np.exp(-k / decay)
 
 
+def _snap(k, freqs, decays, gains):
+    """The click itself: a bank of short metallic resonances, hit all at once."""
+    out = np.zeros_like(k)
+    for f, d, g in zip(freqs, decays, gains):
+        out += _ring(k, f, d) * g
+    return out * np.minimum(1, k / 0.00015)
+
+
 def mech_key(rng, space=False):
-    """One keystroke on a mechanical keyboard: a soft click, the bottom-out 'thock'
-    and, a moment later, the quieter upstroke. Every key is a little different."""
-    ln = int(0.2 * SR)
+    """One keystroke on a clicky mechanical switch (the 'blue switch' sound):
+    the sharp click of the click jacket on the way down, the plastic bottom-out
+    right after it, and a quieter second click when the key comes back up.
+    Every key is a little different, so it never sounds like a loop."""
+    ln = int(0.16 * SR)
     k = np.arange(ln) / SR
     sig = np.zeros(ln)
-    # switch click: a very short band-limited tick, kept low so it does not sting
-    click_len = int(0.006 * SR)
-    click = _lowpass(np.diff(rng.standard_normal(click_len), prepend=0), 5) * _env(click_len, 0.0003, 0.0012)
-    sig[:click_len] += click * 0.35
-    # bottom-out: low case resonance plus the keycap's mid-range knock
-    low = rng.uniform(120, 150) if space else rng.uniform(170, 230)
-    mid = rng.uniform(520, 680) if space else rng.uniform(700, 950)
-    thock = (_ring(k, low, 0.030 if space else 0.020, rng.uniform(0, 6.3)) * (1.0 if space else 0.8)
-             + _ring(k, mid, 0.010, rng.uniform(0, 6.3)) * 0.45
-             + _ring(k, mid * rng.uniform(1.9, 2.3), 0.004) * 0.15)
-    thock *= np.minimum(1, k / 0.0008)
-    sig += thock
+    detune = rng.uniform(0.93, 1.07)
+    # 1) click on the way down: crisp, a few kHz, gone within ~5 ms
+    click = _snap(k, [3100 * detune, 4300 * detune, 5900 * detune, 2200 * detune],
+                  [0.0035, 0.0025, 0.0016, 0.0045], [1.0, 0.75, 0.4, 0.35])
+    sig += click * (0.75 if space else 1.0)
+    # 2) bottom-out a few ms later: the keycap hitting the plate
+    bo = int(rng.uniform(0.007, 0.012) * SR)
+    kb = k[: ln - bo]
+    low = rng.uniform(150, 190) if space else rng.uniform(330, 420)
+    knock = (_ring(kb, low, 0.016 if space else 0.008) * (0.9 if space else 0.5)
+             + _ring(kb, low * 3.1, 0.004) * 0.35
+             + _snap(kb, [1900 * detune], [0.002], [0.3]))
+    sig[bo:] += knock * np.minimum(1, kb / 0.0004)
     if space:
         # stabiliser rattle on the long bar
-        for d in (0.012, 0.021):
+        for d in (0.018, 0.027):
             j = int(d * SR)
-            sig[j:j + click_len] += click * 0.25
-    # upstroke: same key coming back up, quieter and higher
-    up = int(rng.uniform(0.055, 0.085) * SR)
-    ku = np.arange(ln - up) / SR
-    sig[up:] += (_ring(ku, mid * 1.15, 0.006) * 0.18 + _ring(ku, low * 1.3, 0.010) * 0.15) * np.minimum(1, ku / 0.0008)
-    return _lowpass(sig, 3) * rng.uniform(0.16, 0.22)
+            sig[j:] += _snap(k[: ln - j], [2600, 3900], [0.0012, 0.0008], [0.25, 0.15])
+    # 3) the release click, quieter and a touch higher
+    up = int(rng.uniform(0.06, 0.09) * SR)
+    ku = k[: ln - up]
+    sig[up:] += _snap(ku, [3500 * detune, 5000 * detune], [0.0025, 0.0015], [0.45, 0.3])
+    return _lowpass(sig, 2) * rng.uniform(0.11, 0.15)
 
 
 def sound(events, total, seed=7):
