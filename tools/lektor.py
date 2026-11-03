@@ -10,8 +10,16 @@ Actions (.github/workflows/lektor.yml), not in the Monday cloud session.
 
 For every kN.json of a week with meta.reel_voice {"cover", "list", "sell"} it writes
 weeks/<data>/kN/voice-<part>.wav (24 kHz mono) and kN/voice.json (texts, settings,
-lengths). make_reel.py mixes them in and times the screens to the voice. A clip is
-generated again only when its text or the settings change.
+lengths, what the check heard). make_reel.py mixes them in and times the screens to
+the voice. A clip is generated again only when its text or the settings change.
+
+Nobody listens to these before they go out, so every take is checked:
+  - Whisper (small, via sherpa-onnx) writes down what it hears and it is compared
+    with the script letter by letter, so a mumbled or swallowed word loses,
+  - every question must go up at the end (tools/prosody.py),
+  - the length must fit the text.
+Up to TAKES takes per line, the best one wins; a question that still ends flat gets
+its end lifted with PSOLA. A line that still sounds wrong is marked "uwaga" in voice.json.
 
 Usage
   python tools/lektor.py weeks/2026-11-02
@@ -35,6 +43,13 @@ REF = ROOT / "assets" / "voice" / "lektor.wav"
 PARTS = ("cover", "list", "sell")
 SETTINGS = {"exaggeration": 0.7, "cfg_weight": 0.4, "temperature": 0.8}
 CHARS_PER_SEC = 16.5          # rough speaking rate, to catch a clip that lost or repeated words
+TAKES = 4
+GOOD_WER, MAX_WER = 0.05, 0.25
+ASR_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-small.tar.bz2"
+ASR_DIR = pathlib.Path.home() / ".cache" / "pagehub-asr" / "sherpa-onnx-whisper-small"
+
+sys.path.insert(0, str(ROOT / "tools"))
+from prosody import flat_questions, lift_questions  # noqa: E402
 
 _model = None
 
@@ -54,6 +69,58 @@ def model():
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
         _model = ChatterboxMultilingualTTS.from_pretrained(device="cpu")
     return _model
+
+
+_asr = None
+
+
+def recognizer():
+    """Whisper small (MIT) through sherpa-onnx, downloaded once into ~/.cache."""
+    global _asr
+    if _asr is None:
+        import sherpa_onnx
+        if not ASR_DIR.exists():
+            import subprocess
+            ASR_DIR.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run(f"curl -sL {ASR_URL} | tar xj -C {ASR_DIR.parent}", shell=True, check=True)
+        _asr = sherpa_onnx.OfflineRecognizer.from_whisper(
+            encoder=str(ASR_DIR / "small-encoder.int8.onnx"), decoder=str(ASR_DIR / "small-decoder.int8.onnx"),
+            tokens=str(ASR_DIR / "small-tokens.txt"), language="pl", task="transcribe", num_threads=4)
+    return _asr
+
+
+def heard(x, sr):
+    s = recognizer().create_stream()
+    s.accept_waveform(sr, x.astype(np.float32).tolist())
+    recognizer().decode_stream(s)
+    return s.result.text.strip()
+
+
+def plain(text):
+    """Lowercase letters only, numbers as words, for comparing script and transcript."""
+    from num2words import num2words
+    text = re.sub(r"\d+", lambda m: " " + num2words(int(m.group(0)), lang="pl") + " ", text.lower())
+    return " ".join(re.sub(r"[^\w\s]|_", " ", text).split())
+
+
+def wer(ref, hyp):
+    """Share of words heard wrong (Whisper small makes a few mistakes of its own, so
+    this ranks takes against each other rather than judging one alone)."""
+    return _edits(plain(ref).split(), plain(hyp).split())
+
+
+def cer(ref, hyp):
+    return _edits(plain(ref), plain(hyp))
+
+
+def _edits(a, b):
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1] / max(len(a), 1)
 
 
 def spoken(text):
@@ -76,8 +143,8 @@ def trim(x, sr):
     return y
 
 
-def say(text, settings=SETTINGS, ref=REF, seed=0, tries=3):
-    """One clip, checked: a clip much shorter or longer than the text is regenerated."""
+def say(text, settings=SETTINGS, ref=REF, seed=0, tries=TAKES):
+    """The best of up to `tries` takes: words heard right, questions going up, sane length."""
     import torch
     m = model()
     text = spoken(text)
@@ -91,14 +158,22 @@ def say(text, settings=SETTINGS, ref=REF, seed=0, tries=3):
             kw["audio_prompt_path"] = str(ref)
         wav = m.generate(text, **kw)
         x = trim(wav.squeeze(0).cpu().numpy().astype(np.float32), m.sr)
-        dur = len(x) / m.sr
-        ratio = dur / expected
-        print(f"  [{k + 1}] {dur:.1f} s (oczekiwane ~{expected:.1f} s)  {text[:60]}", flush=True)
-        if best is None or abs(np.log(ratio)) < abs(np.log(best[1])):
-            best = (x, ratio)
-        if 0.6 < ratio < 1.6:
+        ratio = len(x) / m.sr / expected
+        said = heard(x, m.sr)
+        w, c = wer(text, said), cer(text, said)
+        flat = flat_questions(x, m.sr, text)
+        score = w + 0.5 * c + 0.04 * len(flat) + 0.3 * max(0.0, abs(np.log(ratio)) - np.log(1.5))
+        print(f"  [{k + 1}] {len(x) / m.sr:.1f} s  źle słów {w:.0%}  płaskie pytania {len(flat)}  | {said}", flush=True)
+        if best is None or score < best["score"]:
+            best = {"x": x, "score": score, "wer": w, "flat": flat, "heard": said, "take": k + 1}
+        if w <= GOOD_WER and not flat and 0.6 < ratio < 1.6:
             break
-    return best[0], m.sr
+    x = best["x"]
+    if best["flat"]:
+        x = lift_questions(x, m.sr, text, only=best["flat"])
+    report = {"take": best["take"], "heard": best["heard"], "wer": round(best["wer"], 3),
+              "lifted_questions": len(best["flat"])}
+    return x, m.sr, report
 
 
 def write(path, x, sr):
@@ -117,7 +192,7 @@ def sha(text, settings):
 
 
 def week(folder, force=False, settings=SETTINGS):
-    done = 0
+    done, bad = 0, []
     for spec_path in sorted(pathlib.Path(folder).glob("k*.json")):
         meta = json.loads(spec_path.read_text(encoding="utf-8")).get("meta", {})
         voice = meta.get("reel_voice")
@@ -135,15 +210,20 @@ def week(folder, force=False, settings=SETTINGS):
             if not force and wav.exists() and info["parts"].get(part, {}).get("sha") == h:
                 continue
             print(f"{spec_path.parent.name}/{spec_path.stem} {part}", flush=True)
-            x, sr = say(text, settings, seed=int(h[:6], 16))
+            x, sr, report = say(text, settings, seed=int(h[:6], 16))
+            if report["wer"] > MAX_WER:
+                bad.append(f"{spec_path.stem} {part}: {report['heard']}")
+                report["uwaga"] = "niewyraźne, przepisz prościej"
             write(wav, x, sr)
-            info["parts"][part] = {"text": spoken(text), "sha": h, "seconds": round(len(x) / sr, 2)}
+            info["parts"][part] = {"text": spoken(text), "sha": h, "seconds": round(len(x) / sr, 2), **report}
             done += 1
         info["model"] = "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav"
         info["settings"] = settings
         info_path.parent.mkdir(parents=True, exist_ok=True)
         info_path.write_text(json.dumps(info, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"lektor: {done} nowych nagrań")
+    if bad:
+        print("UWAGA, te zdania wychodzą niewyraźnie, przepisz je prościej:\n  " + "\n  ".join(bad))
 
 
 def probki(out_dir):
@@ -155,11 +235,10 @@ def probki(out_dir):
         ("A-spokojny", {"exaggeration": 0.5, "cfg_weight": 0.5, "temperature": 0.8}, REF),
         ("B-zywy", SETTINGS, REF),
         ("C-bardzo-emocjonalny", {"exaggeration": 1.0, "cfg_weight": 0.3, "temperature": 0.8}, REF),
-        ("D-zywy-glos-wbudowany", SETTINGS, None),
     ]
     for name, settings, ref in variants:
         print(name, flush=True)
-        parts = [say(t, settings, ref=ref, seed=11) for t in (script, test)]
+        parts = [say(t, settings, ref=ref, seed=11, tries=1) for t in (script, test)]
         sr = parts[0][1]
         gap = np.zeros(int(0.8 * sr), dtype=np.float32)
         write(out / f"{name}.wav", np.concatenate([parts[0][0], gap, parts[1][0]]), sr)

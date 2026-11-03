@@ -49,7 +49,33 @@ def segments(x, sr, count):
     return list(zip(edges[:-1], edges[1:]))
 
 
-def lift_questions(x, sr, text, rise=RISE_ST):
+def end_moves(x, sr, text):
+    """Pitch movement (semitones) over the last ~0.1 s of every sentence, None when
+    it cannot be measured. A spoken yes/no question ends clearly up (> +2)."""
+    sents = sentences(text)
+    segs = segments(x, sr, len(sents))
+    if not segs:
+        return [None] * len(sents)
+    import parselmouth
+    p = parselmouth.Sound(x.astype(np.float64), sampling_frequency=sr).to_pitch(
+        time_step=0.01, pitch_floor=70, pitch_ceiling=450)
+    f, t = p.selected_array["frequency"], p.xs()
+    out = []
+    for a, b in segs:
+        v = f[(f > 0) & (t >= a) & (t <= b)]
+        out.append(round(float(12 * np.log2(np.median(v[-10:]) / np.median(v[-40:-10]))), 1)
+                   if len(v) >= 20 else None)
+    return out
+
+
+def flat_questions(x, sr, text):
+    """Indexes of the questions that do not go up at the end."""
+    moves = end_moves(x, sr, text)
+    return [i for i, (s, m) in enumerate(zip(sentences(text), moves)) if s.endswith("?") and m is not None and m < 2.0]
+
+
+def lift_questions(x, sr, text, rise=RISE_ST, only=None):
+    """Lift the end of every question (or only the sentence indexes in `only`)."""
     sents = sentences(text)
     if not any(s.endswith("?") for s in sents):
         return x
@@ -66,8 +92,8 @@ def lift_questions(x, sr, text, rise=RISE_ST):
     n = call(tier, "Get number of points")
     points = [(call(tier, "Get time from index", i), call(tier, "Get value at index", i)) for i in range(1, n + 1)]
     windows = []
-    for s, (a, b) in zip(sents, segs):
-        if not s.endswith("?"):
+    for i, (s, (a, b)) in enumerate(zip(sents, segs)):
+        if not s.endswith("?") or (only is not None and i not in only):
             continue
         voiced = ts[(f0 > 0) & (ts >= a) & (ts <= b)]
         if len(voiced) < 10:

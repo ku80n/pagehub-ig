@@ -47,11 +47,12 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/huggingface
-          key: lektor-chatterbox-0.1.7-v1
+            ~/.cache/pagehub-asr
+          key: lektor-chatterbox-0.1.7-asr-v2
       - name: Instalacja (torch CPU + Chatterbox)
         run: |
           pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install chatterbox-tts==0.1.7 praat-parselmouth
+          pip install chatterbox-tts==0.1.7 praat-parselmouth sherpa-onnx num2words
       - run: python tools/lektor.py --probki out/probki
       - name: Wyślij na gałąź podglad-probki
         env:
@@ -95,13 +96,14 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/huggingface
-          key: lektor-chatterbox-0.1.7-v1
+            ~/.cache/pagehub-asr
+          key: lektor-chatterbox-0.1.7-asr-v2
 
       - name: Instalacja (torch CPU + Chatterbox)
         if: steps.weeks.outputs.list != ''
         run: |
           pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install chatterbox-tts==0.1.7 praat-parselmouth
+          pip install chatterbox-tts==0.1.7 praat-parselmouth sherpa-onnx num2words
 
       - name: Nagrania
         if: steps.weeks.outputs.list != ''
