@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-publish.py - publish the carousels whose time has come, on Instagram and Facebook.
+publish.py - publish the carousels (and their Reels) whose time has come.
 
 Runs hourly from GitHub Actions. A carousel is due when its meta.publish_at is
 in the past but less than LATE_LIMIT ago, it is not marked "skip", and it is
-not in state/published.json yet. Everything it does is recorded in state/ so
-a rerun never posts twice.
+not in state/published.json yet. Each carousel also becomes a Reel built from
+its slides (tools/make_reel.py), due at meta.reel_at, by default one day later.
+Everything it does is recorded in state/ so a rerun never posts twice.
 
 The Instagram API only takes JPEG from a public URL and cannot schedule, so:
   1. slides are converted to JPEG,
@@ -52,20 +53,48 @@ def all_posts():
         yield key, spec_path, spec
 
 
+def schedule(spec):
+    """[(kind, when)] for one carousel spec: the carousel itself and, unless off, its Reel."""
+    meta = spec.get("meta", {})
+    if meta.get("skip") or not meta.get("publish_at"):
+        return []
+    at = datetime.fromisoformat(meta["publish_at"]).astimezone(TZ)
+    out = [("carousel", at)]
+    reels_on = env("PUBLISH_REELS", required=False) != "false" and meta.get("reel", True) is not False
+    if reels_on:
+        reel_at = (datetime.fromisoformat(meta["reel_at"]).astimezone(TZ) if meta.get("reel_at")
+                   else at + timedelta(days=1))
+        out.append(("reel", reel_at))
+    return out
+
+
+def media_prefix(key):
+    """Folder on the media site. '#' would end a URL, so the reel gets '-reel'."""
+    return key.replace("#", "-")
+
+
 def due_posts(now, published, failures):
     due, missed = [], []
-    for key, path, spec in all_posts():
-        meta = spec.get("meta", {})
-        if key in published or meta.get("skip") or not meta.get("publish_at"):
-            continue
-        if failures.get(key, {}).get("count", 0) >= MAX_ATTEMPTS:
-            continue
-        at = datetime.fromisoformat(meta["publish_at"]).astimezone(TZ)
-        if at <= now < at + LATE_LIMIT:
-            due.append((key, path, spec))
-        elif now >= at + LATE_LIMIT:
-            missed.append((key, path, spec))
+    for base, path, spec in all_posts():
+        for kind, at in schedule(spec):
+            key = base if kind == "carousel" else f"{base}#reel"
+            if key in published or failures.get(key, {}).get("count", 0) >= MAX_ATTEMPTS:
+                continue
+            item = (key, kind, path, spec)
+            if at <= now < at + LATE_LIMIT:
+                due.append(item)
+            elif now >= at + LATE_LIMIT:
+                missed.append(item + (at,))
     return due, missed
+
+
+def reel_bytes(path):
+    """Build the Reel MP4 for a carousel spec and return its bytes."""
+    import tempfile
+    from make_reel import build
+    with tempfile.TemporaryDirectory() as tmp:
+        out, _ = build(path, f"{tmp}/reel.mp4")
+        return out.read_bytes()
 
 
 def jpegs(path, spec):
@@ -137,7 +166,7 @@ def _norm(text):
     return " ".join((text or "").split())[:120]
 
 
-def find_existing(caption, hours=36):
+def find_existing(caption, kind="carousel", hours=36):
     """A post with this caption published recently, if any: (media_id, permalink) or None.
 
     Instagram sometimes answers media_publish with an error and publishes anyway,
@@ -146,9 +175,13 @@ def find_existing(caption, hours=36):
     token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
     since = datetime.now(timezone.utc) - timedelta(hours=hours)
     want = _norm(caption)
-    for m in graph("GET", f"{ig}/media", token, fields="id,caption,permalink,timestamp", limit=15).get("data", []):
+    fields = "id,caption,permalink,timestamp,media_type,media_product_type"
+    for m in graph("GET", f"{ig}/media", token, fields=fields, limit=15).get("data", []):
         if datetime.strptime(m["timestamp"], "%Y-%m-%dT%H:%M:%S%z") < since:
             break
+        is_reel = m.get("media_product_type") == "REELS" or m.get("media_type") == "VIDEO"
+        if (kind == "reel") != is_reel:
+            continue
         if _norm(m.get("caption")) == want:
             return m["id"], m.get("permalink", "")
     return None
@@ -176,25 +209,42 @@ def publish_instagram(urls, caption):
     carousel = graph("POST", f"{ig}/media", token, media_type="CAROUSEL",
                      children=",".join(children), caption=caption)["id"]
     wait_ready(carousel, token, "karuzela")
-    # "Media ID is not available" means Instagram is still finishing the container,
-    # even after it reported FINISHED. Publishing the same container twice is
-    # impossible, so retrying here can never create a duplicate.
+    return publish_container(carousel, caption, "carousel")
+
+
+def publish_reel(url, caption, to_feed=False):
+    """Video Reel from a public MP4 URL. Video takes longer to process than photos."""
+    token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
+    container = graph("POST", f"{ig}/media", token, media_type="REELS", video_url=url,
+                      caption=caption, share_to_feed="true" if to_feed else "false")["id"]
+    wait_ready(container, token, "rolka", tries=120)
+    return publish_container(container, caption, "reel")
+
+
+def publish_container(container, caption, kind):
+    """media_publish with retries.
+
+    "Media ID is not available" means Instagram is still finishing the container,
+    even after it reported FINISHED. Publishing the same container twice is
+    impossible, so retrying here can never create a duplicate.
+    """
+    token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
     last_error = None
     for _ in range(8):
         try:
-            media_id = graph("POST", f"{ig}/media_publish", token, creation_id=carousel)["id"]
+            media_id = graph("POST", f"{ig}/media_publish", token, creation_id=container)["id"]
             break
         except ApiError as e:
             last_error = e
-            if graph("GET", carousel, token, fields="status_code").get("status_code") == "PUBLISHED":
-                found = find_existing(caption)
+            if graph("GET", container, token, fields="status_code").get("status_code") == "PUBLISHED":
+                found = find_existing(caption, kind)
                 if found:
                     return found
             if "not available" not in str(e) and "not ready" not in str(e).lower():
                 raise
             wait(15)
     else:
-        raise ApiError(f"Instagram nie przyjął karuzeli przez 2 minuty: {last_error}")
+        raise ApiError(f"Instagram nie przyjął posta przez 2 minuty: {last_error}")
     permalink = graph("GET", media_id, token, fields="permalink").get("permalink", "")
     return media_id, permalink
 
@@ -287,9 +337,10 @@ def run(now, dry_run=False):
     failures = load_state("publish_failures.json", {})
     due, missed = due_posts(now, published, failures)
 
-    for key, _, spec in missed:
+    for key, kind, _, spec, at in missed:
         published[key] = {"status": "missed", "noted_at": now.isoformat()}
-        telegram(f"PageHub: karuzela {key} ({spec['meta'].get('when', '')}) nie wyszła na czas "
+        what = "rolka" if kind == "reel" else "karuzela"
+        telegram(f"PageHub: {what} {key} ({at:%d.%m %H:%M}) nie wyszła na czas "
                  "i została pominięta. Sprawdź zakładkę Actions w repo.", dry_run)
     if not due:
         print(f"{now:%Y-%m-%d %H:%M}: nic do publikacji")
@@ -298,21 +349,28 @@ def run(now, dry_run=False):
         return 0
 
     media = {}
-    for key, path, spec in due:
-        for name, data in jpegs(path, spec):
-            media[f"{key}/{name}"] = data
+    for key, kind, path, spec in due:
+        if kind == "carousel":
+            for name, data in jpegs(path, spec):
+                media[f"{media_prefix(key)}/{name}"] = data
+        elif not dry_run:
+            media[f"{media_prefix(key)}/reel.mp4"] = reel_bytes(path)
     if dry_run:
-        for key, _, spec in due:
-            n = len([m for m in media if m.startswith(key + "/")])
-            print(f"[dry-run] {key}: {n} JPEG -> Netlify -> karuzela IG + post FB")
-            print("          podpis IG:", spec["meta"]["caption_ig"].splitlines()[0])
+        for key, kind, _, spec in due:
+            if kind == "carousel":
+                n = len([m for m in media if m.startswith(media_prefix(key) + "/")])
+                print(f"[dry-run] {key}: {n} JPEG -> Netlify -> karuzela IG + post FB")
+                print("          podpis IG:", spec["meta"]["caption_ig"].splitlines()[0])
+            else:
+                print(f"[dry-run] {key}: rolka MP4 ze slajdów -> Netlify -> Reels IG")
+                print("          podpis:", (spec["meta"].get("caption_reel") or spec["meta"]["caption_ig"]).splitlines()[0])
         return 0
 
     try:
         base = netlify_deploy(media)
     except ApiError as e:
         # Nothing reached Instagram: count it as a failed attempt for every due post.
-        for key, _, spec in due:
+        for key, _, _, spec in due:
             f = failures.setdefault(key, {"count": 0})
             f["count"] += 1
             f["last_error"] = str(e)
@@ -323,19 +381,25 @@ def run(now, dry_run=False):
         print("BŁĄD:", e)
         return 1
     code = 0
-    for key, _, spec in due:
+    for key, kind, _, spec in due:
         meta = spec["meta"]
-        urls = [f"{base}/{m}" for m in sorted(media) if m.startswith(key + "/")]
+        urls = [f"{base}/{m}" for m in sorted(media) if m.startswith(media_prefix(key) + "/")]
+        caption = meta["caption_ig"] if kind == "carousel" else (meta.get("caption_reel") or meta["caption_ig"])
         try:
-            found = find_existing(meta["caption_ig"]) if key in failures else None
+            found = find_existing(caption, kind) if key in failures else None
             if found:
                 print(f"{key}: już jest na profilu po wcześniejszej próbie, nie publikuję drugi raz")
-            media_id, link = found or publish_instagram(urls, meta["caption_ig"])
+            if kind == "carousel":
+                media_id, link = found or publish_instagram(urls, caption)
+            else:
+                media_id, link = found or publish_reel(urls[0], caption, bool(meta.get("reel_to_feed")))
             published[key] = {"status": "published", "ig_media_id": media_id, "permalink": link,
                               "cta_keyword": meta.get("cta_keyword", ""), "at": now.isoformat()}
             save_state("published.json", published)
             failures.pop(key, None)
             print(f"{key}: opublikowano na Instagramie {link}")
+            if kind == "reel":
+                continue
         except ApiError as e:
             code = 1
             f = failures.setdefault(key, {"count": 0})

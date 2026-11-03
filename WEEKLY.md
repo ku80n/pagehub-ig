@@ -45,6 +45,7 @@ Format (jak w `tools/render_carousel.py`):
     "cta_keyword": "TELEFON",
     "reply_hint": "Proponowana pierwsza odpowiedź dla osoby, która napisze słowo-klucz",
     "caption_ig": "...",
+    "caption_reel": "...",
     "caption_fb": "...",
     "alt": "tekst alternatywny okładki"
   },
@@ -59,6 +60,10 @@ Format (jak w `tools/render_carousel.py`):
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
 - `cta_keyword`: jedno nietypowe słowo WIELKIMI LITERAMI, jeśli CTA to "napisz SŁOWO w komentarzu" (Jakub dostaje wtedy powiadomienie). Pusty string, jeśli CTA jest inne.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla takiej osoby. Pusty string, jeśli brak słowa-klucza.
+- Każda karuzela wychodzi też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
+  (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
+- `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
+  (to samo słowo-klucz co w karuzeli, jeśli jest), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film.
 
 Zasady:
 - 6-9 slajdów (API przyjmuje maksymalnie 10): okładka, stawka (slajd 2 musi działać sam), jedna myśl na slajd, podsumowanie (lista), CTA.
@@ -72,9 +77,9 @@ Zasady:
 
 ## 4. Bramki jakości (wszystkie muszą przejść)
 - Okładka: `python3 skills/ig-reel/hookscore.py --hook "<tytuł okładki bez gwiazdek>"`. Cel 60+. Poniżej 50 = napisz okładkę od nowa.
-- Podpis IG: zapisz do pliku tymczasowego, `python3 skills/ig-caption/caption.py plik.txt` -> wynik READY.
+- Podpis IG i opis rolki: zapisz do plików tymczasowych, `python3 skills/ig-caption/caption.py plik.txt` -> wynik READY.
 - Każdy podpis (IG i FB) i cały tekst slajdów: `python3 skills/ig-human/humanize.py plik.txt --report`. Wprowadź poprawki do JSON, flagowane słowa przepisz ręcznie.
-- Podpisy IG i FB: `python3 skills/ig-human/detect.py plik.txt` -> PASS (70+). Najczęstsza przyczyna REVIEW to zbyt równe zdania (BURSTINESS): dodaj jedno bardzo krótkie i jedno dłuższe.
+- Podpisy IG, FB i opis rolki: `python3 skills/ig-human/detect.py plik.txt` -> PASS (70+). Najczęstsza przyczyna REVIEW to zbyt równe zdania (BURSTINESS): dodaj jedno bardzo krótkie i jedno dłuższe.
 - Tekst slajdów to krótkie hasła, więc detect daje mu niski wynik z natury. Wystarczy, że humanize nic nie zmienia i nic nie flaguje.
 - Żadnych liczb z powietrza, także retorycznych ("co drugi", "sto innych"). Liczba = fakt ze źródłem albo `facts.md`.
 - `grep -nP "[—–]" weeks/<data>/*.json` nie może nic znaleźć.
@@ -86,6 +91,7 @@ Zasady:
 - Ostrzeżenie o zmniejszeniu tekstu lub błąd "nie mieści się" = skróć tekst i wyrenderuj ponownie.
 - Obejrzyj każdą okładkę i co najmniej jeden slajd środkowy (Read na PNG). Popraw, jeśli coś jest ucięte lub nieczytelne.
 - Sprawdzenie na sucho: `cd tools && python3 publish.py --dry-run --now <publish_at karuzeli>` musi pokazać karuzelę jako gotową do publikacji.
+- Rolka: `python3 tools/make_reel.py weeks/<data>/k1.json --out /tmp/reel.mp4` musi się zbudować (nie commituj MP4, automat robi go sam przy publikacji).
 
 ## 6. Strona z podglądem (archiwum)
 - `python3 tools/build_page.py weeks/<data>` -> `index.html` + `files.json`.

@@ -70,7 +70,7 @@ def keywords_by_media():
     out = {}
     for key, rec in published.items():
         if rec.get("ig_media_id"):
-            meta = specs.get(key, {})
+            meta = specs.get(key.split("#")[0], {})
             out[rec["ig_media_id"]] = (meta.get("cta_keyword") or rec.get("cta_keyword", ""),
                                        meta.get("reply_hint", ""), meta.get("topic", key))
     return out

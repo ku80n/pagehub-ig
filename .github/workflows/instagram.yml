@@ -33,6 +33,7 @@ jobs:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       PUBLISH_FB: ${{ vars.PUBLISH_FB }}
+      PUBLISH_REELS: ${{ vars.PUBLISH_REELS }}
       NORMAL_RUN: ${{ github.event_name == 'schedule' || inputs.mode == 'run' }}
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: pip install --quiet pillow
+      - run: pip install --quiet pillow imageio-ffmpeg
 
       - name: Czy sekrety są ustawione
         id: cfg
