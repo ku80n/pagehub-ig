@@ -3,17 +3,29 @@
     "cover": {
       "text": "Bez szablonu! Tak powstaje u nas nowa strona. Pięć kroków, od pierwszej rozmowy do publikacji.",
       "sha": "47b994988bc8",
-      "seconds": 6.26
+      "seconds": 5.74,
+      "take": 3,
+      "heard": "Bez szablonu. Tak powstaje u nas nowa strona. Pięć kroków od pierwszej rozmowy do publikacji.",
+      "wer": 0.0,
+      "lifted_questions": 0
     },
     "list": {
       "text": "Najpierw rozmowa o twoich klientach. Potem projekt pod twoją branżę. Kod piszemy od zera. Dostajesz własny panel do zmian. A na koniec publikacja i Google.",
       "sha": "02e1d31b0097",
-      "seconds": 9.34
+      "seconds": 9.34,
+      "take": 2,
+      "heard": "Najpierw rozmowa o twoich klientach. Potem projekt pod twoją branżę. Kot piszemy od zera, dostajesz własny panel do zmian, a na koniec publikacja i Google.",
+      "wer": 0.04,
+      "lifted_questions": 0
     },
     "sell": {
       "text": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz w komentarzu słowo wycena, a przygotujemy ofertę.",
       "sha": "3552dce5863f",
-      "seconds": 6.27
+      "seconds": 6.02,
+      "take": 3,
+      "heard": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz w komentarzu słowo \"wycena\" a przygotujemy ofertę",
+      "wer": 0.0,
+      "lifted_questions": 1
     }
   },
   "model": "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav",

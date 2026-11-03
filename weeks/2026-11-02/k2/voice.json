@@ -3,17 +3,29 @@
     "cover": {
       "text": "Pięć błędów na telefonie, które klient widzi od razu. A ty sprawdzisz je w pięć minut!",
       "sha": "a6a1f855952d",
-      "seconds": 4.92
+      "seconds": 4.92,
+      "take": 1,
+      "heard": "5 błędów na telefonie, które klient widzi od razu, a ty sprawdzisz je w 5 minut.",
+      "wer": 0.0,
+      "lifted_questions": 0
     },
     "list": {
       "text": "Weź telefon i sprawdź. Da się czytać bez powiększania? Numer od razu dzwoni? Przyciski łatwo trafić palcem? Adres i godziny widać od razu? A formularz naprawdę dochodzi?",
       "sha": "bd65ca7d8db6",
-      "seconds": 9.95
+      "seconds": 9.95,
+      "take": 1,
+      "heard": "Weź telefon i sprawdź. Da się czytać bez powiększania, numer od razu dzwoni, przyciski łatwo trafić palcem, adres i godziny widać od razu, a formularz naprawdę dochodzi?",
+      "wer": 0.0,
+      "lifted_questions": 0
     },
     "sell": {
       "text": "Sprawdź, zanim znajdzie je twój klient! Coś nie działa? Napisz w komentarzu słowo telefon, a odezwiemy się z wyceną.",
       "sha": "86ba5feb2910",
-      "seconds": 6.94
+      "seconds": 6.75,
+      "take": 3,
+      "heard": "Sprawdź, zanim znajdzie je twój klient. Coś nie działa? Napisz w komentarzu słowo \"telefom\" a odezjemy się z",
+      "wer": 0.158,
+      "lifted_questions": 0
     }
   },
   "model": "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav",

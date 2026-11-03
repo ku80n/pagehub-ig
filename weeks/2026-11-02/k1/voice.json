@@ -3,17 +3,29 @@
     "cover": {
       "text": "Twoja strona ładuje się dłużej niż trzy sekundy? To tracisz klientów! Ponad połowa ludzi po prostu ją zamyka.",
       "sha": "b32a21163c37",
-      "seconds": 6.57
+      "seconds": 6.39,
+      "take": 3,
+      "heard": "Twoja strona ładuje się dłużej niż 3 sekundy? To tracisz klientów. Ponad połowa ludzi po prostu ją zamyka.",
+      "wer": 0.0,
+      "lifted_questions": 0
     },
     "list": {
       "text": "Najczęściej winne jest jedno z tych pięciu. Zdjęcia prosto z aparatu. Wtyczki, których nikt nie używa. Najtańszy hosting. Ciężki szablon. I film w tle.",
       "sha": "c852f4e54053",
-      "seconds": 8.95
+      "seconds": 8.95,
+      "take": 1,
+      "heard": "Najczęściej winne jest jedno z tych pięciu. Zdjęcia prosto z aparatu, wtyczki których nikt nie używa, najtańszych hosting, ciężki szablon i film w tle",
+      "wer": 0.042,
+      "lifted_questions": 0
     },
     "sell": {
       "text": "Wolna strona? Klient pójdzie do konkurencji! Napisz w komentarzu słowo turbo, a odezwiemy się z wyceną.",
       "sha": "c901195294d2",
-      "seconds": 7.71
+      "seconds": 7.71,
+      "take": 1,
+      "heard": "Wolna strona? Klient pójdzie do konkurencji. Napisz w komentarzu słowo Turbo, a odezjemy się z wyceną.",
+      "wer": 0.062,
+      "lifted_questions": 0
     }
   },
   "model": "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav",
