@@ -3,12 +3,14 @@
 make_reel.py - turn a carousel spec into a short 9:16 Reel with the text typing
 itself into a clean PageHub browser window, with original sound.
 
-Two screens, both starting empty:
+Three screens, each starting empty:
   1. the cover - a small topic pill, then the headline (accent words in teal)
      and the subtitle type out, and stay long enough to read every word;
   2. a heading that says what the list is (meta.reel_heading), then the
-     headings of the numbered slides as a numbered list, one row at a time,
-     closed by a "Reszta w opisie" pill and a single "ping". Everything sits inside the Reels safe zone, away from the
+     headings of the numbered slides as a numbered list, one row at a time;
+  3. the sell: a big closing line (meta.reel_close), the call-to-action button
+     ("Napisz KEYWORD w komentarzu" from meta.cta_keyword, or meta.reel_cta)
+     with a single "ping", and "reszta w opisie" under it. Everything sits inside the Reels safe zone, away from the
 like/comment rail and the caption.
 
 Sound: real clicky-switch recordings (Kailh Box White, MIT licence, see
@@ -63,10 +65,10 @@ TX, TW = WX + PAD, WW - 2 * PAD
 BODY_TOP, BODY_BOTTOM = WY + BAR_H + 50, WY + WH - 110
 
 # pacing
-CPS = {"title": 22, "subtitle": 34, "item": 30, "heading": 24}
-GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22, "heading": 0.35}
+CPS = {"title": 22, "subtitle": 34, "item": 30, "heading": 24, "close": 24}
+GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22, "heading": 0.35, "close": 0.3}
 HOLD_COVER, HOLD_LAST, CLEAR, START = 2.0, 2.6, 0.32, 0.45
-OUTRO = "Reszta w opisie ↓"
+NOTE = "reszta w opisie ↓"
 
 
 def font(name, size):
@@ -76,7 +78,8 @@ def font(name, size):
 F_PILL = font("Inter-SemiBold.otf", 26)
 F_SUB = font("Inter-Regular.otf", 40)
 F_NUM = font("Inter-Bold.otf", 30)
-F_OUTRO = font("Inter-SemiBold.otf", 34)
+F_OUTRO = font("Inter-Bold.otf", 38)
+F_NOTE = font("Inter-Medium.otf", 30)
 F_URL = font("Inter-Medium.otf", 26)
 F_HANDLE = font("Inter-Medium.otf", 26)
 
@@ -120,8 +123,25 @@ def wrap(words, fnt, width):
     return lines
 
 
+def balanced(words, fnt, width):
+    """Same number of lines as a greedy wrap, but evened out, so a headline never
+    ends on one lonely word ("ma:", "klient!")."""
+    lines = wrap(words, fnt, width)
+    if len(lines) < 2:
+        return lines
+    lo, hi = int(width * 0.5), int(width)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if len(wrap(words, fnt, mid)) <= len(lines):
+            hi = mid
+        else:
+            lo = mid + 1
+    return wrap(words, fnt, lo)
+
+
 def text_block(kind, text, color, fnt, width, lh):
-    lines = wrap(runs(text, color), fnt, width)
+    words = runs(text, color)
+    lines = balanced(words, fnt, width) if kind in ("title", "heading", "close") else wrap(words, fnt, width)
     return {"kind": kind, "lines": lines, "font": fnt, "lh": int(fnt.size * lh),
             "chars": sum(len(w) + 1 for ln in lines for _, w, _ in ln)}
 
@@ -156,14 +176,28 @@ def list_screen(heading, heads):
             b = text_block("item", h, FG, fnt, TW - 92, 1.22)
             b.update(num=i + 1, gap=(int(size * 1.1) if heading else 0) if i == 0 else int(size * 0.95))
             blocks.append(b)
-        blocks.append({"kind": "outro", "text": OUTRO, "gap": 56, "h": 78})
         if height(blocks) <= BODY_BOTTOM - BODY_TOP:
             break
     return {"blocks": blocks, "url": "/w-skrocie"}
 
 
+def sell_screen(close, cta):
+    """The last screen sells: the closing line big, the button, "reszta w opisie"."""
+    blocks = []
+    if close:
+        for size in (78, 70, 62, 56):
+            cb = text_block("close", close, FG, font("Inter-Bold.otf", size), TW, 1.1)
+            if len(cb["lines"]) <= 4:
+                break
+        cb["gap"] = 0
+        blocks.append(cb)
+    blocks.append({"kind": "outro", "text": cta, "gap": 64 if close else 0, "h": 96})
+    blocks.append({"kind": "note", "text": NOTE, "gap": 26, "h": 40})
+    return {"blocks": blocks, "url": "/kontakt"}
+
+
 def block_h(b):
-    if b["kind"] in ("pill", "outro"):
+    if b["kind"] in ("pill", "outro", "note"):
         return b["h"]
     return b["lh"] * len(b["lines"])
 
@@ -202,9 +236,19 @@ def reel_points(spec):
     return heading, points
 
 
+def reel_sell(spec):
+    """(closing line, button text). The button asks for the keyword when there is one,
+    so every comment it brings lands on Jakub's Telegram as a lead."""
+    meta = spec.get("meta", {})
+    kw = meta.get("cta_keyword", "").strip()
+    cta = meta.get("reel_cta") or (f"Napisz {kw} w komentarzu" if kw else "Napisz do nas wiadomość")
+    return meta.get("reel_close", ""), cta
+
+
 def screens_for(spec):
     heading, heads = reel_points(spec)
-    out = [cover_screen(spec["slides"][0]), list_screen(heading, heads)]
+    close, cta = reel_sell(spec)
+    out = [cover_screen(spec["slides"][0]), list_screen(heading, heads), sell_screen(close, cta)]
     for s in out:
         place(s)
     return out
@@ -220,11 +264,11 @@ def timeline(screens):
         start = t
         t += START
         for b in sc["blocks"]:
-            if b["kind"] in ("pill", "outro"):
+            if b["kind"] in ("pill", "outro", "note"):
                 b["t0"] = b["t1"] = t
                 if b["kind"] == "outro":
                     events.append((t, "ping"))
-                t += 0.35
+                t += 0.35 if b["kind"] != "outro" else 0.25
                 continue
             cps = CPS[b["kind"]]
             b["t0"], b["t1"] = t, t + b["chars"] / cps
@@ -316,6 +360,11 @@ def draw_screen(img, sc, t, alpha, cursor_on):
             d.text((cx, cy), b["text"], font=F_OUTRO, fill=INK + (int(a * p),), anchor="mm")
             cursor = None
             continue
+        if k == "note":
+            p = ease((t - b["t0"]) / 0.35)
+            d.text((TX + 4, b["y"] + b["h"] / 2 + (1 - p) * 8), b["text"], font=F_NOTE, fill=MUTED + (int(a * p),),
+                   anchor="lm")
+            continue
         span = max(b["t1"] - b["t0"], 1e-6)
         shown = b["chars"] if t >= b["t1"] else int(b["chars"] * (t - b["t0"]) / span)
         fnt = b["font"]
@@ -369,7 +418,8 @@ def frame_at(plan, assets, t):
     draw_screen(img, plan[idx], at, alpha, cursor_on)
     # two-segment progress bar, like stories
     d = ImageDraw.Draw(img)
-    seg_w, gap, y = (WW - 16) / 2, 16, WY - 48
+    gap, y = 16, WY - 48
+    seg_w = (WW - gap * (len(plan) - 1)) / len(plan)
     for k, s in enumerate(plan):
         x0 = WX + k * (seg_w + gap)
         d.rounded_rectangle((x0, y, x0 + seg_w, y + 8), 4, fill=LINE)
