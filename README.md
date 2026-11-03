@@ -10,7 +10,7 @@ W każdy poniedziałek rano Claude:
 
 Potem GitHub Actions (co godzinę, 6-23):
 - publikuje karuzele na Instagramie i Facebooku o godzinie z `publish_at`,
-- rolki ze slajdów są wyłączone (włącza je zmienna repo `PUBLISH_REELS` = `true`),
+- rolki (animacja pisanego tekstu z dźwiękiem) dzień po karuzeli, jeśli istnieje plik `config/ROLKI`,
 - wysyła na Telegram potencjalnych klientów: komentarze ze słowem-kluczem lub pytaniem o stronę/cenę i nowe wiadomości DM.
 
 Konfiguracja jednorazowa: `SETUP.md`. Pauza: plik `config/PAUZA`.

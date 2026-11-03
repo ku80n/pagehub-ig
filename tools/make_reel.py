@@ -168,7 +168,7 @@ def timeline(slides):
                 for k, ch in enumerate(text):
                     events.append((t + k / CPS[b["kind"]], "space" if ch == " " else "key"))
                 t += dur + 0.12
-        t += HOLD_LAST if last else HOLD
+        t += HOLD_LAST if last else (1.7 if first else HOLD)   # the cover is the hook: let it sit
         plan.append({"blocks": blocks, "start": start, "end": t})
         if not last:
             events.append((t, "whoosh"))
