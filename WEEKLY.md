@@ -67,7 +67,8 @@ Format (jak w `tools/render_carousel.py`):
   - `reel_heading`: krótka linia zakończona dwukropkiem, która mówi, czym jest lista i łączy ją z okładką (np. "Co spowalnia stronę:", "Sprawdź, czy Twoja strona ma:", "5 kroków do nowej strony:"). Przeczytaj ją razem z punktami: całość ma być zrozumiała dla kogoś, kto nie zna się na stronach,
   - każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` zawiera resztę: krótko rozwinięte punkty i wezwanie do działania ze słowem-kluczem.
 - **Rolka ma sprzedawać.** Ostatni ekran to `reel_close` (duże) + przycisk ze słowem-kluczem + "reszta w opisie". `reel_close` to jedno krótkie zdanie, które uderza w stratę albo pilność z punktu widzenia właściciela firmy (np. "Wolna strona oddaje klientów konkurencji.", "Sprawdź, zanim znajdzie je Twój klient!", "Chcesz stronę zrobioną od zera pod Twoją firmę?"). Bez wymyślonych liczb i bez obietnic czegokolwiek za darmo.
-- Każda karuzela wychodzi też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
+- **Rolki są wyłączone, dopóki Jakub ich nie zatwierdzi.** Nigdy nie twórz pliku `config/ROLKI` i nie zmieniaj ustawień publikacji rolek. Pola rolki (`caption_reel`, `reel_heading`, `reel_close`) i tak uzupełniaj, żeby były gotowe.
+- Gdy rolki zostaną włączone, każda karuzela wyjdzie też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
   (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
   (to samo słowo-klucz co w karuzeli, jeśli jest), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film.
