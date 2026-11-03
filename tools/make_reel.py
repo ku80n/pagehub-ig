@@ -85,15 +85,22 @@ F_HANDLE = font("Inter-Medium.otf", 26)
 
 def runs(text, color, accent=ACCENT):
     """'Ile *Twoja* strona' -> [(word, color), ...] with the accent applied."""
-    out = []
+    out, prev_part = [], ""
     for i, part in enumerate(re.split(r"\*([^*]+)\*", text.replace("\n", " "))):
         words = part.split()
-        if out and words and not part[:1].isspace():
-            # punctuation glued to the previous word ("*Bez szablonu*: tak") stays glued
+        # glue only when there is no space at the boundary on either side:
+        # "*Bez szablonu*: tak" -> "szablonu:", but "na *telefonie*" stays two words
+        if out and words and prev_part and not prev_part[-1].isspace() and not part[0].isspace():
             prev, prev_color = out[-1]
             out[-1] = (prev + words.pop(0), prev_color)
         for w in words:
             out.append((w, accent if i % 2 else color))
+        if part:
+            prev_part = part
+    shown = " ".join(w for w, _ in out)
+    source = " ".join(text.replace("*", "").split())
+    if shown != source:
+        raise ValueError(f"tekst w rolce różni się od źródła: {shown!r} zamiast {source!r}")
     return out
 
 

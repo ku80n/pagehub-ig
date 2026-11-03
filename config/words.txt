@@ -1,0 +1,23 @@
+# Słowa spoza słownika, które są poprawne (nazwy własne, marki, technologie).
+# Jedno słowo w linii. Nigdy nie dopisuj tu literówki.
+PageHub
+Angular
+Angularze
+Netlify
+Decap
+Bootstrap
+Envision
+Studio
+PageSpeed
+Google
+Search
+Console
+Instagram
+Instagrama
+Facebook
+Facebooka
+Meta
+landing
+page
+slider
+online

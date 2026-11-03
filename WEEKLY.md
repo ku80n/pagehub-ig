@@ -13,7 +13,7 @@ Wynik: commit w repo (na nim działa publikacja) i strona z podglądem (archiwum
 Wszystkie ścieżki poniżej są względem katalogu repo.
 
 ## 0. Przygotowanie
-- `python3 -c "import playwright"` - jeśli brak, `pip install playwright --break-system-packages`. Przeglądarka: `/usr/bin/google-chrome` (bez pobierania).
+- `python3 -c "import playwright, spylls, numpy"` - czego brakuje, doinstaluj: `pip install playwright spylls numpy --break-system-packages`. Przeglądarka: `/usr/bin/google-chrome` (bez pobierania).
 - Folder tygodnia: `weeks/<data poniedziałku tego tygodnia, RRRR-MM-DD>/`. Jeśli już istnieje i ma `index.html`, ten tydzień jest zrobiony: zakończ z krótką informacją.
 - Jeśli istnieje `config/PAUZA`, publikacja jest wstrzymana: przygotuj tydzień normalnie, ale wspomnij o pauzie w końcowej wiadomości.
 
@@ -88,6 +88,11 @@ Zasady:
 - Tekst slajdów to krótkie hasła, więc detect daje mu niski wynik z natury. Wystarczy, że humanize nic nie zmienia i nic nie flaguje.
 - Żadnych liczb z powietrza, także retorycznych ("co drugi", "sto innych"). Liczba = fakt ze źródłem albo `facts.md`.
 - `grep -nP "[—–]" weeks/<data>/*.json` nie może nic znaleźć.
+- **Pisownia:** `python3 tools/spellcheck.py weeks/<data>` musi dać 0 nieznanych słów. Literówkę poprawiasz w tekście.
+  Do `config/words.txt` dopisujesz tylko prawdziwą nazwę własną lub markę, nigdy literówkę.
+- **Zlepione lub zgubione słowa:** po wyrenderowaniu przeczytaj każdą okładkę i jeden slajd słowo po słowie (Read na PNG), a w rolce
+  sprawdź klatkę końcową: `python3 tools/make_reel.py weeks/<data>/kN.json --still 99 --out /tmp/kN.png`. Skrypt rolki sam
+  przerywa pracę, gdy pokazany tekst różni się od źródła.
 - Przeczytaj każdą karuzelę od początku do końca jak klient: polski poprawny, sens jasny, nic, czego PageHub nie robi.
 - Karuzela, która po dwóch poprawkach nadal nie przechodzi: ustaw w niej `"skip": true` w `meta`, opisz powód w `plan.md`. Lepiej 2 dobre posty niż 3 z jednym słabym.
 

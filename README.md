@@ -27,6 +27,7 @@ Konfiguracja jednorazowa: `SETUP.md`. Pauza: plik `config/PAUZA`.
 - `tools/build_page.py` - strona z podglądem tygodnia
 - `tools/publish.py` - publikacja przez API Instagrama i Facebooka
 - `tools/make_reel.py` - rolka 9:16 ze slajdów karuzeli
+- `tools/spellcheck.py` - słownik polski dla wszystkich tekstów tygodnia (literówki, zlepione słowa)
 - `tools/leads.py` - powiadomienia o potencjalnych klientach na Telegram
 - `.github/workflows/instagram.yml` - harmonogram publikacji i powiadomień
 - `WEEKLY.md` - instrukcja, którą wykonuje cotygodniowe zadanie
