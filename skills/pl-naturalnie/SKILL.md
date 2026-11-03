@@ -41,6 +41,7 @@ Lektor czyta wszystko dosłownie, więc tekst pod głos piszemy jak mowę:
 - lektor nie czyta ekranu słowo w słowo, tylko mówi to samo po ludzku,
 - emocje robi interpunkcja: pytanie kończy się "?", mocne zdanie "!" (np. "To tracisz klientów!"),
 - nazwy marki (PageHub) nie wkładamy lektorowi w usta, bo przeczyta ją po polsku; mówimy "u nas".
+- unikaj zbitek, które lektor połyka (sprawdzone na nagraniach): "a odezwiemy się z wyceną" -> "a przygotujemy wycenę", "zanim znajdzie je twój klient" -> "zanim twój klient je znajdzie".
 
 ## Przed i po
 
