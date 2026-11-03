@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 """
-make_reel.py - turn a carousel spec into a short 9:16 Reel: the carousel's text
-typed out as syntax-highlighted code in an IDE window, with original sound.
+make_reel.py - turn a carousel spec into a short 9:16 Reel with the text typing
+itself into a clean PageHub browser window, with original sound.
 
-Two screens, both starting from an empty editor:
-  1. the cover - kicker as a comment, the title and subtitle as strings,
-     typed out and left on screen long enough to read all of it;
-  2. the headings of the other slides as a list of strings, then
-     "// reszta w opisie", and a single "ping" when the last line is done.
+Two screens, both starting empty:
+  1. the cover - a small topic pill, then the headline (accent words in teal)
+     and the subtitle type out, and stay long enough to read every word;
+  2. the headings of the other slides as a numbered list, one row at a time,
+     closed by a "Reszta w opisie" pill and a single "ping".
 The recap and call-to-action slides are left out of the list: they are not
-points. The window sits inside the Reels safe zone, away from the
+points. Everything sits inside the Reels safe zone, away from the
 like/comment rail and the caption.
 
 Sound: real clicky-switch recordings (Kailh Box White, MIT licence, see
 assets/sounds) at a real typist's rhythm, a soft whoosh between the screens,
-one ping at the end, and a relaxed Japanese lo-fi bed generated here (electric
-piano, koto-like plucks on a hirajoshi scale, soft swung drums, vinyl crackle),
-so there is nothing to license and nothing Instagram can mute.
+one ping at the end, and a chill night-drive bed generated here, so there is
+nothing to license and nothing Instagram can mute.
 
 Usage
   python3 make_reel.py weeks/2026-11-02/k1.json                # -> weeks/.../k1/reel.mp4
@@ -25,9 +24,10 @@ Usage
 """
 
 import argparse
-import bisect
 import json
+import math
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -43,141 +43,166 @@ FONTS = ROOT / "assets" / "fonts"
 W, H, FPS = 1080, 1920, 30
 SR = 48000
 
-# IDE dark theme
-BG = (11, 15, 20)
-TITLE_BG = (50, 50, 51)
-TAB_BG = (37, 37, 38)
-TAB_IDLE = (45, 45, 45)
-EDITOR = (30, 30, 30)
-ACTIVITY = (44, 44, 44)
-CUR_LINE = (40, 40, 40)
-BORDER = (60, 60, 60)
-GUTTER = (110, 118, 129)
-GUTTER_CUR = (198, 198, 198)
-ICON = (133, 133, 133)
-TEXT = (212, 212, 212)
-MUTED = (150, 150, 150)
-CURSOR = (174, 175, 173)
-ACCENT = (28, 152, 195)          # PageHub teal, used for the status bar
-# syntax colours
-KW = (86, 156, 214)              # const
-VAR = (156, 220, 254)            # names
-PUNC = (212, 212, 212)           # = ; [ ] ,
-STR = (206, 145, 120)            # "strings"
-COM = (106, 153, 85)             # // comments
-TS_BLUE = (49, 120, 198)
+# palette, same as the carousels
+BG = (9, 12, 17)
+SURFACE = (17, 22, 30)
+BAR = (22, 29, 39)
+LINE = (38, 50, 66)
+FG = (240, 244, 248)
+BODY = (172, 184, 198)
+MUTED = (104, 118, 135)
+ACCENT = (28, 152, 195)
+ACCENT_SOFT = (21, 60, 78)
+INK = (8, 12, 16)
 
 # window inside the Reels safe zone (top bar above y=230, caption below y=1440,
 # action rail on the right)
-WX, WY, WW, WH = 40, 280, 860, 1150
-TITLE_H, TAB_H, STATUS_H, ACT_W = 52, 64, 46, 66
-ED_X0, ED_Y0 = WX + ACT_W, WY + TITLE_H + TAB_H
-ED_Y1 = WY + WH - STATUS_H
-GUT_R = ED_X0 + 64               # right edge of the line numbers
-CODE_X = ED_X0 + 92
-CODE_W = WX + WW - 28 - CODE_X
-TOP_PAD = 34
+WX, WY, WW, WH = 50, 300, 840, 1110
+BAR_H = 84
+PAD = 64
+TX, TW = WX + PAD, WW - 2 * PAD
+BODY_TOP, BODY_BOTTOM = WY + BAR_H + 50, WY + WH - 110
 
-FONT_SIZE = 40
-LINE_H = int(FONT_SIZE * 1.55)
-CPS = (30, 40)                   # typing speed on the cover / on the list screen
-ENTER_PAUSE = 0.16
-HOLD_COVER, HOLD_LAST, CLEAR = 2.2, 2.4, 0.3
-OUTRO = "// reszta w opisie ↓"
+# pacing
+CPS = {"title": 22, "subtitle": 34, "item": 30}
+GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22}
+HOLD_COVER, HOLD_LAST, CLEAR, START = 2.0, 2.6, 0.32, 0.45
+OUTRO = "Reszta w opisie ↓"
 
 
 def font(name, size):
     return ImageFont.truetype(str(FONTS / name), size)
 
 
-MONO = font("DejaVuSansMono.ttf", FONT_SIZE)
-MONO_B = font("DejaVuSansMono-Bold.ttf", FONT_SIZE)
-UI = font("Inter-Regular.otf", 24)
-UI_S = font("Inter-SemiBold.otf", 24)
-UI_SMALL = font("DejaVuSansMono-Bold.ttf", 17)
-CHAR_W = MONO.getlength("M")
-COLS = int(CODE_W // CHAR_W)
+F_PILL = font("Inter-SemiBold.otf", 26)
+F_SUB = font("Inter-Regular.otf", 40)
+F_NUM = font("Inter-Bold.otf", 30)
+F_OUTRO = font("Inter-SemiBold.otf", 34)
+F_URL = font("Inter-Medium.otf", 26)
+F_HANDLE = font("Inter-Medium.otf", 26)
 
 
-# ---------------------------------------------------------------- code
+# ---------------------------------------------------------------- text layout
 
-def plain(text):
-    return " ".join(text.replace("*", "").replace('"', "'").split())
-
-
-def tok(text, color):
-    return [(ch, color) for ch in text]
-
-
-def code_screens(slides):
-    """Two screens of code lines. A line is a list of (char, colour)."""
-    cover = slides[0]
-    lines = []
-    if cover.get("kicker"):
-        lines.append(tok("// " + plain(cover["kicker"]), COM))
-    lines.append(tok("const ", KW) + tok("temat", VAR) + tok(" = ", PUNC))
-    lines.append(tok("  ", PUNC) + tok('"' + plain(cover.get("title", "")) + '"', STR) + tok(";", PUNC))
-    if cover.get("subtitle"):
-        lines.append(tok("const ", KW) + tok("opis", VAR) + tok(" = ", PUNC))
-        lines.append(tok("  ", PUNC) + tok('"' + plain(cover["subtitle"]) + '"', STR) + tok(";", PUNC))
-    heads = [s["title"] for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
-    lst = [tok("const ", KW) + tok("punkty", VAR) + tok(" = [", PUNC)]
-    for i, h in enumerate(heads):
-        lst.append(tok("  ", PUNC) + tok('"' + plain(h) + '"', STR) + tok("," if i < len(heads) - 1 else "", PUNC))
-    lst.append(tok("];", PUNC))
-    lst.append(tok(OUTRO, COM))
-    return [{"file": "temat.ts", "lines": lines, "cps": CPS[0]},
-            {"file": "punkty.ts", "lines": lst, "cps": CPS[1]}]
+def runs(text, color, accent=ACCENT):
+    """'Ile *Twoja* strona' -> [(word, color), ...] with the accent applied."""
+    out = []
+    for i, part in enumerate(re.split(r"\*([^*]+)\*", text.replace("\n", " "))):
+        words = part.split()
+        if out and words and not part[:1].isspace():
+            # punctuation glued to the previous word ("*Bez szablonu*: tak") stays glued
+            prev, prev_color = out[-1]
+            out[-1] = (prev + words.pop(0), prev_color)
+        for w in words:
+            out.append((w, accent if i % 2 else color))
+    return out
 
 
-def wrap_line(line):
-    """Soft-wrap a code line at spaces. Continuation rows are indented to sit
-    inside the string, the way an IDE's soft wrap does. Returns rows of
-    (indent, [(char, colour), ...])."""
-    rows, start = [], 0
-    text = "".join(c for c, _ in line)
-    lead = len(text) - len(text.lstrip(" "))
-    indent_next = lead + (1 if text.lstrip().startswith('"') else 0)
-    while start < len(line):
-        width = COLS - (0 if not rows else indent_next)
-        if len(line) - start <= width:
-            rows.append((0 if not rows else indent_next, line[start:]))
+def wrap(words, fnt, width):
+    """Greedy wrap of (word, color) runs into lines of (x, word, color)."""
+    lines, line, x = [], [], 0
+    space = fnt.getlength(" ")
+    for w, c in words:
+        wl = fnt.getlength(w)
+        if line and x + wl > width:
+            lines.append(line)
+            line, x = [], 0
+        line.append((x, w, c))
+        x += wl + space
+    if line:
+        lines.append(line)
+    return lines
+
+
+def text_block(kind, text, color, fnt, width, lh):
+    lines = wrap(runs(text, color), fnt, width)
+    return {"kind": kind, "lines": lines, "font": fnt, "lh": int(fnt.size * lh),
+            "chars": sum(len(w) + 1 for ln in lines for _, w, _ in ln)}
+
+
+def cover_screen(slide):
+    blocks = []
+    if slide.get("kicker"):
+        blocks.append({"kind": "pill", "text": slide["kicker"].replace("*", "").upper(), "gap": 0, "h": 52})
+    for size in (86, 78, 70, 62):
+        title = text_block("title", slide.get("title", ""), FG, font("Inter-Bold.otf", size), TW, 1.08)
+        if len(title["lines"]) <= 4:
             break
-        cut = text.rfind(" ", start, start + width + 1)
-        if cut <= start:
-            cut = start + width
-        rows.append((0 if not rows else indent_next, line[start:cut + 1]))
-        start = cut + 1
-    return rows or [(0, [])]
+    title["gap"] = 34 if blocks else 0
+    blocks.append(title)
+    if slide.get("subtitle"):
+        sub = text_block("subtitle", slide["subtitle"], BODY, F_SUB, TW, 1.4)
+        sub["gap"] = 38
+        blocks.append(sub)
+    return {"blocks": blocks, "url": ""}
+
+
+def list_screen(heads):
+    """Numbered rows that fit the window, biggest text size first."""
+    for size in (46, 42, 38, 34):
+        fnt = font("Inter-SemiBold.otf", size)
+        blocks = []
+        for i, h in enumerate(heads):
+            b = text_block("item", h, FG, fnt, TW - 92, 1.22)
+            b.update(num=i + 1, gap=0 if i == 0 else int(size * 0.95))
+            blocks.append(b)
+        blocks.append({"kind": "outro", "text": OUTRO, "gap": 56, "h": 78})
+        if height(blocks) <= BODY_BOTTOM - BODY_TOP:
+            break
+    return {"blocks": blocks, "url": "/w-skrocie"}
+
+
+def block_h(b):
+    if b["kind"] in ("pill", "outro"):
+        return b["h"]
+    return b["lh"] * len(b["lines"])
+
+
+def height(blocks):
+    return sum(b["gap"] + block_h(b) for b in blocks)
+
+
+def place(screen):
+    y = BODY_TOP + max(0, (BODY_BOTTOM - BODY_TOP - height(screen["blocks"])) // 2)
+    for b in screen["blocks"]:
+        y += b["gap"]
+        b["y"] = y
+        y += block_h(b)
+
+
+def screens_for(slides):
+    heads = [s["title"] for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
+    out = [cover_screen(slides[0]), list_screen(heads)]
+    for s in out:
+        place(s)
+    return out
 
 
 # ---------------------------------------------------------------- timeline
 
 def timeline(screens):
-    """Lay every screen out in rows and give every character the time it is typed."""
+    """When every block appears or types, how long each screen lasts, sound events."""
     plan, events, t = [], [], 0.0
     for si, sc in enumerate(screens):
         first, last = si == 0, si == len(screens) - 1
         start = t
-        t += 0.45                                   # a beat of empty editor before typing
-        rows = []
-        for li, line in enumerate(sc["lines"]):
-            for ri, (indent, chars) in enumerate(wrap_line(line)):
-                times = []
-                for ch, _ in chars:
-                    times.append(t)
-                    events.append((t, "space" if ch == " " else "key"))
-                    t += 1 / sc["cps"]
-                rows.append({"line": li, "first": ri == 0, "indent": indent, "chars": chars, "times": times})
-            events.append((t, "space"))             # Enter
-            t += ENTER_PAUSE
-        end_typing = t
-        if last:
-            events.append((t, "ping"))
-            t += HOLD_LAST
-        else:
-            t += HOLD_COVER
-        plan.append({"file": sc["file"], "rows": rows, "start": start, "typed": end_typing, "end": t})
+        t += START
+        for b in sc["blocks"]:
+            if b["kind"] in ("pill", "outro"):
+                b["t0"] = b["t1"] = t
+                if b["kind"] == "outro":
+                    events.append((t, "ping"))
+                t += 0.35
+                continue
+            cps = CPS[b["kind"]]
+            b["t0"], b["t1"] = t, t + b["chars"] / cps
+            text = " ".join(w for ln in b["lines"] for _, w, _ in ln) + " "
+            for k, ch in enumerate(text):
+                events.append((t + k / cps, "space" if ch == " " else "key"))
+            t = b["t1"] + GAP_AFTER[b["kind"]]
+        typed = t
+        t += HOLD_LAST if last else HOLD_COVER
+        plan.append({**sc, "start": start, "typed": typed, "end": t})
         if not last:
             events.append((t, "whoosh"))
             t += CLEAR
@@ -186,131 +211,141 @@ def timeline(screens):
 
 # ---------------------------------------------------------------- drawing
 
-def background():
-    bg = Image.new("RGB", (W, H), BG)
-    glow = Image.new("RGB", (W, H), BG)
-    d = ImageDraw.Draw(glow)
-    d.ellipse((560, -260, 1460, 640), fill=(18, 58, 74))
-    d.ellipse((-420, 1380, 520, 2260), fill=(15, 42, 54))
-    return Image.blend(bg, glow.filter(ImageFilter.GaussianBlur(160)), 0.9)
+def glow_layers():
+    """Two background states; the frame breathes slowly between them."""
+    out = []
+    for shift in (0, 1):
+        bg = Image.new("RGB", (W, H), BG)
+        glow = Image.new("RGB", (W, H), BG)
+        d = ImageDraw.Draw(glow)
+        d.ellipse((520 + shift * 90, -300 + shift * 60, 1500 + shift * 90, 680 + shift * 60), fill=(20, 70, 90))
+        d.ellipse((-480 - shift * 60, 1300 - shift * 80, 560 - shift * 60, 2300 - shift * 80), fill=(16, 48, 62))
+        out.append(Image.blend(bg, glow.filter(ImageFilter.GaussianBlur(170)), 0.95))
+    return out
 
 
-def _icon(d, kind, cx, cy, color):
-    if kind == "files":
-        d.rectangle((cx - 11, cy - 14, cx + 7, cy + 12), outline=color, width=3)
-        d.rectangle((cx - 5, cy - 18, cx + 13, cy + 6), outline=color, width=3)
-    elif kind == "search":
-        d.ellipse((cx - 13, cy - 13, cx + 5, cy + 5), outline=color, width=3)
-        d.line((cx + 3, cy + 3, cx + 13, cy + 13), fill=color, width=4)
-    elif kind == "branch":
-        for x, y in ((cx - 8, cy - 12), (cx - 8, cy + 12), (cx + 9, cy - 4)):
-            d.ellipse((x - 5, y - 5, x + 5, y + 5), outline=color, width=3)
-        d.line((cx - 8, cy - 7, cx - 8, cy + 7), fill=color, width=3)
-        d.line((cx + 9, cy + 1, cx - 6, cy + 9), fill=color, width=3)
-    elif kind == "blocks":
-        for x, y in ((cx - 12, cy - 2), (cx + 2, cy - 2), (cx - 12, cy - 16)):
-            d.rectangle((x, y, x + 11, y + 11), outline=color, width=3)
-        d.rectangle((cx + 4, cy - 18, cx + 15, cy - 7), outline=color, width=3)
+def window_layer(url, handle):
+    """The browser window with its soft shadow, as an RGBA layer."""
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).rounded_rectangle((WX + 10, WY + 40, WX + WW - 10, WY + WH + 40), 40,
+                                            fill=(0, 0, 0, 150))
+    layer.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(40)))
+    d = ImageDraw.Draw(layer)
+    d.rounded_rectangle((WX, WY, WX + WW, WY + WH), 34, fill=SURFACE + (255,), outline=LINE + (255,), width=2)
+    d.rounded_rectangle((WX + 2, WY + 2, WX + WW - 2, WY + BAR_H), 32, fill=BAR + (255,))
+    d.rectangle((WX + 2, WY + BAR_H - 32, WX + WW - 2, WY + BAR_H), fill=BAR + (255,))
+    d.line((WX, WY + BAR_H, WX + WW, WY + BAR_H), fill=LINE + (255,), width=2)
+    for k in range(3):
+        cx = WX + 40 + k * 30
+        d.ellipse((cx - 8, WY + BAR_H // 2 - 8, cx + 8, WY + BAR_H // 2 + 8),
+                  fill=(ACCENT if k == 0 else LINE) + (255,))
+    px0, px1 = WX + 150, WX + WW - 40
+    d.rounded_rectangle((px0, WY + 20, px1, WY + BAR_H - 20), 22, fill=(13, 17, 23, 255), outline=LINE + (255,))
+    lock_x = px0 + 26
+    d.rounded_rectangle((lock_x, WY + BAR_H // 2 - 2, lock_x + 16, WY + BAR_H // 2 + 11), 3, fill=MUTED + (255,))
+    d.arc((lock_x + 2, WY + BAR_H // 2 - 12, lock_x + 14, WY + BAR_H // 2 + 2), 180, 360, fill=MUTED + (255,), width=3)
+    d.text((lock_x + 30, WY + BAR_H // 2), handle, font=F_URL, fill=FG + (255,), anchor="lm")
+    d.text((lock_x + 30 + F_URL.getlength(handle), WY + BAR_H // 2), url, font=F_URL, fill=MUTED + (255,),
+           anchor="lm")
+    d.text((TX, WY + WH - 56), "@" + handle, font=F_HANDLE, fill=MUTED + (255,), anchor="lm")
+    return layer
 
 
-def chrome(base, file):
-    """IDE window: title bar, activity bar, tabs, empty editor and status bar."""
-    img = base.copy()
-    d = ImageDraw.Draw(img)
-    d.rounded_rectangle((WX, WY, WX + WW, WY + WH), 18, fill=EDITOR, outline=BORDER, width=2)
-    d.rounded_rectangle((WX + 1, WY + 1, WX + WW - 1, WY + TITLE_H), 17, fill=TITLE_BG)
-    d.rectangle((WX + 1, WY + TITLE_H - 18, WX + WW - 1, WY + TITLE_H), fill=TITLE_BG)
-    for k, c in enumerate(((255, 95, 87), (254, 188, 46), (40, 200, 64))):
-        cx = WX + 30 + k * 26
-        d.ellipse((cx - 8, WY + TITLE_H // 2 - 8, cx + 8, WY + TITLE_H // 2 + 8), fill=c)
-    d.text((WX + WW / 2, WY + TITLE_H / 2), "pagehub.pl", font=UI, fill=MUTED, anchor="mm")
-    # activity bar
-    d.rectangle((WX + 1, WY + TITLE_H, ED_X0, ED_Y1), fill=ACTIVITY)
-    for k, kind in enumerate(("files", "search", "branch", "blocks")):
-        cy = WY + TITLE_H + 50 + k * 72
-        _icon(d, kind, WX + ACT_W // 2, cy, TEXT if k == 0 else ICON)
-    d.rectangle((WX + 1, WY + TITLE_H + 26, WX + 4, WY + TITLE_H + 74), fill=TEXT)
-    # tabs
-    d.rectangle((ED_X0, WY + TITLE_H, WX + WW - 1, ED_Y0), fill=TAB_BG)
-    tw = 230
-    d.rectangle((ED_X0, WY + TITLE_H, ED_X0 + tw, ED_Y0), fill=EDITOR)
-    d.line((ED_X0, WY + TITLE_H, ED_X0 + tw, WY + TITLE_H), fill=ACCENT, width=3)
-    d.text((ED_X0 + 22, WY + TITLE_H + TAB_H / 2), "TS", font=UI_SMALL, fill=TS_BLUE, anchor="lm")
-    d.text((ED_X0 + 56, WY + TITLE_H + TAB_H / 2), file, font=UI, fill=TEXT, anchor="lm")
-    d.rectangle((ED_X0 + tw, WY + TITLE_H, ED_X0 + tw + 210, ED_Y0 - 1), fill=TAB_IDLE)
-    d.text((ED_X0 + tw + 22, WY + TITLE_H + TAB_H / 2), "README.md", font=UI, fill=ICON, anchor="lm")
-    d.line((ED_X0, ED_Y0, WX + WW, ED_Y0), fill=BORDER, width=1)
-    # status bar
-    d.rounded_rectangle((WX + 1, ED_Y1, WX + WW - 1, WY + WH - 1), 17, fill=ACCENT)
-    d.rectangle((WX + 1, ED_Y1, WX + WW - 1, ED_Y1 + 18), fill=ACCENT)
-    d.text((WX + 24, ED_Y1 + STATUS_H / 2), "main", font=UI_S, fill=(255, 255, 255), anchor="lm")
-    d.text((WX + WW - 24, ED_Y1 + STATUS_H / 2), "UTF-8   TypeScript", font=UI, fill=(235, 245, 250),
-           anchor="rm")
-    return img
+def ease(x):
+    x = max(0.0, min(1.0, x))
+    return 1 - (1 - x) ** 3
 
 
-def draw_code(img, screen, t, alpha=1.0, cursor_on=True):
-    d = ImageDraw.Draw(img, "RGBA")
+def draw_screen(img, sc, t, alpha, cursor_on):
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
     a = int(255 * alpha)
-    rows = screen["rows"]
-    visible = []                                    # (row, chars shown so far)
-    for r in rows:
-        n = bisect.bisect_right(r["times"], t)
-        if n == 0:
+    cursor = None
+    for b in sc["blocks"]:
+        if t < b["t0"]:
             break
-        visible.append((r, n))
-    # the line being typed gets the current-line highlight, the IDE way
-    cur_line = visible[-1][0]["line"] if visible else 0
-    cur_rows = [i for i, (r, _) in enumerate(visible) if r["line"] == cur_line] or [0]
-    y0 = ED_Y0 + TOP_PAD
-    if alpha > 0.5:
-        d.rectangle((ED_X0 + 1, y0 + cur_rows[0] * LINE_H - 8, WX + WW - 2, y0 + (cur_rows[-1] + 1) * LINE_H - 8),
-                    fill=CUR_LINE + (a,))
-    for i, (r, n) in enumerate(visible):
-        y = y0 + i * LINE_H
-        if r["first"]:
-            num = r["line"] + 1
-            d.text((GUT_R, y), str(num), font=MONO, fill=(GUTTER_CUR if r["line"] == cur_line else GUTTER) + (a,),
-                   anchor="ra")
-        x = CODE_X + r["indent"] * CHAR_W
-        run, run_color = "", None
-        for ch, color in r["chars"][:n]:
-            if color != run_color and run:
-                d.text((x, y), run, font=MONO, fill=run_color + (a,))
-                x += MONO.getlength(run)
-                run = ""
-            run_color = color
-            run += ch
-        if run:
-            d.text((x, y), run, font=MONO, fill=run_color + (a,))
-            x += MONO.getlength(run)
-        if i == len(visible) - 1 and cursor_on and alpha > 0.5:
-            d.rectangle((x + 1, y - 2, x + 4, y + FONT_SIZE + 4), fill=CURSOR + (a,))
-    if not visible and cursor_on:
-        d.text((GUT_R, y0), "1", font=MONO, fill=GUTTER_CUR + (a,), anchor="ra")
-        d.rectangle((CODE_X + 1, y0 - 2, CODE_X + 4, y0 + FONT_SIZE + 4), fill=CURSOR + (a,))
-    # live cursor position in the status bar
-    if visible:
-        r, n = visible[-1]
-        col = r["indent"] + n + 1
-    else:
-        col = 1
-    d.text((WX + WW - 290, ED_Y1 + STATUS_H / 2), f"Ln {cur_line + 1}, Col {col}", font=UI,
-           fill=(235, 245, 250, 255), anchor="rm")
+        k = b["kind"]
+        if k == "pill":
+            p = ease((t - b["t0"]) / 0.3)
+            w = F_PILL.getlength(b["text"]) + 44
+            y = b["y"] + (1 - p) * 14
+            d.rounded_rectangle((TX, y, TX + w, y + b["h"]), b["h"] // 2, fill=ACCENT_SOFT + (int(a * p),),
+                                outline=ACCENT + (int(a * p),), width=2)
+            d.text((TX + 22, y + b["h"] / 2), b["text"], font=F_PILL, fill=ACCENT + (int(a * p),), anchor="lm")
+            continue
+        if k == "outro":
+            p = ease((t - b["t0"]) / 0.28)
+            w = F_OUTRO.getlength(b["text"]) + 68
+            s = 0.85 + 0.15 * p
+            cx, cy = TX + w / 2, b["y"] + b["h"] / 2
+            d.rounded_rectangle((cx - w * s / 2, cy - b["h"] * s / 2, cx + w * s / 2, cy + b["h"] * s / 2),
+                                int(b["h"] * s / 2), fill=ACCENT + (int(a * p),))
+            d.text((cx, cy), b["text"], font=F_OUTRO, fill=INK + (int(a * p),), anchor="mm")
+            cursor = None
+            continue
+        span = max(b["t1"] - b["t0"], 1e-6)
+        shown = b["chars"] if t >= b["t1"] else int(b["chars"] * (t - b["t0"]) / span)
+        fnt = b["font"]
+        left = TX
+        if k == "item":
+            p = ease((t - b["t0"]) / 0.22)
+            r = 30 * (0.6 + 0.4 * p)
+            cy = b["y"] + fnt.size * 0.62
+            d.ellipse((TX + 30 - r, cy - r, TX + 30 + r, cy + r), fill=ACCENT_SOFT + (int(a * p),),
+                      outline=ACCENT + (int(a * p),), width=2)
+            d.text((TX + 30, cy), str(b["num"]), font=F_NUM, fill=ACCENT + (int(a * p),), anchor="mm")
+            left = TX + 92
+            if b["num"] > 1:
+                ly = b["y"] - b["gap"] / 2
+                d.line((TX, ly, TX + TW, ly), fill=LINE + (int(a * 0.8),), width=2)
+        count = 0
+        for li, line in enumerate(b["lines"]):
+            ly = b["y"] + li * b["lh"]
+            for x, word, color in line:
+                if count >= shown:
+                    break
+                part = word[: max(0, shown - count)]
+                d.text((left + x, ly), part, font=fnt, fill=color + (a,))
+                cursor = (left + x + fnt.getlength(part) + 5, ly, fnt.size)
+                count += len(word) + 1
+            if count >= shown:
+                break
+    if cursor_on and alpha > 0.5:
+        if cursor is None and not any(t >= b["t0"] for b in sc["blocks"] if b["kind"] not in ("pill",)):
+            cursor = (TX, sc["blocks"][0]["y"] + (60 if sc["blocks"][0]["kind"] == "pill" else 0), 70)
+        if cursor:
+            x, y, size = cursor
+            d.rounded_rectangle((x, y + size * 0.1, x + max(5, size // 14), y + size * 1.08), 2, fill=ACCENT + (a,))
+    img.alpha_composite(layer)
 
 
-def frame_at(plan, chromes, t):
+def frame_at(plan, assets, t):
+    g0, g1, windows = assets
+    mix = 0.5 + 0.5 * math.sin(t * 0.5)
     for i, s in enumerate(plan):
         if t < s["end"] or i == len(plan) - 1:
-            img = chromes[i].copy()
-            typing = s["start"] + 0.45 <= t < s["typed"]
-            draw_code(img, s, t, 1.0, typing or int(t * 1.8) % 2 == 0)
-            return img
+            idx, alpha, at = i, 1.0, t
+            typing = s["start"] + START <= t < s["typed"]
+            cursor_on = typing or int(t * 1.8) % 2 == 0
+            break
         if t < s["end"] + CLEAR:
-            img = chromes[i].copy()
-            draw_code(img, s, s["end"], 1 - (t - s["end"]) / CLEAR, False)
-            return img
-    return chromes[-1].copy()
+            idx, alpha, at, cursor_on = i, 1 - (t - s["end"]) / CLEAR, s["end"], False
+            break
+    img = Image.blend(g0, g1, mix).convert("RGBA")
+    img.alpha_composite(windows[min(idx + (1 if alpha < 1 else 0), len(windows) - 1)])
+    draw_screen(img, plan[idx], at, alpha, cursor_on)
+    # two-segment progress bar, like stories
+    d = ImageDraw.Draw(img)
+    seg_w, gap, y = (WW - 16) / 2, 16, WY - 48
+    for k, s in enumerate(plan):
+        x0 = WX + k * (seg_w + gap)
+        d.rounded_rectangle((x0, y, x0 + seg_w, y + 8), 4, fill=LINE)
+        span = max(s["end"] - s["start"], 1e-6)
+        p = 1.0 if t >= s["end"] else max(0.0, (t - s["start"]) / span)
+        if p > 0:
+            d.rounded_rectangle((x0, y, x0 + seg_w * p, y + 8), 4, fill=ACCENT)
+    return img.convert("RGB")
 
 
 # ---------------------------------------------------------------- sound
@@ -389,100 +424,92 @@ def key_sound(rng, downs, ups, space=False):
     return out
 
 
-def japan_lofi(total, rng):
-    """Relaxed Japanese lo-fi in the JDM-night-drive mood, 76 BPM, swung:
-    a warm FM electric piano on Dm9 - G13 - Cmaj9 - Am9, round sub bass,
-    koto-like plucks on an A hirajoshi scale with an echo, soft kick, rim and
-    hats, a little vinyl crackle, everything warm and rolled off. Stereo (L, R)."""
+def _fftconv(x, h):
+    size = len(x) + len(h) - 1
+    nfft = 1 << (size - 1).bit_length()
+    return np.fft.irfft(np.fft.rfft(x, nfft) * np.fft.rfft(h, nfft), nfft)[: len(x)]
+
+
+def night_drive(total, rng):
+    """Chill night-drive bed with a Japanese touch, 72 BPM half-time: lush detuned
+    pads in a long reverb, deep sub bass, a soft bell melody on an A hirajoshi
+    scale, a gentle kick and rim, crisp hats with the odd roll, light rain
+    ambience. Warm and in the background. Stereo (L, R)."""
     n = int((total + 1.0) * SR)
-    beat = 60 / 76
+    beat = 60 / 72
     bar = 4 * beat
-    swing = 0.12 * beat
-    chords = [([53, 57, 60, 64], 38), ([53, 59, 64, 69], 43), ([52, 55, 59, 62], 36), ([55, 59, 60, 64], 45)]
-    scale = [69, 71, 72, 76, 77, 81, 83, 84]          # A B C E F (hirajoshi on A), two octaves
+    chords = [([57, 60, 64, 67, 71], 45), ([53, 57, 60, 64, 67], 41), ([55, 59, 62, 66], 43), ([52, 55, 59, 62], 40)]
+    scale = [69, 71, 72, 76, 77, 81, 83, 84, 88]      # A B C E F (hirajoshi on A)
 
     def hz(m):
         return 440 * 2 ** ((m - 69) / 12)
 
-    ep_l, ep_r, bass, pluck, drums = (np.zeros(n) for _ in range(5))
-    lk = int(0.25 * SR)
+    pad_l, pad_r, sub, bell, drums = (np.zeros(n) for _ in range(5))
+    lk = int(0.35 * SR)
     kk = np.arange(lk) / SR
-    kick = np.sin(2 * np.pi * np.cumsum(46 + 50 * np.exp(-kk / 0.03)) / SR) * np.exp(-kk / 0.14)
-    lr = int(0.12 * SR)
+    kick = np.sin(2 * np.pi * np.cumsum(42 + 60 * np.exp(-kk / 0.04)) / SR) * np.exp(-kk / 0.2)
+    lr = int(0.14 * SR)
     kr = np.arange(lr) / SR
-    rim = (np.sin(2 * np.pi * 1700 * kr) * np.exp(-kr / 0.012) * 0.5
-           + _lowpass(rng.standard_normal(lr), 6) * np.exp(-kr / 0.03) * 0.5)
-    lh = int(0.04 * SR)
-    hat = np.diff(rng.standard_normal(lh), prepend=0) * _env(lh, 0.0005, 0.01)
+    rim = (np.sin(2 * np.pi * 1550 * kr) * np.exp(-kr / 0.01) * 0.45
+           + _lowpass(rng.standard_normal(lr), 5) * np.exp(-kr / 0.04) * 0.55)
+    lh = int(0.035 * SR)
+    hat = np.diff(rng.standard_normal(lh), prepend=0) * _env(lh, 0.0004, 0.008)
 
-    def ep_note(m, length):
+    def pad_voice(m, length, detune):
         ln = int(length * SR)
         k = np.arange(ln) / SR
-        f = hz(m)
-        index = 1.8 * np.exp(-k / 0.35)
-        tone = np.sin(2 * np.pi * f * k + index * np.sin(2 * np.pi * f * k))
-        tone += 0.15 * np.sin(2 * np.pi * 4 * f * k) * np.exp(-k / 0.05)      # tine bell
-        return tone * _env(ln, 0.004, 2.2) * (1 + 0.12 * np.sin(2 * np.pi * 4.2 * k))
+        f = hz(m + detune)
+        saw = sum(np.sin(2 * np.pi * h * f * k) / h for h in range(1, 7))
+        return saw * np.minimum(1, k / 0.9) * np.minimum(1, (length - k) / 0.6)
 
-    def koto(m):
-        ln = int(1.4 * SR)
+    def bell_note(m):
+        ln = int(1.8 * SR)
         k = np.arange(ln) / SR
         f = hz(m)
-        sig = sum(np.sin(2 * np.pi * h * f * (1 + 0.0004 * h * h) * k) * np.exp(-k / (0.9 / h)) / h ** 1.1
-                  for h in range(1, 9))
-        sig[: int(0.003 * SR)] += rng.standard_normal(int(0.003 * SR)) * 0.4
-        return sig * np.minimum(1, k / 0.001) * 0.6
+        tone = (np.sin(2 * np.pi * f * k) + 0.45 * np.sin(2 * np.pi * 2.76 * f * k) * np.exp(-k / 0.25)
+                + 0.2 * np.sin(2 * np.pi * 5.4 * f * k) * np.exp(-k / 0.08))
+        return tone * _env(ln, 0.003, 0.7)
 
+    melody = [(0.0, 4), (1.5, 2), (2.0, 3), (3.0, 1), (5.0, 2), (6.0, 4), (6.5, 5), (7.5, 3)]  # (beat, degree)
     t_bar, b = 0.0, 0
-    motif = [0, None, 2, 4, None, 3, 2, None, 1, None, 0, None, None, 2, None, None]
     while t_bar < total + 0.5:
         notes, root = chords[b % 4]
-        for at, length in ((0.0, 1.6 * beat), (2.5 * beat + swing, 1.3 * beat)):   # syncopated EP stabs
-            for v, m in enumerate(notes):
-                s = ep_note(m, length + 0.8) / len(notes)
-                _put(ep_l, s * (1.0 if v % 2 else 0.7), t_bar + at + v * 0.012)
-                _put(ep_r, s * (0.7 if v % 2 else 1.0), t_bar + at + v * 0.012)
-        for at, m, ln_ in ((0, root, 1.4), (1.5 * beat + swing, root + 12, 0.4), (3 * beat, root + 7, 0.7)):
-            ln = int(ln_ * beat * SR)
-            k = np.arange(ln) / SR
-            sig = np.tanh(1.6 * np.sin(2 * np.pi * hz(m) * k)) * _env(ln, 0.006, 0.9 * beat)
-            _put(bass, sig, t_bar + at)
-        shift = (b % 2) * 2
-        for e, deg in enumerate(motif):                                         # koto line, 8ths
-            if deg is None or (b % 4 == 3 and e > 8):
-                continue
-            at = t_bar + e * beat / 2 + (swing if e % 2 else 0)
-            _put(pluck, koto(scale[(deg + shift) % len(scale)]), at)
-        for q in range(4):
-            tq = t_bar + q * beat
-            if q in (0, 2):
-                _put(drums, kick, tq)
-            if q == 2 and b % 2:
-                _put(drums, kick * 0.6, tq + 1.5 * beat / 2 + swing)
-            if q in (1, 3):
-                _put(drums, rim * 0.6, tq)
-            _put(drums, hat * 0.10, tq)
-            _put(drums, hat * 0.16, tq + beat / 2 + swing)
+        for v, m in enumerate(notes):
+            for det, dst, g in ((-0.07, pad_l, 1.0), (0.07, pad_r, 1.0), (0.0, pad_l, 0.5), (0.0, pad_r, 0.5)):
+                _put(dst, pad_voice(m, bar + 0.7, det) * g / len(notes), t_bar)
+        ln = int(bar * SR)
+        k = np.arange(ln) / SR
+        glide = hz(root - 12) * (1 + 0.03 * np.exp(-k / 0.05))
+        _put(sub, np.sin(2 * np.pi * np.cumsum(glide) / SR) * _env(ln, 0.01, 2.5), t_bar)
+        if b % 2 == 0:
+            for at, deg in melody:
+                _put(bell, bell_note(scale[deg]), t_bar + at * beat)
+        _put(drums, kick, t_bar)
+        _put(drums, kick * 0.7, t_bar + 2.5 * beat)
+        _put(drums, rim * 0.55, t_bar + 2 * beat)
+        for e in range(8):
+            _put(drums, hat * (0.13 if e % 2 else 0.08), t_bar + e * beat / 2)
+        if b % 2 == 1:                                     # a small hat roll at the end of every other bar
+            for r in range(4):
+                _put(drums, hat * 0.07, t_bar + 3.5 * beat + r * beat / 8)
         t_bar += bar
         b += 1
-    warm = _fir(4200)
-    ep_l, ep_r = np.convolve(ep_l, warm, "same"), np.convolve(ep_r, warm, "same")
-    bass = np.convolve(bass, _fir(500), "same")
-    pluck = np.convolve(pluck, _fir(5000), "same")
-    drums = np.convolve(drums, _fir(6000), "same")
-    d = int(0.75 * beat * SR)                                                   # dotted-eighth echo
-    pl, pr = pluck.copy(), pluck.copy()
-    for r in range(1, 4):
-        (pr if r % 2 else pl)[d * r:] += pluck[: -d * r] * 0.38 ** r
-    crackle = np.zeros(n)                                                       # vinyl
-    for _ in range(int(total * 7)):
-        i = rng.integers(0, n - 200)
-        crackle[i:i + 60] += np.diff(rng.standard_normal(60), prepend=0) * rng.uniform(0.02, 0.08) \
-            * np.exp(-np.arange(60) / 12)
-    hiss = np.convolve(rng.standard_normal(n), _fir(3000, 63), "same") * 0.006
-    core = bass * 0.45 + drums * 0.42 + crackle + hiss
-    left = core + ep_l * 0.38 + pl * 0.16
-    right = core + ep_r * 0.38 + pr * 0.2
+    pad_l = np.convolve(pad_l, _fir(1800), "same")
+    pad_r = np.convolve(pad_r, _fir(1800), "same")
+    sub = np.convolve(sub, _fir(300), "same")
+    drums = np.convolve(drums, _fir(7000), "same")
+    # long, soft reverb on pads and bell: decaying noise impulse, different per side
+    ir_len = int(2.4 * SR)
+    decay = np.exp(-np.arange(ir_len) / SR / 0.9)
+    irs = [np.convolve(rng.standard_normal(ir_len) * decay, _fir(5000, 63), "same") for _ in range(2)]
+    irs = [ir / np.sqrt((ir ** 2).sum()) for ir in irs]
+    bell_dry = np.convolve(bell, _fir(6000), "same")
+    wet_l = _fftconv(pad_l * 0.6 + bell_dry, irs[0])
+    wet_r = _fftconv(pad_r * 0.6 + bell_dry, irs[1])
+    rain = np.convolve(rng.standard_normal(n), _fir(2500, 63), "same") * 0.012
+    core = sub * 0.55 + drums * 0.42 + rain
+    left = core + pad_l * 0.22 + bell_dry * 0.12 + wet_l * 0.10
+    right = core + pad_r * 0.22 + bell_dry * 0.12 + wet_r * 0.10
     return left, right
 
 
@@ -511,7 +538,6 @@ def sound(events, total, seed=7):
             ln = int(0.45 * SR)
             add(_lowpass(rng.standard_normal(ln), 24) * np.sin(np.linspace(0, np.pi, ln)) ** 2 * 0.22, t - 0.1)
         elif kind == "ping":
-            # one soft bell with a short stereo echo, to close the reel
             ln = int(1.4 * SR)
             k = np.arange(ln) / SR
             f0 = 440 * 2 ** ((88 - 69) / 12)                 # E6
@@ -521,14 +547,14 @@ def sound(events, total, seed=7):
             add(ding * 0.13, t + 0.2, -0.6)
             add(ding * 0.06, t + 0.4, 0.6)
 
-    bed_l, bed_r = japan_lofi(total, rng)
+    bed_l, bed_r = night_drive(total, rng)
     bed_l, bed_r = bed_l[:n], bed_r[:n]
     fade = np.ones(n)
     fi, fo, end = int(0.4 * SR), int(1.6 * SR), min(n, int(total * SR))
     fade[:fi] = np.linspace(0, 1, fi)
     fade[end - fo:end] = np.linspace(1, 0, fo)
     fade[end:] = 0
-    music = 0.5
+    music = 0.55
     mix = np.stack([(left + bed_l * music) * fade, (right + bed_r * music) * fade], axis=1)
     if not np.isfinite(mix).all():
         raise RuntimeError("dźwięk rolki zawiera błędne próbki, nie publikuję cichej rolki")
@@ -560,16 +586,17 @@ def ffmpeg_bin():
 
 def prepare(spec_path):
     spec = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8"))
-    screens = code_screens(spec["slides"])
+    screens = screens_for(spec["slides"])
     plan, events, total = timeline(screens)
-    base = background()
-    chromes = [chrome(base, s["file"]) for s in screens]
-    return plan, events, total, chromes
+    handle = spec.get("handle", "pagehub.pl")
+    g0, g1 = glow_layers()
+    windows = [window_layer(s["url"], handle) for s in screens]
+    return plan, events, total, (g0, g1, windows)
 
 
 def build(spec_path, out_path=None):
     out_path = pathlib.Path(out_path or pathlib.Path(spec_path).with_suffix("") / "reel.mp4")
-    plan, events, total, chromes = prepare(spec_path)
+    plan, events, total, assets = prepare(spec_path)
     with tempfile.TemporaryDirectory() as tmp:
         wav = pathlib.Path(tmp) / "audio.wav"
         write_wav(wav, sound(events, total))
@@ -581,7 +608,7 @@ def build(spec_path, out_path=None):
                "-movflags", "+faststart", str(out_path)]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         for f in range(int(total * FPS)):
-            proc.stdin.write(frame_at(plan, chromes, f / FPS).tobytes())
+            proc.stdin.write(frame_at(plan, assets, f / FPS).tobytes())
         proc.stdin.close()
         if proc.wait() != 0:
             raise RuntimeError("ffmpeg nie zbudował rolki")
@@ -589,15 +616,15 @@ def build(spec_path, out_path=None):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Carousel spec -> IDE typing Reel MP4.")
+    ap = argparse.ArgumentParser(description="Carousel spec -> typing Reel MP4.")
     ap.add_argument("spec")
     ap.add_argument("--out")
     ap.add_argument("--still", type=float, help="write one frame at this second as PNG instead")
     a = ap.parse_args()
     if a.still is not None:
-        plan, _, total, chromes = prepare(a.spec)
+        plan, _, total, assets = prepare(a.spec)
         out = pathlib.Path(a.out or "still.png")
-        frame_at(plan, chromes, min(a.still, total - 0.01)).save(out)
+        frame_at(plan, assets, min(a.still, total - 0.01)).save(out)
         print(f"{out}  (z {total:.1f} s)")
         return
     path, total = build(a.spec, a.out)
