@@ -1,29 +1,32 @@
 {
   "parts": {
     "cover": {
-      "text": "Bez szablonu! Tak powstaje u nas nowa strona. Pięć kroków, od pierwszej rozmowy do publikacji.",
-      "sha": "47b994988bc8",
-      "seconds": 5.74,
-      "take": 3,
-      "heard": "Bez szablonu. Tak powstaje u nas nowa strona. Pięć kroków od pierwszej rozmowy do publikacji.",
+      "text": "Bez szablonu: tak powstaje Twoja strona. 5 kroków od pierwszej rozmowy do publikacji.",
+      "spoken": "Bez szablonu: tak powstaje Twoja strona. Pięć kroków od pierwszej rozmowy do publikacji.",
+      "sha": "7e50e6d6eccc",
+      "seconds": 5.29,
+      "take": 2,
+      "heard": "bez szablonu. Tak powstaje twoja strona. Pięć kroków od pierwszej rozmowy do publikacji.",
       "wer": 0.0,
       "lifted_questions": 0
     },
     "list": {
-      "text": "Najpierw rozmowa o twoich klientach. Potem projekt pod twoją branżę. Kod piszemy od zera. Dostajesz własny panel do zmian. A na koniec publikacja i Google.",
-      "sha": "02e1d31b0097",
-      "seconds": 9.34,
-      "take": 2,
-      "heard": "Najpierw rozmowa o twoich klientach. Potem projekt pod twoją branżę. Kot piszemy od zera, dostajesz własny panel do zmian, a na koniec publikacja i Google.",
-      "wer": 0.04,
+      "text": "5 kroków do nowej strony. Rozmowa o Twoich klientach. Projekt pod Twoją branżę. Kod pisany od zera. Panel do własnych zmian. Publikacja i Google.",
+      "spoken": "Pięć kroków do nowej strony. Rozmowa o Twoich klientach. Projekt pod Twoją branżę. Kod pisany od zera. Panel do własnych zmian. Publikacja i Google.",
+      "sha": "35938725fc45",
+      "seconds": 9.52,
+      "take": 4,
+      "heard": "5 kroków do nowej strony. Rozmowa o twoich klientach, projekt po twoją branżę, kod pisany od zera, panel do własnych zmian, publikacja i Google.",
+      "wer": 0.042,
       "lifted_questions": 0
     },
     "sell": {
-      "text": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz w komentarzu słowo wycena, a przygotujemy ofertę.",
-      "sha": "3552dce5863f",
-      "seconds": 6.02,
-      "take": 3,
-      "heard": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz w komentarzu słowo \"wycena\" a przygotujemy ofertę",
+      "text": "Chcesz stronę zrobioną specjalnie dla Twojej firmy? Napisz WYCENA w komentarzu.",
+      "spoken": "Chcesz stronę zrobioną specjalnie dla Twojej firmy? Napisz wycena w komentarzu.",
+      "sha": "b9edbbb8e9a0",
+      "seconds": 4.68,
+      "take": 2,
+      "heard": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz wycena w komentarzu.",
       "wer": 0.0,
       "lifted_questions": 1
     }

@@ -1,29 +1,32 @@
 {
   "parts": {
     "cover": {
-      "text": "Twoja strona ładuje się dłużej niż trzy sekundy? To tracisz klientów! Ponad połowa ludzi po prostu ją zamyka.",
-      "sha": "b32a21163c37",
-      "seconds": 6.39,
-      "take": 3,
-      "heard": "Twoja strona ładuje się dłużej niż 3 sekundy? To tracisz klientów. Ponad połowa ludzi po prostu ją zamyka.",
+      "text": "Ponad 3 sekundy? Tracisz klientów. 5 rzeczy, które spowalniają stronę Twojej firmy.",
+      "spoken": "Ponad trzy sekundy? Tracisz klientów. Pięć rzeczy, które spowalniają stronę Twojej firmy.",
+      "sha": "31d752dbb9d7",
+      "seconds": 6.61,
+      "take": 4,
+      "heard": "Ponad 3 sekundy tracisz klientów 5 rzeczy, które spowalniają stronę twojej firmy.",
       "wer": 0.0,
       "lifted_questions": 0
     },
     "list": {
-      "text": "Najczęściej winne jest jedno z tych pięciu. Zdjęcia prosto z aparatu. Wtyczki, których nikt nie używa. Najtańszy hosting. Ciężki szablon. I film w tle.",
-      "sha": "c852f4e54053",
-      "seconds": 8.95,
-      "take": 1,
-      "heard": "Najczęściej winne jest jedno z tych pięciu. Zdjęcia prosto z aparatu, wtyczki których nikt nie używa, najtańszych hosting, ciężki szablon i film w tle",
-      "wer": 0.042,
+      "text": "Co spowalnia stronę. Zdjęcia prosto z aparatu. Wtyczki, których nikt nie używa. Najtańszy hosting. Ciężki gotowy szablon. Film w tle na stronie głównej.",
+      "spoken": "Co spowalnia stronę. Zdjęcia prosto z aparatu. Wtyczki, których nikt nie używa. Najtańszy hosting. Ciężki gotowy szablon. Film w tle na stronie głównej.",
+      "sha": "bd4020746fe8",
+      "seconds": 9.17,
+      "take": 4,
+      "heard": "co spowalnia stronę. Zdjęcia prosto z aparatu, wtyczki których nikt nie używa, najtańszy hosting, ciężki gotowy szablon, film w tle na stronie głównej",
+      "wer": 0.0,
       "lifted_questions": 0
     },
     "sell": {
-      "text": "Wolna strona? Klient pójdzie do konkurencji! Napisz w komentarzu słowo turbo, a przygotujemy wycenę.",
-      "sha": "6906df59a6ca",
-      "seconds": 5.98,
-      "take": 1,
-      "heard": "Wolna strona? Klient pójdzie do konkurencji. Napisz w komentarzu słowo Turbo, a przygotujemy wycenę.",
+      "text": "Wolna strona? Klient pójdzie do konkurencji. Napisz TURBO w komentarzu.",
+      "spoken": "Wolna strona? Klient pójdzie do konkurencji. Napisz turbo w komentarzu.",
+      "sha": "e7f22e658bd1",
+      "seconds": 6.69,
+      "take": 3,
+      "heard": "Wolna strona? Klient pójdzie do konkurencji. Napisz turbo w komentarzu.",
       "wer": 0.0,
       "lifted_questions": 0
     }

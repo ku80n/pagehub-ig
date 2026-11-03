@@ -1,29 +1,32 @@
 {
   "parts": {
     "cover": {
-      "text": "Pięć błędów na telefonie, które klient widzi od razu. A ty sprawdzisz je w pięć minut!",
-      "sha": "a6a1f855952d",
-      "seconds": 4.92,
-      "take": 1,
-      "heard": "5 błędów na telefonie, które klient widzi od razu, a ty sprawdzisz je w 5 minut.",
-      "wer": 0.0,
+      "text": "5 błędów Twojej strony na telefonie. Sprawdzisz je w 5 minut, zanim zauważy je klient.",
+      "spoken": "Pięć błędów Twojej strony na telefonie. Sprawdzisz je w pięć minut, zanim zauważy je klient.",
+      "sha": "fd174229050c",
+      "seconds": 5.7,
+      "take": 2,
+      "heard": "5 błędów twojej strony na telefonie. Sprawdzisz się w 5 minut, zanim zauważy je klient.",
+      "wer": 0.067,
       "lifted_questions": 0
     },
     "list": {
-      "text": "Weź telefon i sprawdź. Da się czytać bez powiększania? Numer od razu dzwoni? Przyciski łatwo trafić palcem? Adres i godziny widać od razu? A formularz naprawdę dochodzi?",
-      "sha": "bd65ca7d8db6",
-      "seconds": 9.95,
-      "take": 1,
-      "heard": "Weź telefon i sprawdź. Da się czytać bez powiększania, numer od razu dzwoni, przyciski łatwo trafić palcem, adres i godziny widać od razu, a formularz naprawdę dochodzi?",
-      "wer": 0.0,
+      "text": "Sprawdź na telefonie. Da się czytać bez powiększania? Numer od razu dzwoni? Przyciski łatwo trafić palcem? Adres i godziny widać od razu? Formularz naprawdę dochodzi?",
+      "spoken": "Sprawdź na telefonie. Da się czytać bez powiększania? Numer od razu dzwoni? Przyciski łatwo trafić palcem? Adres i godziny widać od razu? Formularz naprawdę dochodzi?",
+      "sha": "ef2e5ccc076a",
+      "seconds": 10.16,
+      "take": 2,
+      "heard": "Sprawdź na telefonie. Daj się czytać bez powiększania. Numer od razu dzwoni. Przyciski łatwo trafić palcem. Adres i godziny widać od razu. Formularz naprawdę dochodzi.",
+      "wer": 0.04,
       "lifted_questions": 0
     },
     "sell": {
-      "text": "Sprawdź, zanim twój klient je znajdzie! Coś nie działa? Napisz w komentarzu słowo telefon, a przygotujemy wycenę.",
-      "sha": "a5112305c736",
-      "seconds": 6.65,
-      "take": 3,
-      "heard": "Sprawdź, zanim twój klient je znajdzie. Coś nie działa? Napisz w komentarzu słowo \"telefon\", a przygotujemy wycenę.",
+      "text": "Sprawdź, zanim znajdzie je Twój klient! Napisz TELEFON w komentarzu.",
+      "spoken": "Sprawdź, zanim znajdzie je Twój klient! Napisz telefon w komentarzu.",
+      "sha": "ddae26ec1437",
+      "seconds": 4.12,
+      "take": 1,
+      "heard": "Sprawdź. Zanim znajdzie je twój klient, napisz telefon w komentarzu.",
       "wer": 0.0,
       "lifted_questions": 0
     }
