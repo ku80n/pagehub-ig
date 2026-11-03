@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """
-make_reel.py - turn a carousel spec into a short 9:16 Reel where the text types
-itself out in a PageHub-style code editor, with original sound.
+make_reel.py - turn a carousel spec into a short 9:16 Reel: the carousel's text
+typed out as syntax-highlighted code in an IDE window, with original sound.
 
-Two screens. First the carousel's cover, exactly as it is, on screen from the
-very first frame (the hook) and long enough to read all of it. Then a bullet
-list of the headings of the other slides, typed one by one, ending with
-"reszta w opisie" and a single "ping". The recap and the call-to-action slides
-are left out of the list: they are not points.
-The window sits inside the Reels safe zone, away from the like/comment rail
-and the caption.
+Two screens, both starting from an empty editor:
+  1. the cover - kicker as a comment, the title and subtitle as strings,
+     typed out and left on screen long enough to read all of it;
+  2. the headings of the other slides as a list of strings, then
+     "// reszta w opisie", and a single "ping" when the last line is done.
+The recap and call-to-action slides are left out of the list: they are not
+points. The window sits inside the Reels safe zone, away from the
+like/comment rail and the caption.
 
 Sound: real clicky-switch recordings (Kailh Box White, MIT licence, see
-assets/sounds) played at a real typist's rhythm, a soft whoosh between the
-screens, one ping at the very end, and a synthwave bed generated here, so there
-is nothing to license and nothing Instagram can mute.
+assets/sounds) at a real typist's rhythm, a soft whoosh between the screens,
+one ping at the end, and a relaxed Japanese lo-fi bed generated here (electric
+piano, koto-like plucks on a hirajoshi scale, soft swung drums, vinyl crackle),
+so there is nothing to license and nothing Instagram can mute.
 
 Usage
   python3 make_reel.py weeks/2026-11-02/k1.json                # -> weeks/.../k1/reel.mp4
@@ -23,9 +25,9 @@ Usage
 """
 
 import argparse
+import bisect
 import json
 import pathlib
-import re
 import shutil
 import subprocess
 import sys
@@ -41,170 +43,141 @@ FONTS = ROOT / "assets" / "fonts"
 W, H, FPS = 1080, 1920, 30
 SR = 48000
 
-# palette, same as the carousels
+# IDE dark theme
 BG = (11, 15, 20)
-WIN = (17, 22, 29)
-BAR = (22, 29, 38)
-LINE = (36, 48, 64)
-FG = (230, 237, 243)
-BODY = (201, 211, 222)
-MUTED = (107, 120, 136)
-GUTTER = (43, 55, 70)
-ACCENT = (28, 152, 195)
-INK = (11, 15, 20)
+TITLE_BG = (50, 50, 51)
+TAB_BG = (37, 37, 38)
+TAB_IDLE = (45, 45, 45)
+EDITOR = (30, 30, 30)
+ACTIVITY = (44, 44, 44)
+CUR_LINE = (40, 40, 40)
+BORDER = (60, 60, 60)
+GUTTER = (110, 118, 129)
+GUTTER_CUR = (198, 198, 198)
+ICON = (133, 133, 133)
+TEXT = (212, 212, 212)
+MUTED = (150, 150, 150)
+CURSOR = (174, 175, 173)
+ACCENT = (28, 152, 195)          # PageHub teal, used for the status bar
+# syntax colours
+KW = (86, 156, 214)              # const
+VAR = (156, 220, 254)            # names
+PUNC = (212, 212, 212)           # = ; [ ] ,
+STR = (206, 145, 120)            # "strings"
+COM = (106, 153, 85)             # // comments
+TS_BLUE = (49, 120, 198)
 
 # window inside the Reels safe zone (top bar above y=230, caption below y=1440,
 # action rail on the right)
-WX, WY, WW, WH = 50, 300, 840, 1110
-BAR_H = 76
-TX = WX + 92                     # text left edge, right of the gutter
-TW = WX + WW - 52 - TX           # text width
-CONTENT_TOP, CONTENT_BOTTOM = WY + BAR_H + 40, WY + WH - 70
+WX, WY, WW, WH = 40, 280, 860, 1150
+TITLE_H, TAB_H, STATUS_H, ACT_W = 52, 64, 46, 66
+ED_X0, ED_Y0 = WX + ACT_W, WY + TITLE_H + TAB_H
+ED_Y1 = WY + WH - STATUS_H
+GUT_R = ED_X0 + 64               # right edge of the line numbers
+CODE_X = ED_X0 + 92
+CODE_W = WX + WW - 28 - CODE_X
+TOP_PAD = 34
 
-# pacing (characters per second, seconds)
-CPS = {"kicker": 60, "title": 34, "subtitle": 70, "body": 78, "item": 70, "bullet": 30, "outro": 26}
-BULLET_GAP = 0.18                # short pause between headings
-OUTRO = "reszta w opisie \u2193"
-HOLD, HOLD_LAST, CLEAR = 0.95, 2.2, 0.25
+FONT_SIZE = 40
+LINE_H = int(FONT_SIZE * 1.55)
+CPS = (30, 40)                   # typing speed on the cover / on the list screen
+ENTER_PAUSE = 0.16
+HOLD_COVER, HOLD_LAST, CLEAR = 2.2, 2.4, 0.3
+OUTRO = "// reszta w opisie ↓"
 
 
 def font(name, size):
     return ImageFont.truetype(str(FONTS / name), size)
 
 
-F = {
-    "kicker": font("DejaVuSansMono-Bold.ttf", 28),
-    "title": font("DejaVuSansMono-Bold.ttf", 62),
-    "cover": font("DejaVuSansMono-Bold.ttf", 74),
-    "subtitle": font("Inter-Regular.otf", 40),
-    "body": font("Inter-Regular.otf", 42),
-    "item": font("Inter-Regular.otf", 40),
-    "num": font("DejaVuSansMono-Bold.ttf", 28),
-    "dot": font("DejaVuSansMono-Bold.ttf", 44),
-    "button": font("DejaVuSansMono-Bold.ttf", 36),
-    "url": font("DejaVuSansMono.ttf", 26),
-    "gutter": font("DejaVuSansMono.ttf", 22),
-}
+MONO = font("DejaVuSansMono.ttf", FONT_SIZE)
+MONO_B = font("DejaVuSansMono-Bold.ttf", FONT_SIZE)
+UI = font("Inter-Regular.otf", 24)
+UI_S = font("Inter-SemiBold.otf", 24)
+UI_SMALL = font("DejaVuSansMono-Bold.ttf", 17)
+CHAR_W = MONO.getlength("M")
+COLS = int(CODE_W // CHAR_W)
 
 
-# ---------------------------------------------------------------- text layout
+# ---------------------------------------------------------------- code
 
-def runs(text, color):
-    """'Ile *Twoja* strona' -> [(word, color), ...] with the accent applied."""
-    out = []
-    for i, part in enumerate(re.split(r"\*([^*]+)\*", text.replace("\n", " "))):
-        for w in part.split():
-            out.append((w, ACCENT if i % 2 else color))
-    return out
+def plain(text):
+    return " ".join(text.replace("*", "").replace('"', "'").split())
 
 
-def wrap(words, fnt, width):
-    """Greedy wrap of (word, color) runs into lines of (x, word, color)."""
-    lines, line, x = [], [], 0
-    space = fnt.getlength(" ")
-    for w, c in words:
-        wl = fnt.getlength(w)
-        if line and x + wl > width:
-            lines.append(line)
-            line, x = [], 0
-        line.append((x, w, c))
-        x += wl + space
-    if line:
-        lines.append(line)
-    return lines
+def tok(text, color):
+    return [(ch, color) for ch in text]
 
 
-def block(kind, text, color, fnt, indent=0, gap_before=0, lh=1.4, prefix=None):
-    lines = wrap(runs(text, color), fnt, TW - indent)
-    return {"kind": kind, "lines": lines, "font": fnt, "indent": indent, "gap": gap_before,
-            "lh": int(fnt.size * lh), "prefix": prefix,
-            "chars": sum(len(w) + 1 for ln in lines for _, w, _ in ln)}
-
-
-def reel_slides(slides):
-    """Cover as it is, then one screen listing the headings of the other slides."""
+def code_screens(slides):
+    """Two screens of code lines. A line is a list of (char, colour)."""
+    cover = slides[0]
+    lines = []
+    if cover.get("kicker"):
+        lines.append(tok("// " + plain(cover["kicker"]), COM))
+    lines.append(tok("const ", KW) + tok("temat", VAR) + tok(" = ", PUNC))
+    lines.append(tok("  ", PUNC) + tok('"' + plain(cover.get("title", "")) + '"', STR) + tok(";", PUNC))
+    if cover.get("subtitle"):
+        lines.append(tok("const ", KW) + tok("opis", VAR) + tok(" = ", PUNC))
+        lines.append(tok("  ", PUNC) + tok('"' + plain(cover["subtitle"]) + '"', STR) + tok(";", PUNC))
     heads = [s["title"] for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
-    return [slides[0], {"type": "bullets", "items": heads, "outro": OUTRO}]
+    lst = [tok("const ", KW) + tok("punkty", VAR) + tok(" = [", PUNC)]
+    for i, h in enumerate(heads):
+        lst.append(tok("  ", PUNC) + tok('"' + plain(h) + '"', STR) + tok("," if i < len(heads) - 1 else "", PUNC))
+    lst.append(tok("];", PUNC))
+    lst.append(tok(OUTRO, COM))
+    return [{"file": "temat.ts", "lines": lines, "cps": CPS[0]},
+            {"file": "punkty.ts", "lines": lst, "cps": CPS[1]}]
 
 
-def bullet_blocks(items, outro=None):
-    """Biggest font size at which every heading (and the outro line) still fits."""
-    for size in (46, 42, 38, 34, 30):
-        fnt = font("DejaVuSansMono-Bold.ttf", size)
-        blocks = [block("bullet", it, FG, fnt, indent=int(size * 1.1), gap_before=0 if i == 0 else int(size * 0.75),
-                        lh=1.22, prefix="\u2022") for i, it in enumerate(items)]
-        if outro:
-            blocks.append(block("outro", outro, ACCENT, F["kicker"], gap_before=int(size * 1.4), lh=1.3))
-        if sum(b["gap"] + b["lh"] * len(b["lines"]) for b in blocks) <= CONTENT_BOTTOM - CONTENT_TOP - 40:
-            return blocks
-    return blocks
-
-
-def layout(slide, first):
-    kind = slide.get("type", "text")
-    blocks = []
-    if kind == "bullets":
-        blocks = bullet_blocks(slide["items"], slide.get("outro"))
-    if slide.get("kicker") and kind != "bullets":
-        blocks.append(block("kicker", "// " + slide["kicker"], ACCENT, F["kicker"], lh=1.3))
-    if slide.get("title") and kind != "bullets":
-        blocks.append(block("title", slide["title"], FG, F["cover" if first else "title"],
-                            gap_before=22 if blocks else 0, lh=1.16))
-    if kind == "cover" and slide.get("subtitle"):
-        blocks.append(block("subtitle", slide["subtitle"], BODY, F["subtitle"], gap_before=40, lh=1.38))
-    if kind in ("text", "cta") and slide.get("body"):
-        for i, para in enumerate(p for p in slide["body"].split("\n\n") if p.strip()):
-            blocks.append(block("body", para, BODY, F["body"], gap_before=40 if i == 0 else 26, lh=1.42))
-    if kind == "list":
-        for i, item in enumerate(slide.get("items", []), 1):
-            blocks.append(block("item", item, BODY, F["item"], indent=62, gap_before=40 if i == 1 else 22,
-                                lh=1.36, prefix=f"{i:02d}"))
-    if kind == "cta" and slide.get("button"):
-        blocks.append({"kind": "button", "text": slide["button"], "gap": 48, "chars": 0, "lines": [],
-                       "lh": 92, "font": F["button"], "indent": 0, "prefix": None})
-    # vertical centring inside the window
-    height = sum(b["gap"] + (b["lh"] if b["kind"] == "button" else b["lh"] * len(b["lines"])) for b in blocks)
-    y = CONTENT_TOP + max(0, (CONTENT_BOTTOM - CONTENT_TOP - height) // 2) - 20
-    for b in blocks:
-        y += b["gap"]
-        b["y"] = y
-        y += b["lh"] if b["kind"] == "button" else b["lh"] * len(b["lines"])
-    return blocks
+def wrap_line(line):
+    """Soft-wrap a code line at spaces. Continuation rows are indented to sit
+    inside the string, the way an IDE's soft wrap does. Returns rows of
+    (indent, [(char, colour), ...])."""
+    rows, start = [], 0
+    text = "".join(c for c, _ in line)
+    lead = len(text) - len(text.lstrip(" "))
+    indent_next = lead + (1 if text.lstrip().startswith('"') else 0)
+    while start < len(line):
+        width = COLS - (0 if not rows else indent_next)
+        if len(line) - start <= width:
+            rows.append((0 if not rows else indent_next, line[start:]))
+            break
+        cut = text.rfind(" ", start, start + width + 1)
+        if cut <= start:
+            cut = start + width
+        rows.append((0 if not rows else indent_next, line[start:cut + 1]))
+        start = cut + 1
+    return rows or [(0, [])]
 
 
 # ---------------------------------------------------------------- timeline
 
-def timeline(slides):
-    """Per slide: when each block types, how long it all takes, and the sound events."""
+def timeline(screens):
+    """Lay every screen out in rows and give every character the time it is typed."""
     plan, events, t = [], [], 0.0
-    for i, slide in enumerate(slides):
-        first, last = i == 0, i == len(slides) - 1
-        blocks = layout(slide, first)
+    for si, sc in enumerate(screens):
+        first, last = si == 0, si == len(screens) - 1
         start = t
-        for b in blocks:
-            if b["kind"] == "button":
-                b["t0"] = b["t1"] = t + 0.15
-                events.append((t + 0.15, "pop"))
-                t += 0.35
-                continue
-            instant = first and b["kind"] in ("kicker", "title")
-            dur = 0.0 if instant else b["chars"] / CPS[b["kind"]]
-            b["t0"], b["t1"] = t, t + dur
-            if not instant:
-                text = " ".join(w for ln in b["lines"] for _, w, _ in ln) + " "
-                for k, ch in enumerate(text):
-                    events.append((t + k / CPS[b["kind"]], "space" if ch == " " else "key"))
-                t += dur + (BULLET_GAP if b["kind"] == "bullet" else 0.12)
+        t += 0.45                                   # a beat of empty editor before typing
+        rows = []
+        for li, line in enumerate(sc["lines"]):
+            for ri, (indent, chars) in enumerate(wrap_line(line)):
+                times = []
+                for ch, _ in chars:
+                    times.append(t)
+                    events.append((t, "space" if ch == " " else "key"))
+                    t += 1 / sc["cps"]
+                rows.append({"line": li, "first": ri == 0, "indent": indent, "chars": chars, "times": times})
+            events.append((t, "space"))             # Enter
+            t += ENTER_PAUSE
+        end_typing = t
         if last:
-            events.append((t, "ping"))                    # one ping, when the last line is done
+            events.append((t, "ping"))
             t += HOLD_LAST
-        elif first:
-            # the cover is the hook: keep it up long enough to read every word of it
-            words = sum(len(ln) for b in blocks for ln in b["lines"])
-            t = max(t + 1.0, start + 1.2 + 0.3 * words)
         else:
-            t += HOLD
-        plan.append({"blocks": blocks, "start": start, "end": t})
+            t += HOLD_COVER
+        plan.append({"file": sc["file"], "rows": rows, "start": start, "typed": end_typing, "end": t})
         if not last:
             events.append((t, "whoosh"))
             t += CLEAR
@@ -222,90 +195,120 @@ def background():
     return Image.blend(bg, glow.filter(ImageFilter.GaussianBlur(160)), 0.9)
 
 
-def chrome(base, idx, total, handle):
-    """Window, title bar, gutter and progress bar for slide idx (0-based)."""
+def _icon(d, kind, cx, cy, color):
+    if kind == "files":
+        d.rectangle((cx - 11, cy - 14, cx + 7, cy + 12), outline=color, width=3)
+        d.rectangle((cx - 5, cy - 18, cx + 13, cy + 6), outline=color, width=3)
+    elif kind == "search":
+        d.ellipse((cx - 13, cy - 13, cx + 5, cy + 5), outline=color, width=3)
+        d.line((cx + 3, cy + 3, cx + 13, cy + 13), fill=color, width=4)
+    elif kind == "branch":
+        for x, y in ((cx - 8, cy - 12), (cx - 8, cy + 12), (cx + 9, cy - 4)):
+            d.ellipse((x - 5, y - 5, x + 5, y + 5), outline=color, width=3)
+        d.line((cx - 8, cy - 7, cx - 8, cy + 7), fill=color, width=3)
+        d.line((cx + 9, cy + 1, cx - 6, cy + 9), fill=color, width=3)
+    elif kind == "blocks":
+        for x, y in ((cx - 12, cy - 2), (cx + 2, cy - 2), (cx - 12, cy - 16)):
+            d.rectangle((x, y, x + 11, y + 11), outline=color, width=3)
+        d.rectangle((cx + 4, cy - 18, cx + 15, cy - 7), outline=color, width=3)
+
+
+def chrome(base, file):
+    """IDE window: title bar, activity bar, tabs, empty editor and status bar."""
     img = base.copy()
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((WX, WY, WX + WW, WY + WH), 26, fill=WIN, outline=LINE, width=2)
-    d.rounded_rectangle((WX + 2, WY + 2, WX + WW - 2, WY + BAR_H), 24, fill=BAR)
-    d.rectangle((WX + 2, WY + BAR_H - 26, WX + WW - 2, WY + BAR_H), fill=BAR)
-    d.line((WX, WY + BAR_H, WX + WW, WY + BAR_H), fill=LINE, width=2)
-    for k, c in enumerate((ACCENT, GUTTER, GUTTER)):
-        cx = WX + 34 + k * 30
-        d.ellipse((cx - 8, WY + BAR_H // 2 - 8, cx + 8, WY + BAR_H // 2 + 8), fill=c)
-    path = "" if idx == 0 else f"/{idx + 1:02d}"
-    px = WX + 140
-    d.rounded_rectangle((px, WY + 17, WX + WW - 110, WY + BAR_H - 17), 21, fill=(14, 19, 26), outline=LINE)
-    d.text((px + 22, WY + BAR_H // 2), handle, font=F["url"], fill=FG, anchor="lm")
-    d.text((px + 22 + F["url"].getlength(handle), WY + BAR_H // 2), path, font=F["url"], fill=MUTED, anchor="lm")
-    d.text((WX + WW - 34, WY + BAR_H // 2), f"{idx + 1}/{total}", font=F["num"], fill=ACCENT, anchor="rm")
-    y, n = CONTENT_TOP - 10, 1
-    while y < WY + WH - 80:
-        d.text((WX + 58, y), str(n), font=F["gutter"], fill=GUTTER, anchor="rt")
-        y, n = y + 40, n + 1
-    d.text((TX, WY + WH - 44), "@" + handle, font=F["url"], fill=MUTED, anchor="lm")
-    by = WY - 46
-    d.rounded_rectangle((WX, by, WX + WW, by + 8), 4, fill=LINE)
-    d.rounded_rectangle((WX, by, WX + int(WW * (idx + 1) / total), by + 8), 4, fill=ACCENT)
+    d.rounded_rectangle((WX, WY, WX + WW, WY + WH), 18, fill=EDITOR, outline=BORDER, width=2)
+    d.rounded_rectangle((WX + 1, WY + 1, WX + WW - 1, WY + TITLE_H), 17, fill=TITLE_BG)
+    d.rectangle((WX + 1, WY + TITLE_H - 18, WX + WW - 1, WY + TITLE_H), fill=TITLE_BG)
+    for k, c in enumerate(((255, 95, 87), (254, 188, 46), (40, 200, 64))):
+        cx = WX + 30 + k * 26
+        d.ellipse((cx - 8, WY + TITLE_H // 2 - 8, cx + 8, WY + TITLE_H // 2 + 8), fill=c)
+    d.text((WX + WW / 2, WY + TITLE_H / 2), "pagehub.pl", font=UI, fill=MUTED, anchor="mm")
+    # activity bar
+    d.rectangle((WX + 1, WY + TITLE_H, ED_X0, ED_Y1), fill=ACTIVITY)
+    for k, kind in enumerate(("files", "search", "branch", "blocks")):
+        cy = WY + TITLE_H + 50 + k * 72
+        _icon(d, kind, WX + ACT_W // 2, cy, TEXT if k == 0 else ICON)
+    d.rectangle((WX + 1, WY + TITLE_H + 26, WX + 4, WY + TITLE_H + 74), fill=TEXT)
+    # tabs
+    d.rectangle((ED_X0, WY + TITLE_H, WX + WW - 1, ED_Y0), fill=TAB_BG)
+    tw = 230
+    d.rectangle((ED_X0, WY + TITLE_H, ED_X0 + tw, ED_Y0), fill=EDITOR)
+    d.line((ED_X0, WY + TITLE_H, ED_X0 + tw, WY + TITLE_H), fill=ACCENT, width=3)
+    d.text((ED_X0 + 22, WY + TITLE_H + TAB_H / 2), "TS", font=UI_SMALL, fill=TS_BLUE, anchor="lm")
+    d.text((ED_X0 + 56, WY + TITLE_H + TAB_H / 2), file, font=UI, fill=TEXT, anchor="lm")
+    d.rectangle((ED_X0 + tw, WY + TITLE_H, ED_X0 + tw + 210, ED_Y0 - 1), fill=TAB_IDLE)
+    d.text((ED_X0 + tw + 22, WY + TITLE_H + TAB_H / 2), "README.md", font=UI, fill=ICON, anchor="lm")
+    d.line((ED_X0, ED_Y0, WX + WW, ED_Y0), fill=BORDER, width=1)
+    # status bar
+    d.rounded_rectangle((WX + 1, ED_Y1, WX + WW - 1, WY + WH - 1), 17, fill=ACCENT)
+    d.rectangle((WX + 1, ED_Y1, WX + WW - 1, ED_Y1 + 18), fill=ACCENT)
+    d.text((WX + 24, ED_Y1 + STATUS_H / 2), "main", font=UI_S, fill=(255, 255, 255), anchor="lm")
+    d.text((WX + WW - 24, ED_Y1 + STATUS_H / 2), "UTF-8   TypeScript", font=UI, fill=(235, 245, 250),
+           anchor="rm")
     return img
 
 
-def draw_content(img, blocks, t, alpha=1.0, cursor_on=True):
-    """Draw every block as typed by time t, in place."""
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
+def draw_code(img, screen, t, alpha=1.0, cursor_on=True):
+    d = ImageDraw.Draw(img, "RGBA")
     a = int(255 * alpha)
-    cursor = None
-    for b in blocks:
-        if t < b["t0"]:
+    rows = screen["rows"]
+    visible = []                                    # (row, chars shown so far)
+    for r in rows:
+        n = bisect.bisect_right(r["times"], t)
+        if n == 0:
             break
-        if b["kind"] == "button":
-            fnt, label = b["font"], b["text"]
-            grow = min(1.0, (t - b["t0"]) / 0.18)
-            w = fnt.getlength(label) + 76
-            pad = (1 - grow) * 10
-            d.rounded_rectangle((TX + pad, b["y"] + pad, TX + w - pad, b["y"] + 80 - pad), 18, fill=ACCENT + (a,))
-            if grow > 0.6:
-                d.text((TX + w / 2, b["y"] + 40), label, font=fnt, fill=INK + (a,), anchor="mm")
-            cursor = None
-            continue
-        span = max(b["t1"] - b["t0"], 1e-6)
-        shown = b["chars"] if t >= b["t1"] else int(b["chars"] * (t - b["t0"]) / span)
-        fnt, left = b["font"], TX + b["indent"]
-        if b["prefix"] == "\u2022":
-            if shown > 0:
-                d.text((TX, b["y"]), "\u2022", font=fnt, fill=ACCENT + (a,))
-        elif b["prefix"]:
-            d.text((TX, b["y"] + 4), b["prefix"], font=F["num"], fill=ACCENT + (a,))
-        count = 0
-        for li, line in enumerate(b["lines"]):
-            ly = b["y"] + li * b["lh"]
-            for x, word, color in line:
-                if count >= shown:
-                    break
-                part = word[: max(0, shown - count)]
-                d.text((left + x, ly), part, font=fnt, fill=color + (a,))
-                cursor = (left + x + fnt.getlength(part) + 4, ly, fnt.size)
-                count += len(word) + 1
-            if count >= shown:
-                break
-    if cursor and cursor_on and alpha > 0.5:
-        x, y, size = cursor
-        d.rectangle((x, y + size * 0.12, x + max(4, size // 12), y + size * 1.08), fill=ACCENT + (a,))
-    img.paste(layer, (0, 0), layer)
+        visible.append((r, n))
+    # the line being typed gets the current-line highlight, the IDE way
+    cur_line = visible[-1][0]["line"] if visible else 0
+    cur_rows = [i for i, (r, _) in enumerate(visible) if r["line"] == cur_line] or [0]
+    y0 = ED_Y0 + TOP_PAD
+    if alpha > 0.5:
+        d.rectangle((ED_X0 + 1, y0 + cur_rows[0] * LINE_H - 8, WX + WW - 2, y0 + (cur_rows[-1] + 1) * LINE_H - 8),
+                    fill=CUR_LINE + (a,))
+    for i, (r, n) in enumerate(visible):
+        y = y0 + i * LINE_H
+        if r["first"]:
+            num = r["line"] + 1
+            d.text((GUT_R, y), str(num), font=MONO, fill=(GUTTER_CUR if r["line"] == cur_line else GUTTER) + (a,),
+                   anchor="ra")
+        x = CODE_X + r["indent"] * CHAR_W
+        run, run_color = "", None
+        for ch, color in r["chars"][:n]:
+            if color != run_color and run:
+                d.text((x, y), run, font=MONO, fill=run_color + (a,))
+                x += MONO.getlength(run)
+                run = ""
+            run_color = color
+            run += ch
+        if run:
+            d.text((x, y), run, font=MONO, fill=run_color + (a,))
+            x += MONO.getlength(run)
+        if i == len(visible) - 1 and cursor_on and alpha > 0.5:
+            d.rectangle((x + 1, y - 2, x + 4, y + FONT_SIZE + 4), fill=CURSOR + (a,))
+    if not visible and cursor_on:
+        d.text((GUT_R, y0), "1", font=MONO, fill=GUTTER_CUR + (a,), anchor="ra")
+        d.rectangle((CODE_X + 1, y0 - 2, CODE_X + 4, y0 + FONT_SIZE + 4), fill=CURSOR + (a,))
+    # live cursor position in the status bar
+    if visible:
+        r, n = visible[-1]
+        col = r["indent"] + n + 1
+    else:
+        col = 1
+    d.text((WX + WW - 290, ED_Y1 + STATUS_H / 2), f"Ln {cur_line + 1}, Col {col}", font=UI,
+           fill=(235, 245, 250, 255), anchor="rm")
 
 
 def frame_at(plan, chromes, t):
     for i, s in enumerate(plan):
         if t < s["end"] or i == len(plan) - 1:
             img = chromes[i].copy()
-            typing = any(b["t0"] <= t < b["t1"] for b in s["blocks"])
-            draw_content(img, s["blocks"], t, 1.0, typing or int(t * 2) % 2 == 0)
+            typing = s["start"] + 0.45 <= t < s["typed"]
+            draw_code(img, s, t, 1.0, typing or int(t * 1.8) % 2 == 0)
             return img
         if t < s["end"] + CLEAR:
-            # clearing: the old text fades out quickly before the next slide types
-            img = chromes[i + 1].copy()
-            draw_content(img, s["blocks"], s["end"], 1 - (t - s["end"]) / CLEAR, False)
+            img = chromes[i].copy()
+            draw_code(img, s, s["end"], 1 - (t - s["end"]) / CLEAR, False)
             return img
     return chromes[-1].copy()
 
@@ -330,12 +333,6 @@ def _fir(cut, taps=129):
     m = np.arange(taps) - (taps - 1) / 2
     h = np.sinc(2 * cut / SR * m) * np.hamming(taps)
     return h / h.sum()
-
-
-def _fftconv(x, h):
-    size = len(x) + len(h) - 1
-    nfft = 1 << (size - 1).bit_length()
-    return np.fft.irfft(np.fft.rfft(x, nfft) * np.fft.rfft(h, nfft), nfft)[: len(x)]
 
 
 def _put(buf, sig, t):
@@ -392,86 +389,100 @@ def key_sound(rng, downs, ups, space=False):
     return out
 
 
-def synthwave(total, rng):
-    """Retro synthwave bed in A minor at 100 BPM: pulsing octave bass, detuned saw
-    pads, a 16th-note arpeggio with a dotted-eighth echo, kick, gated-reverb snare
-    and hats, with the bass and pads ducking under the kick. Stereo (L, R)."""
+def japan_lofi(total, rng):
+    """Relaxed Japanese lo-fi in the JDM-night-drive mood, 76 BPM, swung:
+    a warm FM electric piano on Dm9 - G13 - Cmaj9 - Am9, round sub bass,
+    koto-like plucks on an A hirajoshi scale with an echo, soft kick, rim and
+    hats, a little vinyl crackle, everything warm and rolled off. Stereo (L, R)."""
     n = int((total + 1.0) * SR)
-    beat = 60 / 100
+    beat = 60 / 76
     bar = 4 * beat
-    prog = [(57, [57, 60, 64]), (53, [53, 57, 60]), (48, [48, 52, 55]), (55, [55, 59, 62])]  # Am F C G
+    swing = 0.12 * beat
+    chords = [([53, 57, 60, 64], 38), ([53, 59, 64, 69], 43), ([52, 55, 59, 62], 36), ([55, 59, 60, 64], 45)]
+    scale = [69, 71, 72, 76, 77, 81, 83, 84]          # A B C E F (hirajoshi on A), two octaves
 
     def hz(m):
         return 440 * 2 ** ((m - 69) / 12)
 
-    def saw(f, k):
-        return 2 * ((f * k + rng.uniform()) % 1.0) - 1
-
-    bass, pad_l, pad_r, arp, drums, snare_bus = (np.zeros(n) for _ in range(6))
-    lk = int(0.3 * SR)
+    ep_l, ep_r, bass, pluck, drums = (np.zeros(n) for _ in range(5))
+    lk = int(0.25 * SR)
     kk = np.arange(lk) / SR
-    kick = np.sin(2 * np.pi * np.cumsum(45 + 105 * np.exp(-kk / 0.035)) / SR) * np.exp(-kk / 0.16)
-    kick[: int(0.002 * SR)] += np.linspace(0.6, 0, int(0.002 * SR))
-    ls = int(0.25 * SR)
-    ks = np.arange(ls) / SR
-    snare = (_lowpass(rng.standard_normal(ls), 3) * np.exp(-ks / 0.09) * 0.8
-             + np.sin(2 * np.pi * 185 * ks) * np.exp(-ks / 0.05) * 0.6)
-    lh = int(0.05 * SR)
-    hat = np.diff(rng.standard_normal(lh), prepend=0) * _env(lh, 0.0005, 0.012)
-    kicks, t_bar, b = [], 0.0, 0
-    while t_bar < total + 0.5:
-        root, triad = prog[b % 4]
-        for e in range(8):                                  # bass: octave-pulsing eighths
-            ln = int(beat / 2 * SR * 0.92)
-            k = np.arange(ln) / SR
-            note = root - 24 + (12 if e % 2 else 0)
-            _put(bass, saw(hz(note), k) * np.minimum(1, k / 0.003) * np.exp(-k / 0.22), t_bar + e * beat / 2)
-        ln = int(bar * SR)                                  # pads: three detuned saws per note
+    kick = np.sin(2 * np.pi * np.cumsum(46 + 50 * np.exp(-kk / 0.03)) / SR) * np.exp(-kk / 0.14)
+    lr = int(0.12 * SR)
+    kr = np.arange(lr) / SR
+    rim = (np.sin(2 * np.pi * 1700 * kr) * np.exp(-kr / 0.012) * 0.5
+           + _lowpass(rng.standard_normal(lr), 6) * np.exp(-kr / 0.03) * 0.5)
+    lh = int(0.04 * SR)
+    hat = np.diff(rng.standard_normal(lh), prepend=0) * _env(lh, 0.0005, 0.01)
+
+    def ep_note(m, length):
+        ln = int(length * SR)
         k = np.arange(ln) / SR
-        shape = np.minimum(1, k / 0.35) * np.minimum(1, (bar - k) / 0.12)
-        pl, pr = np.zeros(ln), np.zeros(ln)
-        for m in triad:
-            pl += saw(hz(m + 12 - 0.08), k) + saw(hz(m + 12), k) * 0.7
-            pr += saw(hz(m + 12 + 0.08), k) + saw(hz(m + 12), k) * 0.7
-        _put(pad_l, pl * shape / 6, t_bar)
-        _put(pad_r, pr * shape / 6, t_bar)
-        tones = [triad[0] + 12, triad[1] + 12, triad[2] + 12, triad[0] + 24]
-        for e in range(16):                                 # arpeggio: plucked square 16ths
-            ln = int(beat / 4 * SR)
+        f = hz(m)
+        index = 1.8 * np.exp(-k / 0.35)
+        tone = np.sin(2 * np.pi * f * k + index * np.sin(2 * np.pi * f * k))
+        tone += 0.15 * np.sin(2 * np.pi * 4 * f * k) * np.exp(-k / 0.05)      # tine bell
+        return tone * _env(ln, 0.004, 2.2) * (1 + 0.12 * np.sin(2 * np.pi * 4.2 * k))
+
+    def koto(m):
+        ln = int(1.4 * SR)
+        k = np.arange(ln) / SR
+        f = hz(m)
+        sig = sum(np.sin(2 * np.pi * h * f * (1 + 0.0004 * h * h) * k) * np.exp(-k / (0.9 / h)) / h ** 1.1
+                  for h in range(1, 9))
+        sig[: int(0.003 * SR)] += rng.standard_normal(int(0.003 * SR)) * 0.4
+        return sig * np.minimum(1, k / 0.001) * 0.6
+
+    t_bar, b = 0.0, 0
+    motif = [0, None, 2, 4, None, 3, 2, None, 1, None, 0, None, None, 2, None, None]
+    while t_bar < total + 0.5:
+        notes, root = chords[b % 4]
+        for at, length in ((0.0, 1.6 * beat), (2.5 * beat + swing, 1.3 * beat)):   # syncopated EP stabs
+            for v, m in enumerate(notes):
+                s = ep_note(m, length + 0.8) / len(notes)
+                _put(ep_l, s * (1.0 if v % 2 else 0.7), t_bar + at + v * 0.012)
+                _put(ep_r, s * (0.7 if v % 2 else 1.0), t_bar + at + v * 0.012)
+        for at, m, ln_ in ((0, root, 1.4), (1.5 * beat + swing, root + 12, 0.4), (3 * beat, root + 7, 0.7)):
+            ln = int(ln_ * beat * SR)
             k = np.arange(ln) / SR
-            sq = np.sign(np.sin(2 * np.pi * hz(tones[e % 4] + 12) * k))
-            _put(arp, sq * np.minimum(1, k / 0.002) * np.exp(-k / 0.05), t_bar + e * beat / 4)
-        for q in range(4):                                  # drums
+            sig = np.tanh(1.6 * np.sin(2 * np.pi * hz(m) * k)) * _env(ln, 0.006, 0.9 * beat)
+            _put(bass, sig, t_bar + at)
+        shift = (b % 2) * 2
+        for e, deg in enumerate(motif):                                         # koto line, 8ths
+            if deg is None or (b % 4 == 3 and e > 8):
+                continue
+            at = t_bar + e * beat / 2 + (swing if e % 2 else 0)
+            _put(pluck, koto(scale[(deg + shift) % len(scale)]), at)
+        for q in range(4):
             tq = t_bar + q * beat
-            kicks.append(tq)
-            _put(drums, kick, tq)
+            if q in (0, 2):
+                _put(drums, kick, tq)
+            if q == 2 and b % 2:
+                _put(drums, kick * 0.6, tq + 1.5 * beat / 2 + swing)
             if q in (1, 3):
-                _put(snare_bus, snare, tq)
-            _put(drums, hat * 0.18, tq + beat / 2)
-            _put(drums, hat * 0.08, tq)
+                _put(drums, rim * 0.6, tq)
+            _put(drums, hat * 0.10, tq)
+            _put(drums, hat * 0.16, tq + beat / 2 + swing)
         t_bar += bar
         b += 1
-    bass = np.convolve(bass, _fir(700), "same")
-    pad_l = np.convolve(pad_l, _fir(2000), "same")
-    pad_r = np.convolve(pad_r, _fir(2000), "same")
-    arp = np.convolve(arp, _fir(3200), "same")
-    d = int(0.75 * beat * SR)                               # dotted-eighth echo on the arp
-    arp_l, arp_r = arp.copy(), arp.copy()
+    warm = _fir(4200)
+    ep_l, ep_r = np.convolve(ep_l, warm, "same"), np.convolve(ep_r, warm, "same")
+    bass = np.convolve(bass, _fir(500), "same")
+    pluck = np.convolve(pluck, _fir(5000), "same")
+    drums = np.convolve(drums, _fir(6000), "same")
+    d = int(0.75 * beat * SR)                                                   # dotted-eighth echo
+    pl, pr = pluck.copy(), pluck.copy()
     for r in range(1, 4):
-        (arp_r if r % 2 else arp_l)[d * r:] += arp[: -d * r] * 0.4 ** r
-    gate = int(0.3 * SR)                                    # 80s gated reverb on the snare
-    ir = rng.standard_normal(gate) * np.exp(-np.arange(gate) / SR / 0.22)
-    ir[-int(0.01 * SR):] *= np.linspace(1, 0, int(0.01 * SR))
-    ir /= np.sqrt((ir ** 2).sum())
-    wet = _fftconv(snare_bus, ir)
-    duck = np.ones(n)                                       # sidechain pump from the kick
-    for tk in kicks:
-        i = int(tk * SR)
-        seg = np.arange(min(int(0.3 * SR), max(0, n - i))) / SR
-        duck[i:i + len(seg)] = np.minimum(duck[i:i + len(seg)], 1 - 0.55 * np.exp(-seg / 0.12))
-    core = bass * 0.5 * duck + drums * 0.55 + snare_bus * 0.35 + wet * 0.35
-    left = core + pad_l * 0.32 * duck + arp_l * 0.1
-    right = core + pad_r * 0.32 * duck + arp_r * 0.1
+        (pr if r % 2 else pl)[d * r:] += pluck[: -d * r] * 0.38 ** r
+    crackle = np.zeros(n)                                                       # vinyl
+    for _ in range(int(total * 7)):
+        i = rng.integers(0, n - 200)
+        crackle[i:i + 60] += np.diff(rng.standard_normal(60), prepend=0) * rng.uniform(0.02, 0.08) \
+            * np.exp(-np.arange(60) / 12)
+    hiss = np.convolve(rng.standard_normal(n), _fir(3000, 63), "same") * 0.006
+    core = bass * 0.45 + drums * 0.42 + crackle + hiss
+    left = core + ep_l * 0.38 + pl * 0.16
+    right = core + ep_r * 0.38 + pr * 0.2
     return left, right
 
 
@@ -498,31 +509,26 @@ def sound(events, total, seed=7):
                 rng.uniform(-0.25, 0.25))
         elif kind == "whoosh":
             ln = int(0.45 * SR)
-            add(_lowpass(rng.standard_normal(ln), 24) * np.sin(np.linspace(0, np.pi, ln)) ** 2 * 0.25, t - 0.1)
+            add(_lowpass(rng.standard_normal(ln), 24) * np.sin(np.linspace(0, np.pi, ln)) ** 2 * 0.22, t - 0.1)
         elif kind == "ping":
-            # one bright ding with a short stereo echo, to close the reel
-            ln = int(1.2 * SR)
+            # one soft bell with a short stereo echo, to close the reel
+            ln = int(1.4 * SR)
             k = np.arange(ln) / SR
             f0 = 440 * 2 ** ((88 - 69) / 12)                 # E6
             ding = (np.sin(2 * np.pi * f0 * k) + 0.4 * np.sin(2 * np.pi * 2 * f0 * k) * np.exp(-k / 0.1)
-                    + 0.2 * np.sin(2 * np.pi * 3.01 * f0 * k) * np.exp(-k / 0.06)) * _env(ln, 0.002, 0.35)
-            add(ding * 0.32, t, 0.0)
-            add(ding * 0.14, t + 0.18, -0.6)
-            add(ding * 0.07, t + 0.36, 0.6)
-        elif kind == "pop":
-            ln = int(0.18 * SR)
-            k = np.arange(ln) / SR
-            freq = 660 + 440 * np.exp(-k / 0.03)
-            add(np.sin(2 * np.pi * np.cumsum(freq) / SR) * _env(ln, 0.002, 0.05) * 0.3, t)
+                    + 0.2 * np.sin(2 * np.pi * 3.01 * f0 * k) * np.exp(-k / 0.06)) * _env(ln, 0.002, 0.4)
+            add(ding * 0.3, t, 0.0)
+            add(ding * 0.13, t + 0.2, -0.6)
+            add(ding * 0.06, t + 0.4, 0.6)
 
-    bed_l, bed_r = synthwave(total, rng)
+    bed_l, bed_r = japan_lofi(total, rng)
     bed_l, bed_r = bed_l[:n], bed_r[:n]
     fade = np.ones(n)
-    fi, fo, end = int(0.3 * SR), int(1.5 * SR), min(n, int(total * SR))
+    fi, fo, end = int(0.4 * SR), int(1.6 * SR), min(n, int(total * SR))
     fade[:fi] = np.linspace(0, 1, fi)
     fade[end - fo:end] = np.linspace(1, 0, fo)
     fade[end:] = 0
-    music = 0.42
+    music = 0.5
     mix = np.stack([(left + bed_l * music) * fade, (right + bed_r * music) * fade], axis=1)
     if not np.isfinite(mix).all():
         raise RuntimeError("dźwięk rolki zawiera błędne próbki, nie publikuję cichej rolki")
@@ -554,10 +560,10 @@ def ffmpeg_bin():
 
 def prepare(spec_path):
     spec = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8"))
-    slides = reel_slides(spec["slides"])
-    plan, events, total = timeline(slides)
+    screens = code_screens(spec["slides"])
+    plan, events, total = timeline(screens)
     base = background()
-    chromes = [chrome(base, i, len(slides), spec.get("handle", "pagehub.pl")) for i in range(len(slides))]
+    chromes = [chrome(base, s["file"]) for s in screens]
     return plan, events, total, chromes
 
 
@@ -583,7 +589,7 @@ def build(spec_path, out_path=None):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Carousel spec -> typing-animation Reel MP4.")
+    ap = argparse.ArgumentParser(description="Carousel spec -> IDE typing Reel MP4.")
     ap.add_argument("spec")
     ap.add_argument("--out")
     ap.add_argument("--still", type=float, help="write one frame at this second as PNG instead")
