@@ -6,10 +6,9 @@ itself into a clean PageHub browser window, with original sound.
 Two screens, both starting empty:
   1. the cover - a small topic pill, then the headline (accent words in teal)
      and the subtitle type out, and stay long enough to read every word;
-  2. the headings of the other slides as a numbered list, one row at a time,
-     closed by a "Reszta w opisie" pill and a single "ping".
-The recap and call-to-action slides are left out of the list: they are not
-points. Everything sits inside the Reels safe zone, away from the
+  2. a heading that says what the list is (meta.reel_heading), then the
+     headings of the numbered slides as a numbered list, one row at a time,
+     closed by a "Reszta w opisie" pill and a single "ping". Everything sits inside the Reels safe zone, away from the
 like/comment rail and the caption.
 
 Sound: real clicky-switch recordings (Kailh Box White, MIT licence, see
@@ -64,8 +63,8 @@ TX, TW = WX + PAD, WW - 2 * PAD
 BODY_TOP, BODY_BOTTOM = WY + BAR_H + 50, WY + WH - 110
 
 # pacing
-CPS = {"title": 22, "subtitle": 34, "item": 30}
-GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22}
+CPS = {"title": 22, "subtitle": 34, "item": 30, "heading": 24}
+GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22, "heading": 0.35}
 HOLD_COVER, HOLD_LAST, CLEAR, START = 2.0, 2.6, 0.32, 0.45
 OUTRO = "Reszta w opisie ↓"
 
@@ -137,14 +136,18 @@ def cover_screen(slide):
     return {"blocks": blocks, "url": ""}
 
 
-def list_screen(heads):
-    """Numbered rows that fit the window, biggest text size first."""
+def list_screen(heading, heads):
+    """A heading that says what the list is, then numbered rows, sized to fit."""
     for size in (46, 42, 38, 34):
         fnt = font("Inter-SemiBold.otf", size)
         blocks = []
+        if heading:
+            hb = text_block("heading", heading, FG, font("Inter-Bold.otf", int(size * 1.3)), TW, 1.12)
+            hb["gap"] = 0
+            blocks.append(hb)
         for i, h in enumerate(heads):
             b = text_block("item", h, FG, fnt, TW - 92, 1.22)
-            b.update(num=i + 1, gap=0 if i == 0 else int(size * 0.95))
+            b.update(num=i + 1, gap=(int(size * 1.1) if heading else 0) if i == 0 else int(size * 0.95))
             blocks.append(b)
         blocks.append({"kind": "outro", "text": OUTRO, "gap": 56, "h": 78})
         if height(blocks) <= BODY_BOTTOM - BODY_TOP:
@@ -170,9 +173,31 @@ def place(screen):
         y += block_h(b)
 
 
-def screens_for(slides):
-    heads = [s["title"] for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
-    out = [cover_screen(slides[0]), list_screen(heads)]
+NUMBERED = re.compile(r"\d+\s*/\s*\d+|krok\s*\d+|^\s*\d+\s*[.)]", re.IGNORECASE)
+
+
+def reel_points(spec):
+    """(heading, points) for the list screen.
+
+    The points are the numbered slides (kicker like "powód 2/5" or "krok 3"), so the
+    list matches the number promised on the cover; meta.reel_points overrides.
+    The heading says what the list is (meta.reel_heading, else the recap title)."""
+    slides, meta = spec["slides"], spec.get("meta", {})
+    points = meta.get("reel_points")
+    if not points:
+        body = [s for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
+        numbered = [s for s in body if NUMBERED.search(s.get("kicker", ""))]
+        points = [s["title"] for s in (numbered or body[1:] or body)]
+    heading = meta.get("reel_heading")
+    if not heading:
+        recap = next((s for s in slides if s.get("type") == "list" and s.get("title")), None)
+        heading = (recap["title"].rstrip(":") + ":") if recap else ""
+    return heading, points
+
+
+def screens_for(spec):
+    heading, heads = reel_points(spec)
+    out = [cover_screen(spec["slides"][0]), list_screen(heading, heads)]
     for s in out:
         place(s)
     return out
@@ -586,7 +611,7 @@ def ffmpeg_bin():
 
 def prepare(spec_path):
     spec = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8"))
-    screens = screens_for(spec["slides"])
+    screens = screens_for(spec)
     plan, events, total = timeline(screens)
     handle = spec.get("handle", "pagehub.pl")
     g0, g1 = glow_layers()

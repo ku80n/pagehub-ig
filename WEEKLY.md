@@ -46,6 +46,7 @@ Format (jak w `tools/render_carousel.py`):
     "reply_hint": "Proponowana pierwsza odpowiedź dla osoby, która napisze słowo-klucz",
     "caption_ig": "...",
     "caption_reel": "...",
+    "reel_heading": "...:",
     "caption_fb": "...",
     "alt": "tekst alternatywny okładki"
   },
@@ -60,7 +61,10 @@ Format (jak w `tools/render_carousel.py`):
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
 - `cta_keyword`: jedno nietypowe słowo WIELKIMI LITERAMI, jeśli CTA to "napisz SŁOWO w komentarzu" (Jakub dostaje wtedy powiadomienie). Pusty string, jeśli CTA jest inne.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla takiej osoby. Pusty string, jeśli brak słowa-klucza.
-- Rolka pokazuje okładkę, a potem wypunktowane nagłówki slajdów (bez podsumowania i CTA) i dopisek "reszta w opisie", więc każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` musi naprawdę zawierać resztę: krótko rozwinięte punkty i wezwanie do działania.
+- Rolka pokazuje okładkę, potem `reel_heading` i numerowaną listę nagłówków slajdów z ponumerowanym kickerem (np. "powód 2/5", "sprawdź 3/5", "krok 4"), a na końcu "reszta w opisie". Dlatego:
+  - główne punkty karuzeli mają kicker z numeracją, a ich liczba zgadza się z liczbą z okładki ("5 błędów" = 5 punktów),
+  - `reel_heading`: krótka linia zakończona dwukropkiem, która mówi, czym jest lista i łączy ją z okładką (np. "Co spowalnia stronę:", "Sprawdź, czy Twoja strona ma:", "5 kroków do nowej strony:"). Przeczytaj ją razem z punktami: całość ma być zrozumiała dla kogoś, kto nie zna się na stronach,
+  - każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` zawiera resztę: krótko rozwinięte punkty i wezwanie do działania.
 - Każda karuzela wychodzi też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
   (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
