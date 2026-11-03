@@ -280,7 +280,7 @@ def _env(n, attack, decay):
 
 
 def _lowpass(x, taps):
-    k = np.hanning(taps)
+    k = np.hanning(taps + 2)[1:-1]          # drop the zero end points, so small taps still work
     return np.convolve(x, k / k.sum(), mode="same")
 
 
@@ -401,6 +401,8 @@ def sound(events, total, seed=7):
     fade[end - fo:end] = np.linspace(1, 0, fo)
     fade[end:] = 0
     mix = np.stack([(left + bed[0] * 0.22) * fade, (right + bed[1] * 0.22) * fade], axis=1)
+    if not np.isfinite(mix).all():
+        raise RuntimeError("dźwięk rolki zawiera błędne próbki, nie publikuję cichej rolki")
     mix *= 0.89 / max(np.abs(mix).max(), 1e-6)
     return mix[: int(total * SR)]
 
