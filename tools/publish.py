@@ -25,6 +25,7 @@ import argparse
 import io
 import json
 import sys
+import urllib.error
 import urllib.request
 import zipfile
 from datetime import datetime, timedelta, timezone
@@ -132,20 +133,68 @@ def public_check(url):
 
 # ---------------------------------------------------------------- instagram / facebook
 
+def _norm(text):
+    return " ".join((text or "").split())[:120]
+
+
+def find_existing(caption, hours=36):
+    """A post with this caption published recently, if any: (media_id, permalink) or None.
+
+    Instagram sometimes answers media_publish with an error and publishes anyway,
+    so every retry checks the profile first instead of risking a double post.
+    """
+    token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    want = _norm(caption)
+    for m in graph("GET", f"{ig}/media", token, fields="id,caption,permalink,timestamp", limit=15).get("data", []):
+        if datetime.strptime(m["timestamp"], "%Y-%m-%dT%H:%M:%S%z") < since:
+            break
+        if _norm(m.get("caption")) == want:
+            return m["id"], m.get("permalink", "")
+    return None
+
+
+def wait_ready(container, token, what, tries=40):
+    """Poll a media container until Instagram has finished processing it."""
+    status = None
+    for _ in range(tries):
+        status = graph("GET", container, token, fields="status_code").get("status_code")
+        if status in ("FINISHED", "PUBLISHED"):
+            return status
+        if status in ("ERROR", "EXPIRED"):
+            raise ApiError(f"Instagram: {what} w stanie {status}")
+        wait(5)
+    raise ApiError(f"Instagram: {what} nadal w stanie {status} po {tries * 5} s")
+
+
 def publish_instagram(urls, caption):
     token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
     children = [graph("POST", f"{ig}/media", token, image_url=u, is_carousel_item="true")["id"]
                 for u in urls]
+    for i, child in enumerate(children, 1):
+        wait_ready(child, token, f"slajd {i}")
     carousel = graph("POST", f"{ig}/media", token, media_type="CAROUSEL",
                      children=",".join(children), caption=caption)["id"]
-    for _ in range(30):
-        status = graph("GET", carousel, token, fields="status_code").get("status_code")
-        if status == "FINISHED":
+    wait_ready(carousel, token, "karuzela")
+    # "Media ID is not available" means Instagram is still finishing the container,
+    # even after it reported FINISHED. Publishing the same container twice is
+    # impossible, so retrying here can never create a duplicate.
+    last_error = None
+    for _ in range(8):
+        try:
+            media_id = graph("POST", f"{ig}/media_publish", token, creation_id=carousel)["id"]
             break
-        if status in ("ERROR", "EXPIRED"):
-            raise ApiError(f"Instagram: kontener karuzeli w stanie {status}")
-        wait(5)
-    media_id = graph("POST", f"{ig}/media_publish", token, creation_id=carousel)["id"]
+        except ApiError as e:
+            last_error = e
+            if graph("GET", carousel, token, fields="status_code").get("status_code") == "PUBLISHED":
+                found = find_existing(caption)
+                if found:
+                    return found
+            if "not available" not in str(e) and "not ready" not in str(e).lower():
+                raise
+            wait(15)
+    else:
+        raise ApiError(f"Instagram nie przyjął karuzeli przez 2 minuty: {last_error}")
     permalink = graph("GET", media_id, token, fields="permalink").get("permalink", "")
     return media_id, permalink
 
@@ -278,7 +327,10 @@ def run(now, dry_run=False):
         meta = spec["meta"]
         urls = [f"{base}/{m}" for m in sorted(media) if m.startswith(key + "/")]
         try:
-            media_id, link = publish_instagram(urls, meta["caption_ig"])
+            found = find_existing(meta["caption_ig"]) if key in failures else None
+            if found:
+                print(f"{key}: już jest na profilu po wcześniejszej próbie, nie publikuję drugi raz")
+            media_id, link = found or publish_instagram(urls, meta["caption_ig"])
             published[key] = {"status": "published", "ig_media_id": media_id, "permalink": link,
                               "cta_keyword": meta.get("cta_keyword", ""), "at": now.isoformat()}
             save_state("published.json", published)
