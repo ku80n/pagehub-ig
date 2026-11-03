@@ -14,7 +14,7 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 STATE = ROOT / "state"
-GRAPH_VERSION = os.environ.get("META_GRAPH_VERSION", "v23.0")
+GRAPH_VERSION = os.environ.get("META_GRAPH_VERSION", "v26.0")
 GRAPH = f"https://graph.facebook.com/{GRAPH_VERSION}"
 
 
