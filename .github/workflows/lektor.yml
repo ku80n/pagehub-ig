@@ -1,9 +1,14 @@
 name: Lektor do rolek
 
-# Generates the Polish voice-over for the Reels (tools/lektor.py). Run by hand for now:
-# Actions -> Lektor do rolek -> Run workflow. The clips come back as an artifact.
+# Records the Polish narrator for the Reels (tools/lektor.py) whenever a week's
+# carousels are pushed and commits the clips next to them (weeks/<data>/kN/voice-*.wav),
+# where make_reel.py picks them up. Only missing or changed lines are recorded.
+# Publishing Reels stays switched off until Jakub approves them.
 
 on:
+  push:
+    branches: [main]
+    paths: ["weeks/*/k*.json"]
   workflow_dispatch:
     inputs:
       week:
@@ -14,23 +19,78 @@ on:
         description: "Nagraj też próbki ustawień do porównania"
         type: boolean
         default: false
+      force:
+        description: "Nagraj wszystko od nowa"
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: lektor
+  cancel-in-progress: false
 
 jobs:
+  # Comparison samples (only by hand). Pushed to the branch "podglad-probki".
+  probki:
+    if: github.event_name == 'workflow_dispatch' && inputs.probki
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: lektor-chatterbox-0.1.7-v1
+      - name: Instalacja (torch CPU + Chatterbox)
+        run: |
+          pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install chatterbox-tts==0.1.7 praat-parselmouth
+      - run: python tools/lektor.py --probki out/probki
+      - name: Wyślij na gałąź podglad-probki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd out/probki
+          git init -q -b podglad-probki
+          git -c user.name="pagehub-bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" add -A
+          git -c user.name="pagehub-bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Próbki lektora"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" podglad-probki
+
+  # Narrator clips of a week, committed next to the carousels.
   lektor:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Które tygodnie
+        id: weeks
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            w="${{ inputs.week }}"
+          else
+            w=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" 2>/dev/null \
+                | grep -E '^weeks/[^/]+/k[0-9]+\.json$' | cut -d/ -f1-2 | sort -u | tr '\n' ' ')
+          fi
+          echo "list=$w" >> "$GITHUB_OUTPUT"
+          echo "Tygodnie: ${w:-brak}"
 
       - uses: actions/setup-python@v5
+        if: steps.weeks.outputs.list != ''
         with:
           python-version: "3.11"
 
-      - name: Cache pip i modelu
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
+        if: steps.weeks.outputs.list != ''
         with:
           path: |
             ~/.cache/pip
@@ -38,22 +98,25 @@ jobs:
           key: lektor-chatterbox-0.1.7-v1
 
       - name: Instalacja (torch CPU + Chatterbox)
+        if: steps.weeks.outputs.list != ''
         run: |
           pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install chatterbox-tts==0.1.7
+          pip install chatterbox-tts==0.1.7 praat-parselmouth
 
-      - name: Próbki
-        if: ${{ inputs.probki }}
-        run: python tools/lektor.py --probki out/probki
-
-      - name: Nagrania tygodnia
-        if: ${{ inputs.week != '' }}
+      - name: Nagrania
+        if: steps.weeks.outputs.list != ''
         run: |
-          python tools/lektor.py "${{ inputs.week }}"
-          for d in "${{ inputs.week }}"/k*/; do n=$(basename "$d"); mkdir -p "out/tydzien/$n"; cp "$d"voice* "out/tydzien/$n/" 2>/dev/null || true; done
+          for w in ${{ steps.weeks.outputs.list }}; do
+            python tools/lektor.py "$w" ${{ inputs.force && '--force' || '' }}
+          done
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: lektor
-          path: out/
-          retention-days: 14
+      - name: Zapisz nagrania w repo
+        if: steps.weeks.outputs.list != ''
+        run: |
+          git config user.name "pagehub-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weeks/*/k*/voice-*.wav weeks/*/k*/voice.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Nic nowego."; exit 0; fi
+          git commit -m "Lektor do rolek"
+          for i in 1 2 3; do git pull --rebase --quiet && git push --quiet && exit 0; sleep 5; done
+          exit 1

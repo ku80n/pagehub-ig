@@ -34,7 +34,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 REF = ROOT / "assets" / "voice" / "lektor.wav"
 PARTS = ("cover", "list", "sell")
 SETTINGS = {"exaggeration": 0.7, "cfg_weight": 0.4, "temperature": 0.8}
-CHARS_PER_SEC = 14.0          # rough speaking rate, to catch a clip that lost or repeated words
+CHARS_PER_SEC = 16.5          # rough speaking rate, to catch a clip that lost or repeated words
 
 _model = None
 
