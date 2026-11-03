@@ -9,9 +9,21 @@
     "cta_keyword": "WYCENA",
     "reply_hint": "Cześć! Dzięki za komentarz. Napisz, czym zajmuje się Twoja firma i czego potrzebujesz na stronie, a odezwiemy się z wyceną. Landing page robimy od 800 zł, stronę firmową od 1500 zł.",
     "caption_ig": "Każdą stronę w PageHub piszemy od zera. Pokazujemy, jak to wygląda od środka.\n\nBez kreatora i bez gotowego motywu. Zaczynamy od rozmowy o Twoich klientach, potem projekt pod branżę, kod w Angularze, prosty panel do samodzielnych zmian i publikacja razem z Google Search Console.\n\nEfekt: strona, która ma tylko to, czego potrzebujesz, i którą aktualizujesz sam.\n\nMasz stronę, która odstaje od reszty Twojej firmy? Napisz do nas wiadomość.\n\n#stronywww #webdesign #angular #przemyśl #stronadlafirmy",
-    "caption_reel": "Bez szablonów. Tak powstaje strona w PageHub.\n\nNajpierw rozmowa o Twoich klientach i o tym, co mają zrobić na stronie. Potem projekt, kod pisany od zera w Angularze i publikacja z Google Search Console. Tak powstała między innymi strona Envision Studio z Przemyśla.\n\nChcesz taką stronę? Napisz WYCENA w komentarzu. Landing page robimy od 800 zł, stronę firmową od 1500 zł.\n\n#stronywww #webdesign #przemyśl",
+    "caption_reel": "Bez szablonów. Tak powstaje strona w PageHub.\n\nNajpierw rozmowa o Twoich klientach i o tym, co mają zrobić na stronie. Potem projekt, kod pisany od zera w Angularze, a na koniec publikacja i podpięcie Google Search Console. Tak powstała między innymi strona Envision Studio z Przemyśla.\n\nChcesz taką stronę? Napisz WYCENA w komentarzu. Landing page robimy od 800 zł, stronę firmową od 1500 zł.\n\n#stronywww #webdesign #przemyśl",
     "reel_heading": "5 kroków do nowej strony:",
-    "reel_close": "Chcesz stronę zrobioną od zera pod Twoją firmę?",
+    "reel_close": "Chcesz stronę zrobioną specjalnie dla Twojej firmy?",
+    "reel_points": [
+      "Rozmowa o Twoich klientach",
+      "Projekt pod Twoją branżę",
+      "Kod pisany od zera",
+      "Panel do własnych zmian",
+      "Publikacja i Google"
+    ],
+    "reel_voice": {
+      "cover": "Bez szablonu! Tak powstaje u nas nowa strona. Pięć kroków, od pierwszej rozmowy do publikacji.",
+      "list": "Najpierw rozmowa o twoich klientach. Potem projekt pod twoją branżę. Kod piszemy od zera. Dostajesz własny panel do zmian. A na koniec publikacja i Google.",
+      "sell": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz w komentarzu słowo wycena, a przygotujemy ofertę."
+    },
     "caption_fb": "Jak powstaje strona w PageHub? Bez ani jednego gotowego szablonu po drodze.\n\nNajpierw rozmowa: kto jest Twoim klientem i co ma zrobić na stronie. Potem projekt pod Twoją branżę. Kod piszemy od zera w Angularze, więc strona jest szybka na telefonie i od razu czytelna dla Google. Na koniec dostajesz prosty panel, w którym sam zmienisz teksty, zdjęcia i cennik, a my podpinamy domenę, hosting i Google Search Console.\n\nPrzykład naszej pracy: envisionstudio.pl, strona dla trenera personalnego z Przemyśla.\n\nChcesz podobną? Napisz do nas albo zajrzyj na https://pagehub.pl",
     "alt": "Okładka karuzeli PageHub: napis Bez szablonu: tak powstaje Twoja strona oraz 5 kroków od pierwszej rozmowy do publikacji."
   },

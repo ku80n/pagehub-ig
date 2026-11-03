@@ -24,7 +24,7 @@ DICT = ROOT / "assets" / "dict" / "pl_PL"
 ALLOW = ROOT / "config" / "words.txt"
 
 SLIDE_FIELDS = ("kicker", "title", "subtitle", "body", "button")
-META_FIELDS = ("topic", "caption_ig", "caption_fb", "caption_reel", "reel_heading", "alt")
+META_FIELDS = ("topic", "caption_ig", "caption_fb", "caption_reel", "reel_heading", "reel_close", "alt")
 SKIP = re.compile(r"(?:#|@)\S+|https?://\S+|\b\S+\.(?:pl|com|dev|app|io|net|org|eu)\S*", re.IGNORECASE)
 WORD = re.compile(r"[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+(?:-[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+)*")
 
@@ -36,6 +36,8 @@ def texts(spec):
             yield f"meta.{f}", meta[f]
     for i, p in enumerate(meta.get("reel_points") or []):
         yield f"meta.reel_points[{i}]", p
+    for part, text in (meta.get("reel_voice") or {}).items():
+        yield f"meta.reel_voice.{part}", text
     for n, s in enumerate(spec.get("slides", []), 1):
         for f in SLIDE_FIELDS:
             if s.get(f):

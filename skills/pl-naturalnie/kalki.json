@@ -1,0 +1,94 @@
+{
+  "note": "Kalki z angielskiego, korpomowa i sztywne konstrukcje. regex (bez rozróżniania wielkości liter) -> co zamiast. Edytuj śmiało.",
+  "phrases": [
+    {
+      "regex": "\\boto (?:\\d+|pięć|trzy|cztery|kilka|najczęstsz)",
+      "fix": "Bez 'Oto...' (kalka 'Here are'). Np. 'Najczęściej winne jest jedno z tych pięciu:'"
+    },
+    {
+      "regex": "\\bzanim zrobi to on\\b",
+      "fix": "Nazwij kogo: 'zanim zrobi to klient'"
+    },
+    {
+      "regex": "\\bpod kciuk\\b",
+      "fix": "'łatwo trafić palcem'"
+    },
+    {
+      "regex": "\\bna start\\b",
+      "fix": "Konkretnie gdzie: 'na stronie głównej', 'na początku'"
+    },
+    {
+      "regex": "\\bdedykowan\\w*",
+      "fix": "'osobny', 'przygotowany dla', 'specjalny'"
+    },
+    {
+      "regex": "\\bzaadresowa\\w*|\\badresowa\\w* (?:problem|potrzeb)",
+      "fix": "'rozwiązać', 'zająć się'"
+    },
+    {
+      "regex": "\\brobi\\w* różnicę\\b",
+      "fix": "'zmienia dużo', 'ma znaczenie'"
+    },
+    {
+      "regex": "\\bna koniec dnia\\b",
+      "fix": "'ostatecznie', 'w praktyce'"
+    },
+    {
+      "regex": "\\bw temacie\\b",
+      "fix": "'w sprawie', 'o'"
+    },
+    {
+      "regex": "\\bfinalnie\\b",
+      "fix": "'w końcu', 'ostatecznie'"
+    },
+    {
+      "regex": "\\bdostarcza\\w* wartoś\\w*",
+      "fix": "Powiedz, co konkretnie klient dostaje"
+    },
+    {
+      "regex": "\\bbazując na\\b",
+      "fix": "'na podstawie'"
+    },
+    {
+      "regex": "\\bbyć w kontakcie\\b",
+      "fix": "'odezwij się', 'napisz'"
+    },
+    {
+      "regex": "\\bkompleksow\\w*",
+      "fix": "Wymień, co wchodzi w zakres"
+    },
+    {
+      "regex": "\\binnowacyjn\\w*",
+      "fix": "Pokaż, co jest nowe"
+    },
+    {
+      "regex": "\\bszyt\\w* na miarę",
+      "fix": "'zrobiona specjalnie dla twojej firmy'"
+    },
+    {
+      "regex": "\\bna najwyższym poziomie|najwyższej jakości",
+      "fix": "Dowód zamiast obietnicy"
+    },
+    {
+      "regex": "\\bprofesjonaln\\w* podejści\\w*",
+      "fix": "Pokaż, jak pracujecie"
+    },
+    {
+      "regex": "\\bna wyższy poziom|kolejny poziom",
+      "fix": "Co konkretnie się zmieni"
+    },
+    {
+      "regex": "\\bw dzisiejszych czasach|w dobie internetu|w erze cyfrowej",
+      "fix": "Zacznij od konkretu"
+    },
+    {
+      "regex": "\\bgeneralnie\\b",
+      "fix": "Usuń"
+    },
+    {
+      "regex": "\\bklucz\\w*(?= (?:element|rol|znaczeni))",
+      "fix": "'ważny', albo powiedz dlaczego"
+    }
+  ],
+  "voice_banned": "\\d|\\b(?:np|itd|itp|zł|www|ok)\\b\\.?|[()\\[\\]\\u2193\\u2192\\u2014\\u2013#@]|\\*"
+}
