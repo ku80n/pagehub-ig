@@ -42,6 +42,8 @@ Instagram pobiera zdjęcia z publicznego adresu, więc grafiki lądują na małe
 2. Zaloguj się i otwórz https://app.netlify.com/drop -> przeciągnij folder `pagehub-media` na pole do upuszczania.
    (To samo jest w Projects -> **Add new project** -> **Deploy manually**.) Nazwa projektu nie ma znaczenia.
 3. W nowym projekcie: **Project configuration** -> General -> Project details -> skopiuj **Project ID** -> to jest **NETLIFY_SITE_ID**.
+   W tym samym miejscu: **Visitor access** -> Project visibility -> Edit visibility -> **Public** -> Save.
+   Nowe projekty bywają domyślnie prywatne, a wtedy Instagram nie pobierze grafik (błąd 401).
 4. Avatar -> **User settings** -> **OAuth** (albo Applications) -> Personal access tokens -> **New access token**,
    opis `pagehub-ig`, ważność: bez wygasania (albo najdłuższa) -> Generate -> skopiuj od razu (pokazuje się raz) -> to jest **NETLIFY_AUTH_TOKEN**.
 

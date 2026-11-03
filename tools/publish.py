@@ -110,11 +110,24 @@ def netlify_deploy(files):
     else:
         raise ApiError("Netlify: deploy nie skończył się w 5 minut")
     # Meta fetches the files itself, so make sure they are really public first.
-    first = next(iter(files))
-    with urllib.request.urlopen(urllib.request.Request(f"{base}/{first}", method="HEAD"), timeout=30) as r:
-        if r.status != 200:
-            raise ApiError(f"Netlify: {first} zwraca {r.status}")
+    public_check(f"{base}/{next(iter(files))}")
     return base
+
+
+def public_check(url):
+    """Fetch a URL anonymously, the way Meta will. Raise ApiError with a fix if it fails."""
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, method="GET"), timeout=30) as r:
+            r.read(1)
+            return r.status
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            raise ApiError(
+                f"Netlify zwraca {e.code}, bo projekt jest prywatny. W Netlify: projekt -> Project configuration "
+                "-> General -> Visitor access -> Project visibility -> Public -> Save.") from None
+        raise ApiError(f"Netlify zwraca HTTP {e.code} dla {url}") from None
+    except urllib.error.URLError as e:
+        raise ApiError(f"Netlify: brak połączenia z {url.split('/')[2]} ({e.reason})") from None
 
 
 # ---------------------------------------------------------------- instagram / facebook
@@ -172,8 +185,13 @@ def check():
             raise ApiError("; ".join(problems))
         return summary
     step("Ważność tokenu", token_validity)
-    step("Netlify", lambda: _request("GET", f"{NETLIFY}/sites/{env('NETLIFY_SITE_ID')}",
-                                     headers={"Authorization": f"Bearer {env('NETLIFY_AUTH_TOKEN')}"})["ssl_url"])
+    def netlify_status():
+        info = _request("GET", f"{NETLIFY}/sites/{env('NETLIFY_SITE_ID')}",
+                        headers={"Authorization": f"Bearer {env('NETLIFY_AUTH_TOKEN')}"})
+        base = (info.get("ssl_url") or info.get("url")).rstrip("/")
+        public_check(base + "/")
+        return base + " (publiczny)"
+    step("Netlify", netlify_status)
     try:
         telegram("PageHub: test połączenia.\n\n" + "\n".join(["OK  " + o for o in ok] + ["BŁĄD  " + b for b in bad]))
         ok.append("Telegram: wiadomość testowa wysłana")
@@ -241,7 +259,20 @@ def run(now, dry_run=False):
             print("          podpis IG:", spec["meta"]["caption_ig"].splitlines()[0])
         return 0
 
-    base = netlify_deploy(media)
+    try:
+        base = netlify_deploy(media)
+    except ApiError as e:
+        # Nothing reached Instagram: count it as a failed attempt for every due post.
+        for key, _, spec in due:
+            f = failures.setdefault(key, {"count": 0})
+            f["count"] += 1
+            f["last_error"] = str(e)
+            if f["count"] in (1, MAX_ATTEMPTS):
+                last = " To była ostatnia próba." if f["count"] == MAX_ATTEMPTS else " Spróbuję ponownie za godzinę."
+                telegram(f"PageHub: nie udało się opublikować {key} ({spec['meta'].get('when', '')}).\n{e}{last}")
+        save_state("publish_failures.json", failures)
+        print("BŁĄD:", e)
+        return 1
     code = 0
     for key, _, spec in due:
         meta = spec["meta"]
