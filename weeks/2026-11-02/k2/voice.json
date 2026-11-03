@@ -19,12 +19,12 @@
       "lifted_questions": 0
     },
     "sell": {
-      "text": "Sprawdź, zanim znajdzie je twój klient! Coś nie działa? Napisz w komentarzu słowo telefon, a odezwiemy się z wyceną.",
-      "sha": "86ba5feb2910",
-      "seconds": 6.75,
+      "text": "Sprawdź, zanim twój klient je znajdzie! Coś nie działa? Napisz w komentarzu słowo telefon, a przygotujemy wycenę.",
+      "sha": "a5112305c736",
+      "seconds": 6.65,
       "take": 3,
-      "heard": "Sprawdź, zanim znajdzie je twój klient. Coś nie działa? Napisz w komentarzu słowo \"telefom\" a odezjemy się z",
-      "wer": 0.158,
+      "heard": "Sprawdź, zanim twój klient je znajdzie. Coś nie działa? Napisz w komentarzu słowo \"telefon\", a przygotujemy wycenę.",
+      "wer": 0.0,
       "lifted_questions": 0
     }
   },

@@ -19,12 +19,12 @@
       "lifted_questions": 0
     },
     "sell": {
-      "text": "Wolna strona? Klient pójdzie do konkurencji! Napisz w komentarzu słowo turbo, a odezwiemy się z wyceną.",
-      "sha": "c901195294d2",
-      "seconds": 7.71,
+      "text": "Wolna strona? Klient pójdzie do konkurencji! Napisz w komentarzu słowo turbo, a przygotujemy wycenę.",
+      "sha": "6906df59a6ca",
+      "seconds": 5.98,
       "take": 1,
-      "heard": "Wolna strona? Klient pójdzie do konkurencji. Napisz w komentarzu słowo Turbo, a odezjemy się z wyceną.",
-      "wer": 0.062,
+      "heard": "Wolna strona? Klient pójdzie do konkurencji. Napisz w komentarzu słowo Turbo, a przygotujemy wycenę.",
+      "wer": 0.0,
       "lifted_questions": 0
     }
   },
