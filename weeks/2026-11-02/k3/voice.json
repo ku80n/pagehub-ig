@@ -1,0 +1,25 @@
+{
+  "parts": {
+    "cover": {
+      "text": "Bez szablonu! Tak powstaje u nas nowa strona. Pięć kroków, od pierwszej rozmowy do publikacji.",
+      "sha": "47b994988bc8",
+      "seconds": 6.26
+    },
+    "list": {
+      "text": "Najpierw rozmowa o twoich klientach. Potem projekt pod twoją branżę. Kod piszemy od zera. Dostajesz własny panel do zmian. A na koniec publikacja i Google.",
+      "sha": "02e1d31b0097",
+      "seconds": 9.34
+    },
+    "sell": {
+      "text": "Chcesz stronę zrobioną specjalnie dla twojej firmy? Napisz w komentarzu słowo wycena, a przygotujemy ofertę.",
+      "sha": "3552dce5863f",
+      "seconds": 6.27
+    }
+  },
+  "model": "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav",
+  "settings": {
+    "exaggeration": 0.7,
+    "cfg_weight": 0.4,
+    "temperature": 0.8
+  }
+}

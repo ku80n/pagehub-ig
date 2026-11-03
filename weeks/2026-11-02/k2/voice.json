@@ -1,0 +1,25 @@
+{
+  "parts": {
+    "cover": {
+      "text": "Pięć błędów na telefonie, które klient widzi od razu. A ty sprawdzisz je w pięć minut!",
+      "sha": "a6a1f855952d",
+      "seconds": 4.92
+    },
+    "list": {
+      "text": "Weź telefon i sprawdź. Da się czytać bez powiększania? Numer od razu dzwoni? Przyciski łatwo trafić palcem? Adres i godziny widać od razu? A formularz naprawdę dochodzi?",
+      "sha": "bd65ca7d8db6",
+      "seconds": 9.95
+    },
+    "sell": {
+      "text": "Sprawdź, zanim znajdzie je twój klient! Coś nie działa? Napisz w komentarzu słowo telefon, a odezwiemy się z wyceną.",
+      "sha": "86ba5feb2910",
+      "seconds": 6.94
+    }
+  },
+  "model": "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav",
+  "settings": {
+    "exaggeration": 0.7,
+    "cfg_weight": 0.4,
+    "temperature": 0.8
+  }
+}

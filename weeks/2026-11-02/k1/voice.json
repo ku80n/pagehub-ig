@@ -1,0 +1,25 @@
+{
+  "parts": {
+    "cover": {
+      "text": "Twoja strona ładuje się dłużej niż trzy sekundy? To tracisz klientów! Ponad połowa ludzi po prostu ją zamyka.",
+      "sha": "b32a21163c37",
+      "seconds": 6.57
+    },
+    "list": {
+      "text": "Najczęściej winne jest jedno z tych pięciu. Zdjęcia prosto z aparatu. Wtyczki, których nikt nie używa. Najtańszy hosting. Ciężki szablon. I film w tle.",
+      "sha": "c852f4e54053",
+      "seconds": 8.95
+    },
+    "sell": {
+      "text": "Wolna strona? Klient pójdzie do konkurencji! Napisz w komentarzu słowo turbo, a odezwiemy się z wyceną.",
+      "sha": "c901195294d2",
+      "seconds": 7.71
+    }
+  },
+  "model": "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav",
+  "settings": {
+    "exaggeration": 0.7,
+    "cfg_weight": 0.4,
+    "temperature": 0.8
+  }
+}
