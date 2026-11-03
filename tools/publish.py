@@ -60,7 +60,8 @@ def schedule(spec):
         return []
     at = datetime.fromisoformat(meta["publish_at"]).astimezone(TZ)
     out = [("carousel", at)]
-    reels_on = env("PUBLISH_REELS", required=False) != "false" and meta.get("reel", True) is not False
+    # Reels are opt-in: on only when the repo variable PUBLISH_REELS is "true".
+    reels_on = env("PUBLISH_REELS", required=False) == "true" and meta.get("reel", True) is not False
     if reels_on:
         reel_at = (datetime.fromisoformat(meta["reel_at"]).astimezone(TZ) if meta.get("reel_at")
                    else at + timedelta(days=1))
