@@ -60,6 +60,7 @@ Format (jak w `tools/render_carousel.py`):
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
 - `cta_keyword`: jedno nietypowe słowo WIELKIMI LITERAMI, jeśli CTA to "napisz SŁOWO w komentarzu" (Jakub dostaje wtedy powiadomienie). Pusty string, jeśli CTA jest inne.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla takiej osoby. Pusty string, jeśli brak słowa-klucza.
+- Rolka pokazuje okładkę, a potem wypunktowane nagłówki slajdów (bez podsumowania i CTA), więc każdy nagłówek musi mieć sens sam w sobie, bez tekstu pod spodem.
 - Każda karuzela wychodzi też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
   (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania

@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
-make_reel.py - turn a carousel spec into a 9:16 Reel where the text types itself
-out in a PageHub-style code editor, with original sound.
+make_reel.py - turn a carousel spec into a short 9:16 Reel where the text types
+itself out in a PageHub-style code editor, with original sound.
 
-Picture: the browser-window look from the carousels, a line-number gutter and
-a blinking cursor. The cover title is on screen from the very first frame (the
-hook), everything after it types out at a readable pace, then the slide clears
-and the next one starts. The window sits inside the Reels safe zone, away from
-the like/comment rail and the caption.
+Two screens. First the carousel's cover, exactly as it is, on screen from the
+very first frame (the hook). Then a bullet list of the headings of the other
+slides, typed one by one, each finished with a "ping". The recap and the
+call-to-action slides are left out of the list: they are not points.
+The window sits inside the Reels safe zone, away from the like/comment rail
+and the caption.
 
 Sound: synthesised here, so there is nothing to license and nothing Instagram
-can mute. A key click per typed character, a soft whoosh between slides, a pop
-for the button, and a quiet lo-fi chord bed with a light beat underneath.
+can mute. Clicky mechanical keys at a real typist's rhythm, a ping after each
+heading, a soft whoosh between the screens and a quiet lo-fi bed underneath.
 
 Usage
   python3 make_reel.py weeks/2026-11-02/k1.json                # -> weeks/.../k1/reel.mp4
@@ -59,7 +60,8 @@ TW = WX + WW - 52 - TX           # text width
 CONTENT_TOP, CONTENT_BOTTOM = WY + BAR_H + 40, WY + WH - 70
 
 # pacing (characters per second, seconds)
-CPS = {"kicker": 60, "title": 34, "subtitle": 70, "body": 78, "item": 70}
+CPS = {"kicker": 60, "title": 34, "subtitle": 70, "body": 78, "item": 70, "bullet": 30}
+PING_GAP = 0.38                  # pause after each heading's ping before the next one types
 HOLD, HOLD_LAST, CLEAR = 0.95, 2.2, 0.25
 
 
@@ -75,6 +77,7 @@ F = {
     "body": font("Inter-Regular.otf", 42),
     "item": font("Inter-Regular.otf", 40),
     "num": font("DejaVuSansMono-Bold.ttf", 28),
+    "dot": font("DejaVuSansMono-Bold.ttf", 44),
     "button": font("DejaVuSansMono-Bold.ttf", 36),
     "url": font("DejaVuSansMono.ttf", 26),
     "gutter": font("DejaVuSansMono.ttf", 22),
@@ -115,12 +118,31 @@ def block(kind, text, color, fnt, indent=0, gap_before=0, lh=1.4, prefix=None):
             "chars": sum(len(w) + 1 for ln in lines for _, w, _ in ln)}
 
 
+def reel_slides(slides):
+    """Cover as it is, then one screen listing the headings of the other slides."""
+    heads = [s["title"] for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
+    return [slides[0], {"type": "bullets", "items": heads}]
+
+
+def bullet_blocks(items):
+    """Biggest font size at which every heading still fits in the window."""
+    for size in (46, 42, 38, 34, 30):
+        fnt = font("DejaVuSansMono-Bold.ttf", size)
+        blocks = [block("bullet", it, FG, fnt, indent=int(size * 1.1), gap_before=0 if i == 0 else int(size * 0.75),
+                        lh=1.22, prefix="\u2022") for i, it in enumerate(items)]
+        if sum(b["gap"] + b["lh"] * len(b["lines"]) for b in blocks) <= CONTENT_BOTTOM - CONTENT_TOP - 40:
+            return blocks
+    return blocks
+
+
 def layout(slide, first):
     kind = slide.get("type", "text")
     blocks = []
-    if slide.get("kicker"):
+    if kind == "bullets":
+        blocks = bullet_blocks(slide["items"])
+    if slide.get("kicker") and kind != "bullets":
         blocks.append(block("kicker", "// " + slide["kicker"], ACCENT, F["kicker"], lh=1.3))
-    if slide.get("title"):
+    if slide.get("title") and kind != "bullets":
         blocks.append(block("title", slide["title"], FG, F["cover" if first else "title"],
                             gap_before=22 if blocks else 0, lh=1.16))
     if kind == "cover" and slide.get("subtitle"):
@@ -168,6 +190,9 @@ def timeline(slides):
                 for k, ch in enumerate(text):
                     events.append((t + k / CPS[b["kind"]], "space" if ch == " " else "key"))
                 t += dur + 0.12
+                if b["kind"] == "bullet":
+                    events.append((t - 0.08, "ping"))
+                    t += PING_GAP
         t += HOLD_LAST if last else (1.7 if first else HOLD)   # the cover is the hook: let it sit
         plan.append({"blocks": blocks, "start": start, "end": t})
         if not last:
@@ -237,7 +262,10 @@ def draw_content(img, blocks, t, alpha=1.0, cursor_on=True):
         span = max(b["t1"] - b["t0"], 1e-6)
         shown = b["chars"] if t >= b["t1"] else int(b["chars"] * (t - b["t0"]) / span)
         fnt, left = b["font"], TX + b["indent"]
-        if b["prefix"]:
+        if b["prefix"] == "\u2022":
+            if shown > 0:
+                d.text((TX, b["y"]), "\u2022", font=fnt, fill=ACCENT + (a,))
+        elif b["prefix"]:
             d.text((TX, b["y"] + 4), b["prefix"], font=F["num"], fill=ACCENT + (a,))
         count = 0
         for li, line in enumerate(b["lines"]):
@@ -348,6 +376,7 @@ def sound(events, total, seed=7):
     # (about 9-13 a second) for as long as text is being typed.
     last_key = -1.0
     gap = rng.uniform(0.075, 0.11)
+    pings = [0]
     for t, kind in events:
         if kind in ("key", "space"):
             if t - last_key < gap:
@@ -358,6 +387,16 @@ def sound(events, total, seed=7):
             ln = int(0.45 * SR)
             sweep = _lowpass(rng.standard_normal(ln), 24)
             add(sweep * np.sin(np.linspace(0, np.pi, ln)) ** 2 * 0.3, t - 0.1)
+        elif kind == "ping":
+            # a soft notification ding, climbing a step each time (A minor pentatonic)
+            notes = [81, 84, 86, 88, 91, 93, 96, 98]
+            f0 = 440 * 2 ** ((notes[min(pings[0], len(notes) - 1)] - 69) / 12)
+            pings[0] += 1
+            ln = int(0.6 * SR)
+            k = np.arange(ln) / SR
+            ding = (np.sin(2 * np.pi * f0 * k) + 0.35 * np.sin(2 * np.pi * 2 * f0 * k) * np.exp(-k / 0.08)
+                    + 0.15 * np.sin(2 * np.pi * 3.01 * f0 * k) * np.exp(-k / 0.05))
+            add(ding * _env(ln, 0.002, 0.22) * 0.22, t, 0.1)
         elif kind == "pop":
             ln = int(0.18 * SR)
             k = np.arange(ln) / SR
@@ -431,7 +470,7 @@ def ffmpeg_bin():
 
 def prepare(spec_path):
     spec = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8"))
-    slides = spec["slides"]
+    slides = reel_slides(spec["slides"])
     plan, events, total = timeline(slides)
     base = background()
     chromes = [chrome(base, i, len(slides), spec.get("handle", "pagehub.pl")) for i in range(len(slides))]
