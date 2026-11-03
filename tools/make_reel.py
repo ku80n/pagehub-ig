@@ -284,6 +284,41 @@ def _lowpass(x, taps):
     return np.convolve(x, k / k.sum(), mode="same")
 
 
+def _ring(k, freq, decay, phase=0.0):
+    """A damped resonance: what a keycap, plate or case does when it is hit."""
+    return np.sin(2 * np.pi * freq * k + phase) * np.exp(-k / decay)
+
+
+def mech_key(rng, space=False):
+    """One keystroke on a mechanical keyboard: a soft click, the bottom-out 'thock'
+    and, a moment later, the quieter upstroke. Every key is a little different."""
+    ln = int(0.2 * SR)
+    k = np.arange(ln) / SR
+    sig = np.zeros(ln)
+    # switch click: a very short band-limited tick, kept low so it does not sting
+    click_len = int(0.006 * SR)
+    click = _lowpass(np.diff(rng.standard_normal(click_len), prepend=0), 5) * _env(click_len, 0.0003, 0.0012)
+    sig[:click_len] += click * 0.35
+    # bottom-out: low case resonance plus the keycap's mid-range knock
+    low = rng.uniform(120, 150) if space else rng.uniform(170, 230)
+    mid = rng.uniform(520, 680) if space else rng.uniform(700, 950)
+    thock = (_ring(k, low, 0.030 if space else 0.020, rng.uniform(0, 6.3)) * (1.0 if space else 0.8)
+             + _ring(k, mid, 0.010, rng.uniform(0, 6.3)) * 0.45
+             + _ring(k, mid * rng.uniform(1.9, 2.3), 0.004) * 0.15)
+    thock *= np.minimum(1, k / 0.0008)
+    sig += thock
+    if space:
+        # stabiliser rattle on the long bar
+        for d in (0.012, 0.021):
+            j = int(d * SR)
+            sig[j:j + click_len] += click * 0.25
+    # upstroke: same key coming back up, quieter and higher
+    up = int(rng.uniform(0.055, 0.085) * SR)
+    ku = np.arange(ln - up) / SR
+    sig[up:] += (_ring(ku, mid * 1.15, 0.006) * 0.18 + _ring(ku, low * 1.3, 0.010) * 0.15) * np.minimum(1, ku / 0.0008)
+    return _lowpass(sig, 3) * rng.uniform(0.16, 0.22)
+
+
 def sound(events, total, seed=7):
     rng = np.random.default_rng(seed)
     n = int((total + 0.5) * SR)
@@ -297,17 +332,17 @@ def sound(events, total, seed=7):
         dst[0][i:i + len(sig)] += sig * (1 - pan)
         dst[1][i:i + len(sig)] += sig * (1 + pan)
 
-    # key clicks: a short bright tick plus a small wooden body, varied every time
+    # Mechanical keyboard. The text types faster than a person could, so a sound per
+    # character would be a buzz: keystrokes play at a real typist's rhythm instead
+    # (about 9-13 a second) for as long as text is being typed.
+    last_key = -1.0
+    gap = rng.uniform(0.075, 0.11)
     for t, kind in events:
         if kind in ("key", "space"):
-            ln = int(0.035 * SR)
-            k = np.arange(ln) / SR
-            noise = np.diff(rng.standard_normal(ln), prepend=0)
-            tone = np.sin(2 * np.pi * rng.uniform(1800, 2600) * k)
-            body = np.sin(2 * np.pi * rng.uniform(170, 250) * k)
-            sig = (0.5 * noise * _env(ln, 0.0005, 0.004) + 0.2 * tone * _env(ln, 0.0003, 0.003)
-                   + (0.55 if kind == "space" else 0.25) * body * _env(ln, 0.001, 0.012))
-            add(sig * rng.uniform(0.09, 0.14), t + rng.uniform(-0.004, 0.004), rng.uniform(-0.3, 0.3))
+            if t - last_key < gap:
+                continue
+            last_key, gap = t, rng.uniform(0.075, 0.11)
+            add(mech_key(rng, space=kind == "space"), t + rng.uniform(-0.006, 0.006), rng.uniform(-0.25, 0.25))
         elif kind == "whoosh":
             ln = int(0.45 * SR)
             sweep = _lowpass(rng.standard_normal(ln), 24)
