@@ -37,11 +37,13 @@ Nazwy przycisków u Meta czasem się zmieniają, więc mogą się trochę różn
 6. Wklej `access_token` strony do Access Token Debuggera i sprawdź, że **Expires: Never**. Jeśli ma datę, powtórz krok 4 i 5.
 
 ## 3. Netlify na grafiki (3 min)
-Instagram pobiera zdjęcia z publicznego adresu, więc grafiki lądują na małej, osobnej stronie.
-1. https://app.netlify.com -> Add new site -> **Deploy manually** -> przeciągnij dowolny folder z jednym plikiem `index.html`.
-2. Site configuration -> zmień nazwę np. na `pagehub-media` (dowolna).
-3. Site configuration -> Site details -> skopiuj **Site ID** -> to jest **NETLIFY_SITE_ID**.
-4. Avatar -> User settings -> Applications -> Personal access tokens -> New access token -> to jest **NETLIFY_AUTH_TOKEN**.
+Instagram pobiera zdjęcia z publicznego adresu, więc grafiki lądują na małej, osobnej stronie (Netlify nazywa ją teraz "projektem").
+1. Rozpakuj `pagehub-media.zip` (z czatu) - dostaniesz folder `pagehub-media` z jednym plikiem `index.html`.
+2. Zaloguj się i otwórz https://app.netlify.com/drop -> przeciągnij folder `pagehub-media` na pole do upuszczania.
+   (To samo jest w Projects -> **Add new project** -> **Deploy manually**.) Nazwa projektu nie ma znaczenia.
+3. W nowym projekcie: **Project configuration** -> General -> Project details -> skopiuj **Project ID** -> to jest **NETLIFY_SITE_ID**.
+4. Avatar -> **User settings** -> **OAuth** (albo Applications) -> Personal access tokens -> **New access token**,
+   opis `pagehub-ig`, ważność: bez wygasania (albo najdłuższa) -> Generate -> skopiuj od razu (pokazuje się raz) -> to jest **NETLIFY_AUTH_TOKEN**.
 
 ## 4. Telegram (3 min)
 1. Napisz do **@BotFather**: `/newbot`, podaj nazwę (np. PageHub Klienci) i login bota. Dostaniesz token -> **TELEGRAM_BOT_TOKEN**.
