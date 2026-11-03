@@ -1,0 +1,6 @@
+{
+  "2026-11-02/k1": {
+    "count": 1,
+    "last_error": "POST https://graph.facebook.com/v26.0/17841431930405258/media_publish -> HTTP 400: Media ID is not available"
+  }
+}
