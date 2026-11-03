@@ -28,7 +28,7 @@ Wszystkie ścieżki poniżej są względem katalogu repo.
 - Podział według `config/pillars.md`, terminy z `config/brand.md`.
 - Dla każdej: filar, temat, konkretny kąt (nie "SEO", tylko "3 rzeczy, przez które Google nie pokazuje Twojej firmy w Mapach"), termin.
 - Każda liczba spoza `facts.md` musi mieć publiczne źródło: sprawdź ją wyszukiwarką i wpisz link w `plan.md`. Bez źródła nie ma liczby.
-- Niczego nie wymyślaj o PageHub: klientów, wyników, opinii, terminów realizacji, cen.
+- Niczego nie wymyślaj o PageHub: klientów, wyników, opinii, terminów realizacji. Ceny tylko z `facts.md`, zawsze jako "od".
 - Bez tematów politycznych, kontrowersyjnych, o konkurencji z nazwy.
 
 ## 3. Napisz -> `weeks/<data>/k1.json`, `k2.json`, `k3.json`
@@ -67,7 +67,7 @@ Zasady:
 - Podpis IG: pierwsza linia z konkretem, jedno wezwanie do działania, 3-5 hashtagów na końcu.
 - Podpis FB: osobna wersja, swobodniejsza, może mieć link https://pagehub.pl.
 - W tygodniu przynajmniej jedna karuzela z CTA na słowo-klucz w komentarzu (to źródło klientów), pozostałe: zapisz / napisz DM.
-- Obietnice w CTA tylko zgodne z `facts.md` (np. sprawdzenie strony, odświeżenie wyglądu). Bez cen i terminów.
+- Obietnice w CTA tylko zgodne z `facts.md` (np. wycena, rozmowa o stronie). Nigdy nic za darmo: bez darmowych audytów, sprawdzeń ani poprawek.
 - Zero długich myślników (— i –) w czymkolwiek.
 
 ## 4. Bramki jakości (wszystkie muszą przejść)

@@ -9,6 +9,6 @@
 
 ## Tydzień = 3 karuzele
 - Zwykle: 2 x Edukacja + 1 x (Kulisy, Case study albo Oferta na zmianę).
-- Oferta (darmowe odświeżenie strony) najwyżej raz na 2 tygodnie.
+- Oferta (Landing Page od 800 zł, Strona Firmowa od 1500 zł, cennik w `facts.md`) najwyżej raz na 2 tygodnie.
 - Nie powtarzaj tematu z ostatnich 4 tygodni (patrz `log.md`).
 - Pomysły z `ideas.md` mają pierwszeństwo przed wymyślonymi.
