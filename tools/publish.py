@@ -183,12 +183,39 @@ def check():
     return 0 if not bad else 1
 
 
+# ---------------------------------------------------------------- watchdog
+
+def week_watch(now, dry_run=False):
+    """From Monday noon on, warn once if this week has no carousels at all.
+
+    That is the one failure nothing else reports: the Monday task did not run,
+    so there is nothing to publish and no error to send.
+    """
+    monday = (now - timedelta(days=now.weekday())).date()
+    if now.weekday() == 0 and now.hour < 12:
+        return
+    if any(ROOT.glob(f"weeks/{monday.isoformat()}/k*.json")):
+        return
+    state = load_state("week_watch.json", {})
+    if state.get("warned_week") == monday.isoformat():
+        return
+    telegram(f"PageHub: na tydzień od {monday:%d.%m} nie ma nowych karuzel, poniedziałkowe zadanie "
+             "chyba nie zadziałało. Uruchom ręcznie zadanie \"Karuzele PageHub\" w Claude "
+             "albo napisz do Claude.", dry_run)
+    if not dry_run:
+        save_state("week_watch.json", {"warned_week": monday.isoformat()})
+
+
 # ---------------------------------------------------------------- main
 
 def run(now, dry_run=False):
     if (ROOT / "config" / "PAUZA").exists():
         print("config/PAUZA istnieje - publikacja wstrzymana")
         return 0
+    try:
+        week_watch(now, dry_run)
+    except Exception as e:  # noqa: BLE001 - the watchdog must never block publishing
+        print("week_watch:", e)
     published = load_state("published.json", {})
     failures = load_state("publish_failures.json", {})
     due, missed = due_posts(now, published, failures)
