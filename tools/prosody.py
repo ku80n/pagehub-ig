@@ -13,7 +13,9 @@ Usage (in code)
   y = lift_questions(x, sr, "Wolna strona? Klient pójdzie do konkurencji!")
 """
 
+import pathlib
 import re
+import sys
 
 import numpy as np
 
@@ -21,8 +23,8 @@ RISE_ST = 5.5          # how far the end of a question goes up, in semitones
 RISE_LEN = 0.38        # over how many seconds before the end of the sentence
 
 
-def sentences(text):
-    return [s.strip() for s in re.findall(r"[^.!?]+[.!?]*", text) if s.strip()]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from reel_text import sentences  # noqa: E402
 
 
 def segments(x, sr, sents):

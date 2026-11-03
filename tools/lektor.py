@@ -8,14 +8,17 @@ assets/voice/lektor.wav (voice 6 of Supertonic 3, OpenRAIL-M, chosen by Jakub).
 Needs torch and the model from Hugging Face (about 3 GB), so it runs in GitHub
 Actions (.github/workflows/lektor.yml), not in the Monday cloud session.
 
-For every kN.json of a week with meta.reel_voice {"cover", "list", "sell"} it writes
-weeks/<data>/kN/voice-<part>.wav (24 kHz mono) and kN/voice.json (texts, settings,
-lengths, what the check heard). make_reel.py mixes them in and times the screens to
-the voice. A clip is generated again only when its text or the settings change.
+The narrator reads exactly the words of the Reel's three screens (tools/reel_text.py:
+cover title and subtitle, list heading and points, closing line and button), only
+with numbers spelled out. For every kN.json of a week it writes
+weeks/<data>/kN/voice-<part>.wav (24 kHz mono) and kN/voice.json (the screen text,
+what was said, lengths, what the check heard). make_reel.py mixes them in, times the
+screens to the voice and ignores a clip whose text no longer matches the screen.
+A clip is generated again only when its text or the settings change.
 
 Nobody listens to these before they go out, so every take is checked:
   - Whisper (small, via sherpa-onnx) writes down what it hears and it is compared
-    with the script letter by letter, so a mumbled or swallowed word loses,
+    with the screen text word by word, so a mumbled, swallowed or changed word loses,
   - every question must go up at the end (tools/prosody.py),
   - the length must fit the text.
 Up to TAKES takes per line, the best one wins; a question that still ends flat gets
@@ -40,7 +43,6 @@ import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REF = ROOT / "assets" / "voice" / "lektor.wav"
-PARTS = ("cover", "list", "sell")
 SETTINGS = {"exaggeration": 0.7, "cfg_weight": 0.4, "temperature": 0.8}
 CHARS_PER_SEC = 16.5          # rough speaking rate, to catch a clip that lost or repeated words
 TAKES = 4
@@ -50,6 +52,7 @@ ASR_DIR = pathlib.Path.home() / ".cache" / "pagehub-asr" / "sherpa-onnx-whisper-
 
 sys.path.insert(0, str(ROOT / "tools"))
 from prosody import flat_questions, lift_questions  # noqa: E402
+from reel_text import PARTS, speakable, voice_script  # noqa: E402
 
 _model = None
 
@@ -194,15 +197,15 @@ def sha(text, settings):
 def week(folder, force=False, settings=SETTINGS):
     done, bad = 0, []
     for spec_path in sorted(pathlib.Path(folder).glob("k*.json")):
-        meta = json.loads(spec_path.read_text(encoding="utf-8")).get("meta", {})
-        voice = meta.get("reel_voice")
-        if not voice:
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        if spec.get("meta", {}).get("skip") or spec.get("meta", {}).get("reel") is False:
             continue
+        keyword = spec.get("meta", {}).get("cta_keyword", "")
         out = spec_path.with_suffix("")
         info_path = out / "voice.json"
         info = json.loads(info_path.read_text(encoding="utf-8")) if info_path.exists() else {"parts": {}}
-        for part in PARTS:
-            text = voice.get(part)
+        for part, script in zip(PARTS, voice_script(spec)):
+            text = script["text"]
             if not text:
                 continue
             h = sha(text, settings)
@@ -210,12 +213,14 @@ def week(folder, force=False, settings=SETTINGS):
             if not force and wav.exists() and info["parts"].get(part, {}).get("sha") == h:
                 continue
             print(f"{spec_path.parent.name}/{spec_path.stem} {part}", flush=True)
-            x, sr, report = say(text, settings, seed=int(h[:6], 16))
+            said = speakable(text, keyword)
+            x, sr, report = say(said, settings, seed=int(h[:6], 16))
             if report["wer"] > MAX_WER:
                 bad.append(f"{spec_path.stem} {part}: {report['heard']}")
                 report["uwaga"] = "niewyraźne, przepisz prościej"
             write(wav, x, sr)
-            info["parts"][part] = {"text": spoken(text), "sha": h, "seconds": round(len(x) / sr, 2), **report}
+            info["parts"][part] = {"text": text, "spoken": spoken(said), "sha": h,
+                                   "seconds": round(len(x) / sr, 2), **report}
             done += 1
         info["model"] = "Chatterbox Multilingual (MIT), głos: assets/voice/lektor.wav"
         info["settings"] = settings
@@ -228,8 +233,8 @@ def week(folder, force=False, settings=SETTINGS):
 
 def probki(out_dir):
     out = pathlib.Path(out_dir)
-    k1 = json.loads((ROOT / "weeks" / "2026-11-02" / "k1.json").read_text(encoding="utf-8"))["meta"]["reel_voice"]
-    script = " ".join(k1[p] for p in PARTS)
+    k1 = json.loads((ROOT / "weeks" / "2026-11-02" / "k1.json").read_text(encoding="utf-8"))
+    script = speakable(" ".join(s["text"] for s in voice_script(k1)), k1["meta"].get("cta_keyword", ""))
     test = "Tracisz klientów? Szybko to sprawdzisz. Masz pięć minut? To zrób to teraz!"
     variants = [
         ("A-spokojny", {"exaggeration": 0.5, "cfg_weight": 0.5, "temperature": 0.8}, REF),

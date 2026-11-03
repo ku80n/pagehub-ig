@@ -5,8 +5,8 @@ goes out. Rules and phrase list: skills/pl-naturalnie/ (SKILL.md, kalki.json).
 
 Checks every text of a week (slides, captions, Reel heading/close/points/voice):
   - calques and corporate phrases from kalki.json, with what to write instead,
-  - the Reel voice-over text: no digits, abbreviations, brackets, arrows or emoji,
-    because the narrator reads everything literally.
+  - the Reel screens, which the narrator reads word for word: no abbreviations,
+    symbols, brackets, arrows or links (numbers are fine, they get spelled out).
 
 Usage
   python3 tools/pl_check.py weeks/2026-11-02
@@ -18,6 +18,9 @@ import json
 import pathlib
 import re
 import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from reel_text import PARTS, voice_script  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RULES = json.loads((ROOT / "skills" / "pl-naturalnie" / "kalki.json").read_text(encoding="utf-8"))
@@ -60,15 +63,10 @@ def check_spec(path, published=False):
             m = rx.search(clean)
             if m:
                 out.append((where, m.group(0), fix))
-    voice = spec.get("meta", {}).get("reel_voice") or {}
-    for part, text in voice.items():
-        for m in VOICE_BANNED.finditer(text):
-            out.append((f"meta.reel_voice.{part}", m.group(0),
-                        "lektor czyta dosłownie: liczby słownie, bez skrótów, nawiasów i symboli"))
-        for rx, fix in PHRASES:
-            m = rx.search(text)
-            if m:
-                out.append((f"meta.reel_voice.{part}", m.group(0), fix))
+    for part, script in zip(PARTS, voice_script(spec)):
+        for m in VOICE_BANNED.finditer(script["text"]):
+            out.append((f"rolka, ekran {part}", m.group(0),
+                        "lektor czyta ekran rolki słowo w słowo: bez skrótów, symboli, nawiasów i linków"))
     return out
 
 

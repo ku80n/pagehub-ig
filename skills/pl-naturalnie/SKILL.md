@@ -33,15 +33,12 @@ Wynik musi być czysty. Każde ostrzeżenie poprawiasz w tekście albo, jeśli t
 
 ## Tekst lektora (rolki)
 
-Lektor czyta wszystko dosłownie, więc tekst pod głos piszemy jak mowę:
-- liczby słownie: "trzy sekundy", "pięć minut", "od ośmiuset złotych",
-- bez skrótów (np., itd., zł, www), bez nawiasów, myślników, strzałek i emoji,
-- słowo-klucz z komentarza wymawiane naturalnie: "Napisz w komentarzu słowo turbo" (nie "Napisz TURBO"),
-- 2-3 krótkie zdania na ekran, razem 15-25 sekund mówienia,
-- lektor nie czyta ekranu słowo w słowo, tylko mówi to samo po ludzku,
-- emocje robi interpunkcja: pytanie kończy się "?", mocne zdanie "!" (np. "To tracisz klientów!"),
-- nazwy marki (PageHub) nie wkładamy lektorowi w usta, bo przeczyta ją po polsku; mówimy "u nas".
-- unikaj zbitek, które lektor połyka (sprawdzone na nagraniach): "a odezwiemy się z wyceną" -> "a przygotujemy wycenę", "zanim znajdzie je twój klient" -> "zanim twój klient je znajdzie".
+Lektor czyta ekrany rolki słowo w słowo (okładka, nagłówek listy i punkty, zdanie końcowe, przycisk),
+więc każdy z tych tekstów musi brzmieć dobrze na głos:
+- bez skrótów (np., itd., zł, www), symboli (%, &, /), nawiasów, strzałek i linków; liczby są OK, lektor czyta je słownie,
+- emocje robi interpunkcja na ekranie: pytanie kończy się "?", mocne zdanie "!",
+- unikaj zbitek, które lektor połyka (sprawdzone na nagraniach): "a odezwiemy się z wyceną" -> "a przygotujemy wycenę",
+- `pl_check.py` sprawdza ekrany rolki pod tym kątem, a automat lektora zapisuje w `voice.json`, co usłyszało rozpoznawanie mowy.
 
 ## Przed i po
 

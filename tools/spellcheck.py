@@ -36,8 +36,6 @@ def texts(spec):
             yield f"meta.{f}", meta[f]
     for i, p in enumerate(meta.get("reel_points") or []):
         yield f"meta.reel_points[{i}]", p
-    for part, text in (meta.get("reel_voice") or {}).items():
-        yield f"meta.reel_voice.{part}", text
     for n, s in enumerate(spec.get("slides", []), 1):
         for f in SLIDE_FIELDS:
             if s.get(f):

@@ -19,9 +19,10 @@ one ping at the end, and a chill night-drive bed generated here, so there is
 nothing to license and nothing Instagram can mute.
 
 Narrator: when weeks/<data>/kN/voice-{cover,list,sell}.wav exist (tools/lektor.py),
-each screen gets its line. The list rows type as the narrator says them, the button
-pings when the narrator asks for the comment, every screen lasts until the voice is
-done, and the music and keys duck under the voice.
+the narrator reads exactly the words of each screen (tools/reel_text.py). Every text
+block starts typing when the narrator starts saying it, the button pings with its
+sentence, every screen lasts until the voice is done, and the music and keys duck
+under the voice. A recording made for different words is not used.
 
 Usage
   python3 make_reel.py weeks/2026-11-02/k1.json                # -> weeks/.../k1/reel.mp4
@@ -46,7 +47,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FONTS = ROOT / "assets" / "fonts"
 sys.path.insert(0, str(ROOT / "tools"))
-from prosody import segments, sentences  # noqa: E402
+from prosody import segments  # noqa: E402
+from reel_text import PARTS as VOICE_PARTS, SPOKEN_KINDS, reel_points, reel_sell, sentences, voice_script  # noqa: E402
 
 W, H, FPS = 1080, 1920, 30
 SR = 48000
@@ -75,7 +77,6 @@ BODY_TOP, BODY_BOTTOM = WY + BAR_H + 50, WY + WH - 110
 CPS = {"title": 22, "subtitle": 34, "item": 30, "heading": 24, "close": 24}
 GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22, "heading": 0.35, "close": 0.3}
 HOLD_COVER, HOLD_LAST, CLEAR, START = 2.0, 2.6, 0.32, 0.45
-VOICE_PARTS = ("cover", "list", "sell")
 VOICE_LEAD, VOICE_TAIL, VOICE_TAIL_LAST = 0.1, 0.55, 1.6
 NOTE = "reszta w opisie ↓"
 
@@ -223,37 +224,6 @@ def place(screen):
         y += block_h(b)
 
 
-NUMBERED = re.compile(r"\d+\s*/\s*\d+|krok\s*\d+|^\s*\d+\s*[.)]", re.IGNORECASE)
-
-
-def reel_points(spec):
-    """(heading, points) for the list screen.
-
-    The points are the numbered slides (kicker like "powód 2/5" or "krok 3"), so the
-    list matches the number promised on the cover; meta.reel_points overrides.
-    The heading says what the list is (meta.reel_heading, else the recap title)."""
-    slides, meta = spec["slides"], spec.get("meta", {})
-    points = meta.get("reel_points")
-    if not points:
-        body = [s for s in slides[1:] if s.get("title") and s.get("type", "text") not in ("list", "cta")]
-        numbered = [s for s in body if NUMBERED.search(s.get("kicker", ""))]
-        points = [s["title"] for s in (numbered or body[1:] or body)]
-    heading = meta.get("reel_heading")
-    if not heading:
-        recap = next((s for s in slides if s.get("type") == "list" and s.get("title")), None)
-        heading = (recap["title"].rstrip(":") + ":") if recap else ""
-    return heading, points
-
-
-def reel_sell(spec):
-    """(closing line, button text). The button asks for the keyword when there is one,
-    so every comment it brings lands on Jakub's Telegram as a lead."""
-    meta = spec.get("meta", {})
-    kw = meta.get("cta_keyword", "").strip()
-    cta = meta.get("reel_cta") or (f"Napisz {kw} w komentarzu" if kw else "Napisz do nas wiadomość")
-    return meta.get("reel_close", ""), cta
-
-
 def screens_for(spec):
     heading, heads = reel_points(spec)
     close, cta = reel_sell(spec)
@@ -266,22 +236,15 @@ def screens_for(spec):
 # ---------------------------------------------------------------- timeline
 
 def sync_targets(sc, voice):
-    """When (seconds into the voice) each block should start, so the screen follows
-    the narrator: list rows start with their sentence, the button with the last one."""
-    if not voice:
+    """When (seconds into the voice) each block should start: when the narrator
+    starts saying it."""
+    if not voice or not voice.get("starts"):
         return {}
-    segs, kinds = voice["segments"], [b["kind"] for b in sc["blocks"]]
-    if "item" in kinds:
-        idx = [i for i, k in enumerate(kinds) if k in ("heading", "item")]
-        if len(segs) == len(idx):
-            return {i: segs[j][0] for j, i in enumerate(idx)}
-        items = [i for i in idx if kinds[i] == "item"]
-        if len(segs) == len(items):
-            return {i: segs[j][0] for j, i in enumerate(items)}
+    spoken = [i for i, b in enumerate(sc["blocks"]) if b["kind"] in SPOKEN_KINDS]
+    segs, starts = voice["segments"], voice["starts"]
+    if len(spoken) != len(starts) or max(starts) >= len(segs):
         return {}
-    if "outro" in kinds and len(segs) >= 2:
-        return {kinds.index("outro"): segs[-1][0]}
-    return {}
+    return {i: segs[k][0] for i, k in zip(spoken, starts)}
 
 
 def timeline(screens, voices=None):
@@ -557,14 +520,18 @@ def _resample(x, sr_in, sr_out):
 
 
 def load_voices(spec_path):
-    """The narrator clips of one Reel (or Nones), at SR, with their sentences."""
+    """The narrator clips of one Reel (or Nones), at SR, with their sentences. A clip
+    recorded for other words than the screen now shows is left out."""
     folder = pathlib.Path(spec_path).with_suffix("")
-    meta = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8")).get("meta", {})
-    texts = meta.get("reel_voice") or {}
+    script = voice_script(json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8")))
+    info_path = folder / "voice.json"
+    recorded = json.loads(info_path.read_text(encoding="utf-8")).get("parts", {}) if info_path.exists() else {}
     out = []
-    for part in VOICE_PARTS:
+    for part, want in zip(VOICE_PARTS, script):
         path = folder / f"voice-{part}.wav"
-        if not path.exists():
+        if not path.exists() or recorded.get(part, {}).get("text") != want["text"]:
+            if path.exists():
+                print(f"lektor: nagranie {folder.name}/{part} jest do innego tekstu, pomijam je", file=sys.stderr)
             out.append(None)
             continue
         with wave.open(str(path)) as w:
@@ -574,8 +541,9 @@ def load_voices(spec_path):
         x = _resample(x, sr, SR)
         rms = np.sqrt(np.mean(x[np.abs(x) > 0.02] ** 2)) if (np.abs(x) > 0.02).any() else 0.1
         x = np.clip(x * (0.16 / max(rms, 1e-4)), -0.98, 0.98)       # same loudness on every screen
-        segs = segments(x, SR, sentences(texts.get(part, ""))) or [(0.0, len(x) / SR)]
-        out.append({"samples": x, "seconds": len(x) / SR, "segments": segs})
+        segs = segments(x, SR, sentences(want["text"]))
+        out.append({"samples": x, "seconds": len(x) / SR, "starts": want["starts"] if segs else None,
+                    "segments": segs or [(0.0, len(x) / SR)]})
     return out if any(out) else None
 
 

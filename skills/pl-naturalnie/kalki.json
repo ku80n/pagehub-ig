@@ -90,5 +90,5 @@
       "fix": "'ważny', albo powiedz dlaczego"
     }
   ],
-  "voice_banned": "\\d|\\b(?:np|itd|itp|zł|www|ok)\\b\\.?|[()\\[\\]\\u2193\\u2192\\u2014\\u2013#@]|\\*"
+  "voice_banned": "%|&|\\b(?:np|itd|itp|zł|www|ok|tj|tzw)\\b\\.?|[()\\[\\]\\u2193\\u2192\\u2014\\u2013#@/+=]|https?:"
 }

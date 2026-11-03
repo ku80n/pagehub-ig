@@ -49,7 +49,6 @@ Format (jak w `tools/render_carousel.py`):
     "reel_heading": "...:",
     "reel_close": "...",
     "reel_points": ["...", "..."],
-    "reel_voice": {"cover": "...", "list": "...", "sell": "..."},
     "caption_fb": "...",
     "alt": "tekst alternatywny okładki"
   },
@@ -69,15 +68,14 @@ Format (jak w `tools/render_carousel.py`):
   - `reel_heading`: krótka linia zakończona dwukropkiem, która mówi, czym jest lista i łączy ją z okładką (np. "Co spowalnia stronę:", "Sprawdź, czy Twoja strona ma:", "5 kroków do nowej strony:"). Przeczytaj ją razem z punktami: całość ma być zrozumiała dla kogoś, kto nie zna się na stronach,
   - każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` zawiera resztę: krótko rozwinięte punkty i wezwanie do działania ze słowem-kluczem,
   - `reel_points` (opcjonalnie): punkty listy w rolce, gdy nagłówki slajdów brzmią dobrze na slajdzie, ale sztywno w rolce. Najlepiej pytania albo krótkie zdania z czasownikiem ("Numer od razu dzwoni?"), tyle samo co na okładce.
-- **Lektor** (`reel_voice`): to, co mówi głos w rolce, osobno dla trzech ekranów. Pisz jak mowę, według `skills/pl-naturalnie/SKILL.md`:
-  - `cover`: 2-3 krótkie zdania, które wciągają (pytanie o problem + strata, z emocją: "To tracisz klientów!"),
-  - `list`: **jedno zdanie na każdy punkt listy, w tej samej kolejności**, opcjonalnie z jednym zdaniem wstępu na początku. Rolka wpisuje punkt dokładnie wtedy, gdy lektor zaczyna jego zdanie, więc liczba zdań musi się zgadzać,
-  - `sell`: zdanie z `reel_close` powiedziane po ludzku + na końcu osobne zdanie z prośbą o komentarz: "Napisz w komentarzu słowo turbo, a przygotujemy wycenę." (przycisk pojawia się razem z tym zdaniem),
-  - liczby słownie, bez skrótów, nawiasów i symboli, bez nazwy PageHub (lektor przeczyta ją po polsku), emocje przez "?" i "!",
-  - razem 15-25 sekund mówienia (około 200-330 znaków na całą rolkę).
-  - automat lektora (GitHub Actions) sprawdza każde nagranie rozpoznawaniem mowy i zapisuje w `kN/voice.json`, co usłyszał. Zdanie oznaczone tam `uwaga` przepisz prościej w następnym tygodniu i dopisz zbitkę do `skills/pl-naturalnie/SKILL.md`.
+- **Lektor czyta ekrany rolki słowo w słowo**: tytuł i podtytuł okładki, `reel_heading` i każdy punkt listy, `reel_close` i przycisk ("Napisz TURBO w komentarzu"). Nie ma osobnego tekstu dla lektora. Dlatego te teksty piszesz tak, żeby dobrze brzmiały na głos (`skills/pl-naturalnie/SKILL.md`):
+  - bez skrótów, symboli, nawiasów i linków (liczby są OK, lektor przeczyta je słownie),
+  - emocje przez "?" i "!" w samym tekście ekranu, np. `reel_close` "Sprawdź, zanim znajdzie je Twój klient!",
+  - pytania, które naprawdę są pytaniami, kończ "?", bo lektor wtedy podnosi głos,
+  - całość czytana na głos: 15-25 sekund (około 200-330 znaków na wszystkich trzech ekranach razem),
+  - nagrania robi automat w GitHub Actions po wypchnięciu tygodnia (nie Ty). Sprawdza każde rozpoznawaniem mowy i zapisuje w `kN/voice.json`, co usłyszał. Zdanie oznaczone tam `uwaga` przepisz prościej w następnym tygodniu i dopisz zbitkę do `skills/pl-naturalnie/SKILL.md`.
 - **Rolka ma sprzedawać.** Ostatni ekran to `reel_close` (duże) + przycisk ze słowem-kluczem + "reszta w opisie". `reel_close` to jedno krótkie zdanie, które uderza w stratę albo pilność z punktu widzenia właściciela firmy (np. "Wolna strona oddaje klientów konkurencji.", "Sprawdź, zanim znajdzie je Twój klient!", "Chcesz stronę zrobioną od zera pod Twoją firmę?"). Bez wymyślonych liczb i bez obietnic czegokolwiek za darmo.
-- **Rolki są wyłączone, dopóki Jakub ich nie zatwierdzi.** Nigdy nie twórz pliku `config/ROLKI` i nie zmieniaj ustawień publikacji rolek. Pola rolki (`caption_reel`, `reel_heading`, `reel_close`, `reel_points`, `reel_voice`) i tak uzupełniaj, żeby były gotowe. Nagrania lektora robi osobny automat w GitHub Actions, nie Ty.
+- **Rolki są wyłączone, dopóki Jakub ich nie zatwierdzi.** Nigdy nie twórz pliku `config/ROLKI` i nie zmieniaj ustawień publikacji rolek. Pola rolki (`caption_reel`, `reel_heading`, `reel_close`, `reel_points`) i tak uzupełniaj, żeby były gotowe. Nagrania lektora robi osobny automat w GitHub Actions, nie Ty.
 - Gdy rolki zostaną włączone, każda karuzela wyjdzie też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
   (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
