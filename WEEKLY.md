@@ -48,6 +48,8 @@ Format (jak w `tools/render_carousel.py`):
     "caption_reel": "...",
     "reel_heading": "...:",
     "reel_close": "...",
+    "reel_points": ["...", "..."],
+    "reel_voice": {"cover": "...", "list": "...", "sell": "..."},
     "caption_fb": "...",
     "alt": "tekst alternatywny okładki"
   },
@@ -65,9 +67,16 @@ Format (jak w `tools/render_carousel.py`):
 - Rolka pokazuje okładkę, potem `reel_heading` i numerowaną listę nagłówków slajdów z ponumerowanym kickerem (np. "powód 2/5", "sprawdź 3/5", "krok 4"), a na końcu "reszta w opisie". Dlatego:
   - główne punkty karuzeli mają kicker z numeracją, a ich liczba zgadza się z liczbą z okładki ("5 błędów" = 5 punktów),
   - `reel_heading`: krótka linia zakończona dwukropkiem, która mówi, czym jest lista i łączy ją z okładką (np. "Co spowalnia stronę:", "Sprawdź, czy Twoja strona ma:", "5 kroków do nowej strony:"). Przeczytaj ją razem z punktami: całość ma być zrozumiała dla kogoś, kto nie zna się na stronach,
-  - każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` zawiera resztę: krótko rozwinięte punkty i wezwanie do działania ze słowem-kluczem.
+  - każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` zawiera resztę: krótko rozwinięte punkty i wezwanie do działania ze słowem-kluczem,
+  - `reel_points` (opcjonalnie): punkty listy w rolce, gdy nagłówki slajdów brzmią dobrze na slajdzie, ale sztywno w rolce. Najlepiej pytania albo krótkie zdania z czasownikiem ("Numer od razu dzwoni?"), tyle samo co na okładce.
+- **Lektor** (`reel_voice`): to, co mówi głos w rolce, osobno dla trzech ekranów. Pisz jak mowę, według `skills/pl-naturalnie/SKILL.md`:
+  - `cover`: 2-3 krótkie zdania, które wciągają (pytanie o problem + strata, z emocją: "To tracisz klientów!"),
+  - `list`: **jedno zdanie na każdy punkt listy, w tej samej kolejności**, opcjonalnie z jednym zdaniem wstępu na początku. Rolka wpisuje punkt dokładnie wtedy, gdy lektor zaczyna jego zdanie, więc liczba zdań musi się zgadzać,
+  - `sell`: zdanie z `reel_close` powiedziane po ludzku + na końcu osobne zdanie z prośbą o komentarz: "Napisz w komentarzu słowo turbo, a odezwiemy się z wyceną." (przycisk pojawia się razem z tym zdaniem),
+  - liczby słownie, bez skrótów, nawiasów i symboli, bez nazwy PageHub (lektor przeczyta ją po polsku), emocje przez "?" i "!",
+  - razem 15-25 sekund mówienia (około 200-330 znaków na całą rolkę).
 - **Rolka ma sprzedawać.** Ostatni ekran to `reel_close` (duże) + przycisk ze słowem-kluczem + "reszta w opisie". `reel_close` to jedno krótkie zdanie, które uderza w stratę albo pilność z punktu widzenia właściciela firmy (np. "Wolna strona oddaje klientów konkurencji.", "Sprawdź, zanim znajdzie je Twój klient!", "Chcesz stronę zrobioną od zera pod Twoją firmę?"). Bez wymyślonych liczb i bez obietnic czegokolwiek za darmo.
-- **Rolki są wyłączone, dopóki Jakub ich nie zatwierdzi.** Nigdy nie twórz pliku `config/ROLKI` i nie zmieniaj ustawień publikacji rolek. Pola rolki (`caption_reel`, `reel_heading`, `reel_close`) i tak uzupełniaj, żeby były gotowe.
+- **Rolki są wyłączone, dopóki Jakub ich nie zatwierdzi.** Nigdy nie twórz pliku `config/ROLKI` i nie zmieniaj ustawień publikacji rolek. Pola rolki (`caption_reel`, `reel_heading`, `reel_close`, `reel_points`, `reel_voice`) i tak uzupełniaj, żeby były gotowe. Nagrania lektora robi osobny automat w GitHub Actions, nie Ty.
 - Gdy rolki zostaną włączone, każda karuzela wyjdzie też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
   (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
@@ -91,11 +100,12 @@ Zasady:
 - Tekst slajdów to krótkie hasła, więc detect daje mu niski wynik z natury. Wystarczy, że humanize nic nie zmienia i nic nie flaguje.
 - Żadnych liczb z powietrza, także retorycznych ("co drugi", "sto innych"). Liczba = fakt ze źródłem albo `facts.md`.
 - `grep -nP "[—–]" weeks/<data>/*.json` nie może nic znaleźć.
-- **Pisownia:** `python3 tools/spellcheck.py weeks/<data>` musi dać 0 nieznanych słów. Literówkę poprawiasz w tekście.
+- **Pisownia:** `python3 tools/spellcheck.py weeks/<data>` musi dać 0 nieznanych słów (sprawdza też tekst lektora). Literówkę poprawiasz w tekście.
   Do `config/words.txt` dopisujesz tylko prawdziwą nazwę własną lub markę, nigdy literówkę.
 - **Zlepione lub zgubione słowa:** po wyrenderowaniu przeczytaj każdą okładkę i jeden slajd słowo po słowie (Read na PNG), a w rolce
   sprawdź klatkę końcową: `python3 tools/make_reel.py weeks/<data>/kN.json --still 99 --out /tmp/kN.png`. Skrypt rolki sam
   przerywa pracę, gdy pokazany tekst różni się od źródła.
+- **Naturalny polski:** przeczytaj `skills/pl-naturalnie/SKILL.md` przed pisaniem. `python3 tools/pl_check.py weeks/<data>` musi dać 0 uwag (kalki z angielskiego, korpomowa, tekst lektora). Przeczytaj na głos każde zdanie lektora i każdy punkt rolki: jeśli brzmi jak tłumaczenie, przepisz.
 - Przeczytaj każdą karuzelę od początku do końca jak klient: polski poprawny, sens jasny, nic, czego PageHub nie robi.
 - Karuzela, która po dwóch poprawkach nadal nie przechodzi: ustaw w niej `"skip": true` w `meta`, opisz powód w `plan.md`. Lepiej 2 dobre posty niż 3 z jednym słabym.
 

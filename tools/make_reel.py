@@ -18,6 +18,11 @@ assets/sounds) at a real typist's rhythm, a soft whoosh between the screens,
 one ping at the end, and a chill night-drive bed generated here, so there is
 nothing to license and nothing Instagram can mute.
 
+Narrator: when weeks/<data>/kN/voice-{cover,list,sell}.wav exist (tools/lektor.py),
+each screen gets its line. The list rows type as the narrator says them, the button
+pings when the narrator asks for the comment, every screen lasts until the voice is
+done, and the music and keys duck under the voice.
+
 Usage
   python3 make_reel.py weeks/2026-11-02/k1.json                # -> weeks/.../k1/reel.mp4
   python3 make_reel.py weeks/2026-11-02/k1.json --out x.mp4
@@ -68,6 +73,8 @@ BODY_TOP, BODY_BOTTOM = WY + BAR_H + 50, WY + WH - 110
 CPS = {"title": 22, "subtitle": 34, "item": 30, "heading": 24, "close": 24}
 GAP_AFTER = {"title": 0.25, "subtitle": 0.2, "item": 0.22, "heading": 0.35, "close": 0.3}
 HOLD_COVER, HOLD_LAST, CLEAR, START = 2.0, 2.6, 0.32, 0.45
+VOICE_PARTS = ("cover", "list", "sell")
+VOICE_LEAD, VOICE_TAIL, VOICE_TAIL_LAST = 0.1, 0.55, 1.6
 NOTE = "reszta w opisie ↓"
 
 
@@ -141,7 +148,7 @@ def balanced(words, fnt, width):
 
 def text_block(kind, text, color, fnt, width, lh):
     words = runs(text, color)
-    lines = balanced(words, fnt, width) if kind in ("title", "heading", "close") else wrap(words, fnt, width)
+    lines = balanced(words, fnt, width) if kind in ("title", "heading", "close", "item") else wrap(words, fnt, width)
     return {"kind": kind, "lines": lines, "font": fnt, "lh": int(fnt.size * lh),
             "chars": sum(len(w) + 1 for ln in lines for _, w, _ in ln)}
 
@@ -256,14 +263,41 @@ def screens_for(spec):
 
 # ---------------------------------------------------------------- timeline
 
-def timeline(screens):
+def sync_targets(sc, voice):
+    """When (seconds into the voice) each block should start, so the screen follows
+    the narrator: list rows start with their sentence, the button with the last one."""
+    if not voice:
+        return {}
+    segs, kinds = voice["segments"], [b["kind"] for b in sc["blocks"]]
+    if "item" in kinds:
+        idx = [i for i, k in enumerate(kinds) if k in ("heading", "item")]
+        if len(segs) == len(idx):
+            return {i: segs[j][0] for j, i in enumerate(idx)}
+        items = [i for i in idx if kinds[i] == "item"]
+        if len(segs) == len(items):
+            return {i: segs[j][0] for j, i in enumerate(items)}
+        return {}
+    if "outro" in kinds and len(segs) >= 2:
+        return {kinds.index("outro"): segs[-1][0]}
+    return {}
+
+
+def timeline(screens, voices=None):
     """When every block appears or types, how long each screen lasts, sound events."""
     plan, events, t = [], [], 0.0
+    voices = voices or [None] * len(screens)
     for si, sc in enumerate(screens):
         first, last = si == 0, si == len(screens) - 1
         start = t
         t += START
-        for b in sc["blocks"]:
+        voice = voices[si] if si < len(voices) else None
+        v0 = t + VOICE_LEAD
+        if voice:
+            events.append((v0, f"voice:{si}"))
+        targets = sync_targets(sc, voice)
+        for bi, b in enumerate(sc["blocks"]):
+            if bi in targets:
+                t = max(t, v0 + targets[bi] - 0.05)
             if b["kind"] in ("pill", "outro", "note"):
                 b["t0"] = b["t1"] = t
                 if b["kind"] == "outro":
@@ -278,6 +312,8 @@ def timeline(screens):
             t = b["t1"] + GAP_AFTER[b["kind"]]
         typed = t
         t += HOLD_LAST if last else HOLD_COVER
+        if voice:
+            t = max(t, v0 + voice["seconds"] + (VOICE_TAIL_LAST if last else VOICE_TAIL))
         plan.append({**sc, "start": start, "typed": typed, "end": t})
         if not last:
             events.append((t, "whoosh"))
@@ -402,7 +438,7 @@ def draw_screen(img, sc, t, alpha, cursor_on):
 
 
 def frame_at(plan, assets, t):
-    g0, g1, windows = assets
+    g0, g1, windows = assets[:3]
     mix = 0.5 + 0.5 * math.sin(t * 0.5)
     for i, s in enumerate(plan):
         if t < s["end"] or i == len(plan) - 1:
@@ -506,6 +542,66 @@ def key_sound(rng, downs, ups, space=False):
     return out
 
 
+def _resample(x, sr_in, sr_out):
+    """Band-limited resampling (FFT), clean enough for a voice."""
+    if sr_in == sr_out:
+        return x
+    n_out = int(round(len(x) * sr_out / sr_in))
+    spec = np.fft.rfft(x)
+    out = np.zeros(n_out // 2 + 1, dtype=complex)
+    k = min(len(spec), len(out))
+    out[:k] = spec[:k]
+    return np.fft.irfft(out, n_out) * (n_out / len(x))
+
+
+def _segments(x, sr, count):
+    """Split a voice clip into `count` sentences at its `count - 1` longest pauses."""
+    hop = int(0.01 * sr)
+    frames = len(x) // hop
+    rms = np.sqrt(np.mean(x[: frames * hop].reshape(frames, hop) ** 2, axis=1))
+    quiet = rms < max(rms.max() * 0.04, 1e-4)
+    pauses, i = [], 0
+    while i < frames:
+        if quiet[i]:
+            j = i
+            while j < frames and quiet[j]:
+                j += 1
+            if i > 0 and j < frames and j - i >= 6:
+                pauses.append((j - i, i, j))
+            i = j
+        else:
+            i += 1
+    cut = sorted(sorted(pauses, reverse=True)[: max(0, count - 1)], key=lambda p: p[1])
+    edges = [0.0] + [c[2] * hop / sr - 0.04 for c in cut] + [len(x) / sr]
+    segs = list(zip(edges[:-1], edges[1:]))
+    if len(segs) != count or min(b - a for a, b in segs) < 0.3:
+        return [(0.0, len(x) / sr)]
+    return segs
+
+
+def load_voices(spec_path):
+    """The narrator clips of one Reel (or Nones), at SR, with their sentences."""
+    folder = pathlib.Path(spec_path).with_suffix("")
+    meta = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8")).get("meta", {})
+    texts = meta.get("reel_voice") or {}
+    out = []
+    for part in VOICE_PARTS:
+        path = folder / f"voice-{part}.wav"
+        if not path.exists():
+            out.append(None)
+            continue
+        with wave.open(str(path)) as w:
+            sr = w.getframerate()
+            x = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(float) / 32768
+            x = x.reshape(-1, w.getnchannels()).mean(axis=1)
+        x = _resample(x, sr, SR)
+        rms = np.sqrt(np.mean(x[np.abs(x) > 0.02] ** 2)) if (np.abs(x) > 0.02).any() else 0.1
+        x = np.clip(x * (0.16 / max(rms, 1e-4)), -0.98, 0.98)       # same loudness on every screen
+        sentences = len([s for s in re.split(r"[.!?]+", texts.get(part, "")) if s.strip()]) or 1
+        out.append({"samples": x, "seconds": len(x) / SR, "segments": _segments(x, SR, sentences)})
+    return out if any(out) else None
+
+
 def _fftconv(x, h):
     size = len(x) + len(h) - 1
     nfft = 1 << (size - 1).bit_length()
@@ -595,10 +691,11 @@ def night_drive(total, rng):
     return left, right
 
 
-def sound(events, total, seed=7):
+def sound(events, total, seed=7, voices=None):
     rng = np.random.default_rng(seed)
     n = int((total + 0.5) * SR)
     left, right = np.zeros(n), np.zeros(n)
+    voice = np.zeros(n)
 
     def add(sig, t, pan=0.0):
         _put(left, sig * (1 - pan), t)
@@ -628,6 +725,10 @@ def sound(events, total, seed=7):
             add(ding * 0.3, t, 0.0)
             add(ding * 0.13, t + 0.2, -0.6)
             add(ding * 0.06, t + 0.4, 0.6)
+        elif kind.startswith("voice:") and voices:
+            clip = voices[int(kind.split(":")[1])]
+            if clip:
+                _put(voice, clip["samples"], t)
 
     bed_l, bed_r = night_drive(total, rng)
     bed_l, bed_r = bed_l[:n], bed_r[:n]
@@ -638,9 +739,25 @@ def sound(events, total, seed=7):
     fade[end:] = 0
     music = 0.55
     mix = np.stack([(left + bed_l * music) * fade, (right + bed_r * music) * fade], axis=1)
-    if not np.isfinite(mix).all():
+    if not np.isfinite(mix).all() or not np.isfinite(voice).all():
         raise RuntimeError("dźwięk rolki zawiera błędne próbki, nie publikuję cichej rolki")
     mix *= 0.89 / max(np.abs(mix).max(), 1e-6)
+    if np.abs(voice).max() > 0:
+        # duck music and keys while the narrator talks: fast down, slow back up
+        hop = int(0.01 * SR)
+        frames = n // hop
+        talk = (np.sqrt(np.mean(voice[: frames * hop].reshape(frames, hop) ** 2, axis=1)) > 0.01).astype(float)
+        talk = np.convolve(talk, np.ones(25), "same") > 0             # bridge the gaps between words
+        env, g = np.zeros(frames), 0.0
+        for i in range(frames):
+            g = g + (talk[i] - g) * (0.35 if talk[i] > g else 0.06)
+            env[i] = g
+        duck = 1 - 0.68 * np.repeat(env, hop)
+        duck = np.concatenate([duck, np.full(n - len(duck), duck[-1] if len(duck) else 1.0)])
+        mix *= (0.5 * duck)[:, None]
+        mix += np.stack([voice, voice], axis=1)
+        mix = np.tanh(mix * 1.1) / np.tanh(1.1)                     # soft limiter
+        mix *= 0.93 / max(np.abs(mix).max(), 1e-6)
     return mix[: int(total * SR)]
 
 
@@ -669,11 +786,12 @@ def ffmpeg_bin():
 def prepare(spec_path):
     spec = json.loads(pathlib.Path(spec_path).read_text(encoding="utf-8"))
     screens = screens_for(spec)
-    plan, events, total = timeline(screens)
+    voices = load_voices(spec_path)
+    plan, events, total = timeline(screens, voices)
     handle = spec.get("handle", "pagehub.pl")
     g0, g1 = glow_layers()
     windows = [window_layer(s["url"], handle) for s in screens]
-    return plan, events, total, (g0, g1, windows)
+    return plan, events, total, (g0, g1, windows, voices)
 
 
 def build(spec_path, out_path=None):
@@ -681,7 +799,7 @@ def build(spec_path, out_path=None):
     plan, events, total, assets = prepare(spec_path)
     with tempfile.TemporaryDirectory() as tmp:
         wav = pathlib.Path(tmp) / "audio.wav"
-        write_wav(wav, sound(events, total))
+        write_wav(wav, sound(events, total, voices=assets[3]))
         cmd = [ffmpeg_bin(), "-y", "-loglevel", "error",
                "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
                "-i", str(wav),
