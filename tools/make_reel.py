@@ -553,13 +553,13 @@ def _fftconv(x, h):
     return np.fft.irfft(np.fft.rfft(x, nfft) * np.fft.rfft(h, nfft), nfft)[: len(x)]
 
 
-def night_drive(total, rng):
+def night_drive(total, rng, bpm=72):
     """Chill night-drive bed with a Japanese touch, 72 BPM half-time: lush detuned
     pads in a long reverb, deep sub bass, a soft bell melody on an A hirajoshi
     scale, a gentle kick and rim, crisp hats with the odd roll, light rain
     ambience. Warm and in the background. Stereo (L, R)."""
     n = int((total + 1.0) * SR)
-    beat = 60 / 72
+    beat = 60 / bpm
     bar = 4 * beat
     chords = [([57, 60, 64, 67, 71], 45), ([53, 57, 60, 64, 67], 41), ([55, 59, 62, 66], 43), ([52, 55, 59, 62], 40)]
     scale = [69, 71, 72, 76, 77, 81, 83, 84, 88]      # A B C E F (hirajoshi on A)
