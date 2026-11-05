@@ -61,6 +61,7 @@ Format (jak w `tools/render_carousel.py`):
 }
 ```
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
+  Używaj **tylko** domyślnych terminów z `config/brand.md` (wtorek 19:00, czwartek 19:00, sobota 10:00): dokładnie wtedy osobne zadanie uruchamia publikację. Godzinny harmonogram GitHuba bywa spóźniony o kilka godzin, więc inna godzina oznacza spóźniony post.
 - `cta_keyword`: **każda** karuzela ma słowo-klucz WIELKIMI LITERAMI, bo rolka zawsze kończy się przyciskiem "Napisz SŁOWO w komentarzu", a każdy taki komentarz to powiadomienie o kliencie dla Jakuba. Słowo ma pasować do tematu i być rzadkie w zwykłych komentarzach (dobre: TURBO, TELEFON, WYCENA; złe: STRONA, SUPER). Inne w każdej karuzeli tygodnia.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla osoby, która napisze słowo-klucz: o co dopytać + widełki z `facts.md`. Bez darmowych obietnic.
 - Rolka pokazuje okładkę, potem `reel_heading` i numerowaną listę nagłówków slajdów z ponumerowanym kickerem (np. "powód 2/5", "sprawdź 3/5", "krok 4"), a na końcu "reszta w opisie". Dlatego:

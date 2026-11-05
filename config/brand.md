@@ -16,7 +16,7 @@
 ## Publikacja
 - 3 karuzele tygodniowo
 - Domyślne terminy: wtorek 19:00, czwartek 19:00, sobota 10:00
-- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook)
+- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook). Dokładnie o 19:02 we wtorek i czwartek oraz o 10:02 w sobotę uruchamiają ją zaplanowane zadania; godzinny harmonogram GitHuba to tylko zapas, bo bywa spóźniony o kilka godzin
 - Pauza: plik `config/PAUZA` w repo
 
 ## Podpisy
