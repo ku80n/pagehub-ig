@@ -344,16 +344,23 @@ def trial_test():
         print("brak karuzeli z reel_pendulum")
         return 1
     base = netlify_deploy({"test/proba.mp4": reel_bytes(spec, trial=True)})
-    try:
-        container = graph("POST", f"{ig}/media", token, media_type="REELS", video_url=f"{base}/test/proba.mp4",
-                          caption="test rolki próbnej (nie do publikacji)",
-                          trial_params=json.dumps({"graduation_strategy": "MANUAL"}))["id"]
-        status = wait_ready(container, token, "rolka próbna (test)", tries=120)
-    except ApiError as e:
-        print("ROLKI PRÓBNE NIEDOSTĘPNE:", e)
-        telegram(f"PageHub: test rolki próbnej nie przeszedł, Instagram odpowiedział: {e}")
+    url = f"{base}/test/proba.mp4"
+    results = {}
+    for name, extra in (("zwykła rolka", {"share_to_feed": "true"}),
+                        ("rolka próbna", {"trial_params": json.dumps({"graduation_strategy": "MANUAL"})})):
+        try:
+            container = graph("POST", f"{ig}/media", token, media_type="REELS", video_url=url,
+                              caption="test rolki (nie do publikacji)", **extra)["id"]
+            status = wait_ready(container, token, f"{name} (test)", tries=120)
+            results[name] = f"OK, kontener {container} w stanie {status}, nieopublikowany"
+        except ApiError as e:
+            results[name] = f"NIE: {e}"
+    for name, r in results.items():
+        print(f"TEST {name}: {r}")
+    if any(r.startswith("NIE") for r in results.values()):
+        telegram("PageHub, test rolek (nic nie zostało opublikowane):\n" +
+                 "\n".join(f"{n}: {r}" for n, r in results.items()))
         return 1
-    print(f"ROLKI PRÓBNE DZIAŁAJĄ: kontener {container} w stanie {status}, nieopublikowany")
     return 0
 
 
