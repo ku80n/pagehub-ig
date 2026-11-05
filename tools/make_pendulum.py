@@ -6,9 +6,10 @@ across the screen. Wherever the cord has passed, the big text changes: a problem
 No narrator. The last swing brings back the first question, so the clip loops
 without a seam when Instagram plays it again.
 
-The look is the carousels': near-black background with a soft teal glow, white
-questions, the answer in the brand teal, a white tag with the PageHub logo and
-the logo on top. The comment button ("Napisz TELEFON w komentarzu") pops in with a
+The look: a dark 3D space in the brand colours (teal nebula, stars flying out of
+the horizon, a glowing floor grid rolling towards the camera), a topic pill that
+says what it is about ("TWOJA STRONA INTERNETOWA"), white questions, the answer in
+the brand teal, a white tag with the PageHub logo and the logo on top. The comment button ("Napisz TELEFON w komentarzu") pops in with a
 "ping" only after the last answer and fades out before the loop point, so the
 clip has no visible end: the tag just keeps swinging.
 Sound: an upbeat club loop generated here (four-on-the-floor kick, claps, hats,
@@ -60,8 +61,9 @@ TAG = (240, 244, 248)
 CORD = (150, 166, 182)
 
 # timing: two beats per swing
-BPM = 110
+BPM = 122
 HALF = 2 * 60 / BPM
+HORIZON = 1185                        # where the 3D floor grid meets the sky
 
 # geometry
 PIVOT = (540.0, -1150.0)
@@ -98,15 +100,101 @@ def logo_images():
     return word, mark.crop(mark.getbbox())
 
 
-def background():
-    """Near-black with a soft teal glow behind the text and in two corners."""
+def _fractal(rng, octaves=5, base=6):
+    """Soft cloudy noise in [0, 1], full frame."""
+    acc = np.zeros((H, W), np.float32)
+    amp, tot = 1.0, 0.0
+    for o in range(octaves):
+        gh, gw = base * 2 ** o + 1, int(base * 2 ** o * W / H) + 2
+        g = (rng.random((gh, gw)) * 255).astype(np.uint8)
+        up = np.asarray(Image.fromarray(g).resize((W, H), Image.BICUBIC), np.float32) / 255
+        acc += up * amp
+        tot += amp
+        amp *= 0.55
+    acc /= tot
+    return (acc - acc.min()) / (acc.max() - acc.min())
+
+
+def make_space():
+    """The still parts of the 3D space background: deep sky, teal and blue nebula,
+    a darker pool behind the text, and the per-pixel geometry of the floor grid."""
+    rng = np.random.default_rng(5)
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    img = np.tile(np.array(BG, np.float32), (H, W, 1))
-    for cx, cy, rx, ry, k in ((540, 820, 620, 520, 0.20), (1080, 0, 700, 600, 0.16), (0, 1920, 700, 650, 0.12)):
-        g = np.exp(-(((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2) * 1.6)[..., None] * k
-        img = img * (1 - g) + np.array(GLOW, np.float32) * g
-    img += np.random.default_rng(3).normal(0, 1.0, img.shape)        # a little grain against banding
-    return np.clip(img, 0, 255)
+    sky = np.zeros((H, W, 3), np.float32)
+    top, low = np.array((3, 5, 10), np.float32), np.array((6, 20, 34), np.float32)
+    k = np.clip(yy / HORIZON, 0, 1)[..., None] ** 1.6
+    sky[:] = top * (1 - k) + low * k
+    neb = _fractal(rng)
+    neb2 = _fractal(rng, base=4)
+    teal = np.clip((neb - 0.45) * 2.4, 0, 1) ** 1.6 * np.exp(-((yy - 520) / 700) ** 2)
+    blue = np.clip((neb2 - 0.5) * 2.2, 0, 1) ** 1.8 * np.exp(-((yy - 300) / 600) ** 2)
+    sky += teal[..., None] * np.array(ACCENT, np.float32) * 0.55
+    sky += blue[..., None] * np.array((30, 60, 160), np.float32) * 0.45
+    # darker pool behind the big text, so it always reads
+    pool = np.exp(-(((xx - 540) / 520) ** 2 + ((yy - TEXT_Y) / 300) ** 2) * 1.3)[..., None]
+    sky *= 1 - 0.55 * pool
+    # floor below the horizon: dark, a little lighter far away
+    below = yy > HORIZON
+    d = np.clip((yy - HORIZON) / (H - HORIZON), 0, 1)
+    floor = np.array((4, 10, 18), np.float32) * (1 - d[..., None]) + np.array((2, 4, 8), np.float32) * d[..., None]
+    sky = np.where(below[..., None], floor, sky)
+    # horizon glow
+    glow = np.exp(-((yy - HORIZON) / 16) ** 2) * 0.9 + np.exp(-((yy - HORIZON) / 120) ** 2) * 0.35
+    glow *= np.exp(-((xx - 540) / 700) ** 2)
+    sky += glow[..., None] * np.array((60, 190, 235), np.float32)
+    sky += rng.normal(0, 1.0, sky.shape)                          # grain against banding
+    # grid geometry: camera over a flat floor, looking at the horizon
+    gy = np.arange(HORIZON + 1, H, dtype=np.float32)[:, None]
+    gx = np.arange(W, dtype=np.float32)[None, :]
+    fh = 9000.0
+    z = fh / (gy - HORIZON)                                       # depth of every row
+    wx = (gx - 540) * z / 900.0                                   # floor x under every pixel
+    cell = 1.6
+    fpx = z / 900.0                                               # floor units per pixel, across
+    fpz = fh / (gy - HORIZON) ** 2                                # floor units per pixel, along
+    dist_x = np.abs((wx / cell + 0.5) % 1 - 0.5) * cell / fpx     # pixels to the nearest long line
+    line_x = np.clip(1.3 - dist_x, 0, 1) + 0.22 * np.exp(-(dist_x / 4) ** 2)
+    line_x *= np.clip(1 - fpx / (cell * 0.35), 0, 1)              # fade where lines get too dense
+    fog = np.exp(-z / 260.0) * np.clip((gy - HORIZON) / 6, 0, 1)
+    ns = 700
+    stars = {"X": rng.uniform(-1, 1, ns) * 1400, "Y": -rng.uniform(0.03, 1, ns) ** 0.8 * 1500,
+             "z0": rng.uniform(0, 1, ns), "tw": rng.uniform(0, 2 * np.pi, ns), "b": rng.uniform(0.5, 1, ns)}
+    return {"sky": sky, "z": z, "fpz": fpz, "line_x": line_x, "fog": fog, "cell": cell, "stars": stars}
+
+
+def space_frame(t, total, sp):
+    """The sky at time t: the floor grid rolls towards the camera and the stars fly
+    out of the horizon. Both run a whole number of cycles per loop, so it loops."""
+    img = sp["sky"].copy()
+    cell = sp["cell"]
+    off = cell * 4 * (t / total)                                  # four grid cells per loop
+    dist_z = np.abs(((sp["z"] + off) / cell + 0.5) % 1 - 0.5) * cell / sp["fpz"]
+    line_z = np.clip(1.3 - dist_z, 0, 1) + 0.22 * np.exp(-(dist_z / 4) ** 2)
+    line_z *= np.clip(1 - sp["fpz"] / (cell * 0.35), 0, 1)
+    grid = np.maximum(sp["line_x"], line_z) * sp["fog"]
+    img[HORIZON + 1:] += grid[..., None] * np.array((40, 175, 225), np.float32) * 0.9
+    st = sp["stars"]
+    zmax = 1.0
+    z = (st["z0"] - t / total) % zmax + 0.02                      # every star flies the whole way once per loop
+    f = 900.0
+    xs = 540 + st["X"] / (z * 10) * f / 100
+    ys = HORIZON + st["Y"] / (z * 10) * f / 100
+    near = np.clip(1 - z, 0, 1)
+    size = 0.9 + 3.4 * near ** 2.0
+    bright = st["b"] * 1.6 * np.clip(near * 3, 0, 1) * np.clip((z - 0.03) / 0.12, 0, 1)
+    bright *= 0.8 + 0.2 * np.sin(2 * np.pi * 3 * t / total + st["tw"])
+    for x, y, r, bv in zip(xs, ys, size, bright):
+        if bv < 0.03 or not (-6 < x < W + 6 and -6 < y < HORIZON):
+            continue
+        rad = int(r * 2.5) + 1
+        x0, x1 = max(0, int(x) - rad), min(W, int(x) + rad + 1)
+        y0, y1 = max(0, int(y) - rad), min(HORIZON, int(y) + rad + 1)
+        if x0 >= x1 or y0 >= y1:
+            continue
+        gy, gx = np.mgrid[y0:y1, x0:x1]
+        spot = np.exp(-((gx - x) ** 2 + (gy - y) ** 2) / (2 * (r * 0.55) ** 2)) * bv
+        img[y0:y1, x0:x1] += spot[..., None] * np.array((200, 235, 255), np.float32)
+    return img
 
 
 # short words that must not end a line in Polish typography ("NUMER NIE / DZWONI?")
@@ -155,6 +243,7 @@ def text_layer(text, color, size, glow=False):
 
 
 CTA_Y = 1328                         # centre of the comment button
+TOPIC_Y = 640                        # centre of the topic pill over the big text
 
 
 def cta_image(cta):
@@ -182,13 +271,25 @@ def cta_state(t, total, t0):
     return scale, alpha
 
 
-def static_layer(word, site):
+def static_layer(word, site, topic=""):
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     wm = word.resize((380, int(word.height * 380 / word.width)), Image.LANCZOS)
     layer.alpha_composite(wm, ((W - wm.width) // 2, 262))
     d = ImageDraw.Draw(layer)
+    if topic:                                                     # what it is about, all the time (like the carousel kicker)
+        f = font("Inter-SemiBold.otf", 30)
+        label = topic.upper()
+        tw = sum(f.getlength(c) for c in label) + 3 * (len(label) - 1)
+        pw, ph = tw + 56, 60
+        x0, y0 = (W - pw) / 2, TOPIC_Y - ph / 2
+        d.rounded_rectangle([x0, y0, x0 + pw, y0 + ph], radius=ph / 2, fill=(14, 44, 60, 235),
+                            outline=ACCENT + (255,), width=2)
+        x = x0 + 28
+        for c in label:
+            d.text((x, y0 + 13), c, font=f, fill=ACCENT + (255,))
+            x += f.getlength(c) + 3
     f2 = font("Inter-Medium.otf", 28)
-    d.text(((W - f2.getlength(site)) / 2, 1398), site, font=f2, fill=FG + (150,))
+    d.text(((W - f2.getlength(site)) / 2, 1398), site, font=f2, fill=FG + (215,))
     return layer
 
 
@@ -265,14 +366,14 @@ def cta_start(spec):
 
 
 def frame(t, spec, assets):
-    bg, static, layers, sprite, anchor, button = assets
+    space, static, layers, sprite, anchor, button = assets
     seq = states(spec)
     total = HALF * len(seq)
     t = t % total
     k = int(t // HALF)
     old, new = layers[seq[k]], layers[seq[(k + 1) % len(seq)]]
     theta = angle(t)
-    out = bg.copy()
+    out = space_frame(t, total, space)
     # the big text: where the cord line has already swept, the next text shows
     y0, y1 = TEXT_BAND
     ys = np.arange(y0, y1, dtype=np.float32)[:, None]
@@ -312,10 +413,10 @@ def prepare(spec):
     for kind, text in states(spec):
         if (kind, text) not in layers:
             layers[(kind, text)] = text_layer(text, FG if kind == "q" else ACCENT, size, glow=kind == "a")
-    static = np.asarray(static_layer(word, spec["site"]), np.float32) / 255.0
+    static = np.asarray(static_layer(word, spec["site"], spec.get("topic_label", "")), np.float32) / 255.0
     sprite, anchor = pendulum_sprite(mark)
     button = cta_image(spec["cta"]) if spec.get("cta") else None
-    return background(), static, layers, sprite, anchor, button
+    return make_space(), static, layers, sprite, anchor, button
 
 
 # ---------------------------------------------------------------- music
@@ -328,10 +429,16 @@ def _hp(x, cut, taps=63):
     return x - np.convolve(x, mr._fir(cut, taps), "same")
 
 
+# the lead hook over two bars: (beat, MIDI note, length in beats) - A minor pentatonic
+HOOK = [(0.0, 76, 0.5), (0.75, 76, 0.5), (1.5, 79, 0.75), (2.5, 76, 0.5), (3.0, 74, 0.75),
+        (4.0, 72, 0.5), (4.75, 72, 0.5), (5.5, 74, 0.75), (6.5, 76, 1.25)]
+
+
 def club_bed(bars, rng, bpm=BPM):
     """An upbeat club loop, `bars` bars long and periodic: four-on-the-floor kick,
     claps on 2 and 4, 16th hats with open hats on the off-beats, an off-beat bass,
-    wide chords pumping under the kick, a plucky 16th arp. No fill or break, so
+    a rolling 16th bass, shaker, wide chords pumping under the kick, a plucky 16th
+    arp and a short lead hook every two bars. No fill or break, so
     nothing marks the loop point. One chord per bar, so the loop closes on the dominant (E -> Am).
     Stereo (L, R)."""
     beat = 60 / bpm
@@ -341,7 +448,7 @@ def club_bed(bars, rng, bpm=BPM):
     prog = [(57, [57, 60, 64, 69]), (53, [53, 57, 60, 65]), (48, [55, 60, 64, 67]), (55, [55, 59, 62, 67]),
             (52, [56, 59, 64, 68])]
     prog = (prog * 4)[:bars] if bars != 5 else prog
-    kick_b, clap_b, hat_b, bass_b, arp_b = (np.zeros(n) for _ in range(5))
+    kick_b, clap_b, hat_b, bass_b, arp_b, shk_b, lead_b = (np.zeros(n) for _ in range(7))
     pad_l, pad_r = np.zeros(n), np.zeros(n)
 
     lk = int(0.32 * SR)
@@ -356,6 +463,12 @@ def club_bed(bars, rng, bpm=BPM):
     hat = _hp(rng.standard_normal(lh), 7000, 31) * mr._env(lh, 0.0005, 0.012)
     lo = int(0.22 * SR)
     ohat = _hp(rng.standard_normal(lo), 6500, 31) * mr._env(lo, 0.001, 0.08)
+    ls = int(0.05 * SR)
+    shaker = _hp(np.convolve(rng.standard_normal(ls), mr._fir(9000, 31), "same"), 4500, 31) * mr._env(ls, 0.004, 0.02)
+    lsn = int(0.18 * SR)
+    ksn = np.arange(lsn) / SR
+    snare = (np.sin(2 * np.pi * 190 * ksn) * np.exp(-ksn / 0.05) * 0.6
+             + _hp(rng.standard_normal(lsn), 1500) * np.exp(-ksn / 0.06) * 0.5)
 
     def saw(f, ln, harm=14):
         tt = np.arange(ln) / SR
@@ -374,13 +487,33 @@ def club_bed(bars, rng, bpm=BPM):
                 mr._put(hat_b, hat * (0.9 if e % 2 else 0.55), t_bar + e * beat / 4)
         for q in range(4):
             mr._put(hat_b, ohat * 0.8, t_bar + (q + 0.5) * beat)
-        # off-beat bass, octave jump on the last one
-        ln = int(beat * 0.42 * SR)
-        env = mr._env(ln, 0.003, 0.12)
-        for q in range(4):
-            note = root - 24 + (12 if q == 3 else 0)
-            tone = np.convolve(saw(_hz(note), ln, 8), mr._fir(700, 63), "same")
-            mr._put(bass_b, (tone + 0.6 * np.sin(2 * np.pi * _hz(note) * np.arange(ln) / SR)) * env, t_bar + (q + 0.5) * beat)
+        # rolling 16th bass: strong on the off-beat, ghost notes around it, octave up at the end
+        ln = int(beat / 4 * 0.9 * SR)
+        env = mr._env(ln, 0.002, 0.07)
+        for e in range(16):
+            if e % 4 == 0:
+                continue                                          # leave room for the kick
+            q, pos = divmod(e, 4)
+            note = root - 24 + (12 if (q == 3 and pos == 3) else 0)
+            gain = 1.0 if pos == 2 else 0.55
+            tone = np.convolve(saw(_hz(note), ln, 8), mr._fir(900, 63), "same")
+            mr._put(bass_b, (tone + 0.6 * np.sin(2 * np.pi * _hz(note) * np.arange(ln) / SR)) * env * gain,
+                    t_bar + e * beat / 4)
+        # shaker on every 16th, accented off the beat
+        for e in range(16):
+            mr._put(shk_b, shaker * (1.0 if e % 2 else 0.45), t_bar + e * beat / 4 + (0.012 if e % 2 else 0))
+        # snare body under the clap
+        for q in (1, 3):
+            mr._put(clap_b, snare, t_bar + q * beat)
+        # lead hook, two bars long
+        if b % 2 == 0:
+            for at, m, ln_b in HOOK:
+                ln = int(ln_b * beat * SR)
+                tt_ = np.arange(ln) / SR
+                vib = 1 + 0.004 * np.sin(2 * np.pi * 5.5 * tt_) * np.clip(tt_ / 0.15, 0, 1)
+                ph = 2 * np.pi * np.cumsum(_hz(m) * vib) / SR
+                tone = sum(np.sin(h * ph) / h for h in (1, 2, 3, 4, 5, 6)) * mr._env(ln, 0.004, 0.35)
+                mr._put(lead_b, tone, t_bar + at * beat)
         # wide chords for the whole bar
         ln = int(bar * SR)
         for m in chord:
@@ -402,8 +535,9 @@ def club_bed(bars, rng, bpm=BPM):
     tt = np.arange(n) / SR
     since = np.mod(tt, beat)
     pump = 1 - 0.72 * np.exp(-since / 0.11)
-    pad_l = np.convolve(pad_l, mr._fir(2600), "same") * pump
-    pad_r = np.convolve(pad_r, mr._fir(2600), "same") * pump
+    pad_l = np.convolve(pad_l, mr._fir(4200), "same") * pump
+    pad_r = np.convolve(pad_r, mr._fir(4200), "same") * pump
+    lead_b = np.convolve(lead_b, mr._fir(5200), "same") * (0.75 + 0.25 * pump)
     bass_b *= 0.6 + 0.4 * pump
     arp_b = np.convolve(arp_b, mr._fir(5000), "same") * (0.5 + 0.5 * pump)
     # a short room on claps and arp
@@ -411,11 +545,11 @@ def club_bed(bars, rng, bpm=BPM):
     irs = [np.convolve(rng.standard_normal(ir_len) * np.exp(-np.arange(ir_len) / SR / 0.25), mr._fir(6000, 63), "same")
            for _ in range(2)]
     irs = [ir / np.sqrt((ir ** 2).sum()) for ir in irs]
-    wet_l = mr._fftconv(clap_b * 0.5 + arp_b * 0.6, irs[0])
-    wet_r = mr._fftconv(clap_b * 0.5 + arp_b * 0.6, irs[1])
-    drums = kick_b * 0.8 + clap_b * 0.55 + hat_b * 0.34
-    left = drums + bass_b * 0.42 + pad_l * 0.36 + arp_b * 0.32 + wet_l * 0.12
-    right = drums + bass_b * 0.42 + pad_r * 0.36 + arp_b * 0.24 + wet_r * 0.12
+    wet_l = mr._fftconv(clap_b * 0.5 + arp_b * 0.6 + lead_b * 0.5, irs[0])
+    wet_r = mr._fftconv(clap_b * 0.5 + arp_b * 0.6 + lead_b * 0.5, irs[1])
+    drums = kick_b * 0.85 + clap_b * 0.55 + hat_b * 0.34
+    left = drums + shk_b * 0.16 + bass_b * 0.40 + pad_l * 0.30 + arp_b * 0.26 + lead_b * 0.24 + wet_l * 0.13
+    right = drums + shk_b * 0.12 + bass_b * 0.40 + pad_r * 0.30 + arp_b * 0.20 + lead_b * 0.24 + wet_r * 0.13
     a, z = int(total * SR), int(2 * total * SR)
     return left[a:z], right[a:z]
 
