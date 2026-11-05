@@ -16,8 +16,8 @@
 ## Publikacja
 - 3 karuzele tygodniowo
 - Domyślne terminy karuzel: wtorek 14:00, czwartek 14:00, sobota 10:00
-- Rolka do karuzeli: dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00), rolka próbna godzinę wcześniej
-- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook). Dokładnie o czasie (wt i czw 14:02, sob 10:02, rolki śr i pt 13:02 i 14:02, nd 9:02 i 10:02) uruchamiają ją zaplanowane zadania w Claude; godzinny harmonogram GitHuba to tylko zapas, bo bywa spóźniony o kilka godzin
+- Rolka do karuzeli: dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00). Rolki próbne (godzinę wcześniej) są gotowe, ale wyłączone: Instagram odrzuca je dla tego konta (zwykle trzeba 200 obserwujących). Włączenie: plik config/ROLKI_PROBNE + zadania w Claude także na 13:02 (śr, pt) i 9:02 (nd)
+- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook). Dokładnie o czasie (wt i czw 14:02, sob 10:02, rolki śr i pt 14:02, nd 10:02) uruchamiają ją zaplanowane zadania w Claude; godzinny harmonogram GitHuba to tylko zapas, bo bywa spóźniony o kilka godzin
 - Pauza: plik `config/PAUZA` w repo
 
 ## Podpisy

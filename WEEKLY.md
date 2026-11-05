@@ -5,7 +5,7 @@ podejmij rozsądną decyzję, zapisz ją w `plan.md` i jedź dalej.
 
 **Nikt tego nie przegląda przed publikacją.** To, co commitujesz do `main`, GitHub Actions
 (`.github/workflows/instagram.yml`) samo opublikuje na Instagramie i Facebooku o godzinie z `publish_at`,
-a dzień później rolkę "wahadło" do tej karuzeli (plus rolkę próbną godzinę wcześniej).
+a dzień później rolkę "wahadło" do tej karuzeli.
 Dlatego bramki jakości z kroku 4 są obowiązkowe, a w razie wątpliwości lepiej pominąć karuzelę niż ją wypuścić.
 Ty sam niczego nie publikujesz.
 
@@ -66,7 +66,7 @@ Format (jak w `tools/render_carousel.py`):
 ```
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
   Używaj **tylko** domyślnych terminów z `config/brand.md` (wtorek 14:00, czwartek 14:00, sobota 10:00): dokładnie wtedy osobne zadanie uruchamia publikację. Godzinny harmonogram GitHuba bywa spóźniony o kilka godzin, więc inna godzina oznacza spóźniony post.
-  Rolka wychodzi sama dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00), a rolka próbna godzinę przed nią. Nie ustawiaj `reel_at`, chyba że zmieniasz ten rytm.
+  Rolka wychodzi sama dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00); gdy rolki próbne zostaną włączone, próbna wyjdzie godzinę przed nią. Nie ustawiaj `reel_at`, chyba że zmieniasz ten rytm.
 - `cta_keyword`: **każda** karuzela ma słowo-klucz WIELKIMI LITERAMI, bo rolka zawsze kończy się przyciskiem "Napisz SŁOWO w komentarzu", a każdy taki komentarz to powiadomienie o kliencie dla Jakuba. Słowo ma pasować do tematu i być rzadkie w zwykłych komentarzach (dobre: TURBO, TELEFON, WYCENA; złe: STRONA, SUPER). Inne w każdej karuzeli tygodnia.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla osoby, która napisze słowo-klucz: o co dopytać + widełki z `facts.md`. Bez darmowych obietnic.
 - **Rolka "wahadło"** (`reel_pendulum`, render: `tools/make_pendulum.py`). Każda karuzela dostaje swoją rolkę o tej samej treści, publikowaną dzień po karuzeli. Wygląd jest stały i nie zmieniasz go: ciemne tło jak na karuzelach z ledwo widocznym kosmosem 3D (mgławica, gwiazdy, siatka), duży tekst w ciemnym oknie przeglądarki z paskiem adresu, biały znaczek z logo PageHub na sznurku, logo na górze, pagehub.pl na dole, energiczna muzyka bez lektora. Wahadło kołysze się w rytm muzyki i tam, gdzie przejdzie sznurek, tekst zmienia się na następny: pytanie (białe), odpowiedź (w kolorze marki), pytanie, odpowiedź... Na końcu pojawia się przycisk "Napisz SŁOWO w komentarzu" z dźwiękiem "ping", znika przed końcem pętli i rolka kręci się bez widocznego końca.
@@ -78,7 +78,7 @@ Format (jak w `tools/render_carousel.py`):
   - Przycisk robi się sam z `cta_keyword` ("Napisz TELEFON w komentarzu"). Nie dopisuj go do pytań.
   - Bez cen, liczb i obietnic spoza `facts.md`. Bez skrótów i symboli. Zasady `skills/pl-naturalnie/SKILL.md` obowiązują też tutaj.
   - Rolka próbna (dla osób, które nie obserwują profilu) zaczyna się od drugiego pytania. Nic nie musisz dla niej pisać.
-- **Rolki są włączone** (`config/ROLKI`), rolki próbne też (`config/ROLKI_PROBNE`). Nie usuwaj i nie zmieniaj tych plików. Karuzela bez `reel_pendulum` nie dostanie rolki. `"reel": false` wyłącza rolkę jednej karuzeli, `"reel_trial": false` tylko jej rolkę próbną.
+- **Rolki są włączone** (`config/ROLKI`). Nie usuwaj i nie zmieniaj tego pliku. Rolki próbne są na razie wyłączone (Instagram odrzuca je dla tego konta, zwykle wymagają co najmniej 200 obserwujących); nie twórz `config/ROLKI_PROBNE`, włączy je Jakub. Karuzela bez `reel_pendulum` nie dostanie rolki. `"reel": false` wyłącza rolkę jednej karuzeli, `"reel_trial": false` tylko jej rolkę próbną.
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
   (to samo słowo-klucz co w karuzeli, jeśli jest), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film. Ten sam opis dostaje rolka próbna.
 
@@ -115,7 +115,7 @@ Zasady:
 - Ostrzeżenie o zmniejszeniu tekstu lub błąd "nie mieści się" = skróć tekst i wyrenderuj ponownie.
 - Obejrzyj każdą okładkę i co najmniej jeden slajd środkowy (Read na PNG). Popraw, jeśli coś jest ucięte lub nieczytelne.
 - Sprawdzenie na sucho: `cd tools && python3 publish.py --dry-run --now <publish_at karuzeli>` musi pokazać karuzelę jako gotową do publikacji.
-- Sprawdzenie rolek na sucho: `cd tools && python3 publish.py --dry-run --now <dzień po publish_at, ta sama godzina, +5 min>` musi pokazać rolkę, a godzinę wcześniej rolkę próbną. Nie commituj MP4, automat renderuje rolki sam przy publikacji.
+- Sprawdzenie rolek na sucho: `cd tools && python3 publish.py --dry-run --now <dzień po publish_at, ta sama godzina, +5 min>` musi pokazać rolkę. Nie commituj MP4, automat renderuje rolki sam przy publikacji.
 
 ## 6. Strona z podglądem (archiwum)
 - `python3 tools/build_page.py weeks/<data>` -> `index.html` + `files.json`.
