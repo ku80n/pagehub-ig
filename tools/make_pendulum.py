@@ -88,9 +88,15 @@ def svg_png(svg_text, width):
         return Image.open(out).convert("RGBA")
 
 
+LOGO_DARK = ROOT / "assets" / "logo" / "pagehub-dark.png"      # rendered from the SVG once,
+LOGO_MARK = ROOT / "assets" / "logo" / "pagehub-mark.png"      # so GitHub Actions needs no rsvg
+
+
 def logo_images():
     """(logo for a dark background: white "page" and globe, teal "hub" and arc;
     the mark in its own colours for the white tag) - both from the site's SVG."""
+    if LOGO_DARK.exists() and LOGO_MARK.exists():
+        return Image.open(LOGO_DARK).convert("RGBA"), Image.open(LOGO_MARK).convert("RGBA")
     svg = LOGO.read_text(encoding="utf-8")
     dark = svg.replace('fill="#333333"', 'fill="#F0F4F8"')
     word = svg_png(dark, 1200)
@@ -244,10 +250,12 @@ def two_lines(text, f):
         return [text]
     splits = [(" ".join(words[:i]), " ".join(words[i:])) for i in range(1, len(words))]
 
-    def cost(p):
-        bad = p[0].split()[-1].lower() in NO_LINE_END
-        return max(f.getlength(p[0]), f.getlength(p[1])) + (10000 if bad else 0)
-    return list(min(splits, key=cost))
+    def bad(p):
+        return p[0].split()[-1].lower() in NO_LINE_END
+
+    if all(bad(p) for p in splits) and f.getlength(text) <= TEXT_W:
+        return [text]                                         # "BEZ SZABLONU?" stays on one line
+    return list(min(splits, key=lambda p: max(f.getlength(p[0]), f.getlength(p[1])) + (10000 if bad(p) else 0)))
 
 
 def fit_size(text):
@@ -657,15 +665,40 @@ def build(spec, out_path):
     return out_path, total
 
 
+def pendulum_spec(carousel, trial=False):
+    """The Reel of a carousel spec (kN.json): meta.reel_pendulum + the comment
+    button from meta.cta_keyword. The trial Reel starts with the second question,
+    so Instagram gets a different video and it tests another opening."""
+    meta = carousel.get("meta", {})
+    rp = meta.get("reel_pendulum") or {}
+    if not rp.get("questions"):
+        return None
+    kw = meta.get("cta_keyword", "").strip()
+    spec = dict(DEFAULT)
+    spec.update({"questions": list(rp["questions"]), "answer": rp.get("answer", "OGARNIEMY TO."),
+                 "url": rp.get("url", "twoja-strona.pl"),
+                 "cta": rp.get("cta") or (f"Napisz {kw} w komentarzu" if kw else "Napisz do nas wiadomość")})
+    if trial and len(spec["questions"]) > 1:
+        spec["questions"] = spec["questions"][1:] + spec["questions"][:1]
+    return spec
+
+
 def main():
     ap = argparse.ArgumentParser(description="Rolka z wahadłem PageHub.")
-    ap.add_argument("spec", nargs="?")
+    ap.add_argument("spec", nargs="?", help="kN.json karuzeli (meta.reel_pendulum) albo własny spec")
     ap.add_argument("--out", required=True)
     ap.add_argument("--still", type=float)
+    ap.add_argument("--trial", action="store_true", help="wersja próbna (zaczyna od drugiego pytania)")
     a = ap.parse_args()
     spec = dict(DEFAULT)
     if a.spec:
-        spec.update(json.loads(pathlib.Path(a.spec).read_text(encoding="utf-8")))
+        data = json.loads(pathlib.Path(a.spec).read_text(encoding="utf-8"))
+        if "meta" in data:
+            spec = pendulum_spec(data, a.trial)
+            if spec is None:
+                sys.exit(f"{a.spec}: brak meta.reel_pendulum.questions")
+        else:
+            spec.update(data)
     if a.still is not None:
         Image.fromarray(frame(a.still, spec, prepare(spec))).save(a.out)
         print(a.out)

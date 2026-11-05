@@ -4,7 +4,8 @@ To zadanie działa samo w poniedziałek rano. Nikt nie patrzy na bieżąco, wię
 podejmij rozsądną decyzję, zapisz ją w `plan.md` i jedź dalej.
 
 **Nikt tego nie przegląda przed publikacją.** To, co commitujesz do `main`, GitHub Actions
-(`.github/workflows/instagram.yml`) samo opublikuje na Instagramie i Facebooku o godzinie z `publish_at`.
+(`.github/workflows/instagram.yml`) samo opublikuje na Instagramie i Facebooku o godzinie z `publish_at`,
+a dzień później rolkę "wahadło" do tej karuzeli (plus rolkę próbną godzinę wcześniej).
 Dlatego bramki jakości z kroku 4 są obowiązkowe, a w razie wątpliwości lepiej pominąć karuzelę niż ją wypuścić.
 Ty sam niczego nie publikujesz.
 
@@ -38,17 +39,20 @@ Format (jak w `tools/render_carousel.py`):
   "handle": "pagehub.pl",
   "ig": "@pagehub.pl",
   "meta": {
-    "when": "wtorek 10.11, 19:00",
-    "publish_at": "2026-11-10T19:00:00+01:00",
+    "when": "wtorek 10.11, 14:00",
+    "publish_at": "2026-11-10T14:00:00+01:00",
     "pillar": "Edukacja",
     "topic": "krótki opis tematu",
     "cta_keyword": "TELEFON",
     "reply_hint": "Proponowana pierwsza odpowiedź dla osoby, która napisze słowo-klucz",
     "caption_ig": "...",
     "caption_reel": "...",
-    "reel_heading": "...:",
-    "reel_close": "...",
-    "reel_points": ["...", "..."],
+    "reel_pendulum": {
+      "questions": ["ROZJEŻDŻA SIĘ NA TELEFONIE?", "TEKST TRZEBA POWIĘKSZAĆ?", "NIE DA SIĘ ZADZWONIĆ?",
+                    "ZA MAŁE PRZYCISKI?", "FORMULARZ NIE DZIAŁA?"],
+      "answer": "OGARNIEMY TO.",
+      "url": "twoja-strona.pl"
+    },
     "caption_fb": "...",
     "alt": "tekst alternatywny okładki"
   },
@@ -61,26 +65,22 @@ Format (jak w `tools/render_carousel.py`):
 }
 ```
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
-  Używaj **tylko** domyślnych terminów z `config/brand.md` (wtorek 19:00, czwartek 19:00, sobota 10:00): dokładnie wtedy osobne zadanie uruchamia publikację. Godzinny harmonogram GitHuba bywa spóźniony o kilka godzin, więc inna godzina oznacza spóźniony post.
+  Używaj **tylko** domyślnych terminów z `config/brand.md` (wtorek 14:00, czwartek 14:00, sobota 10:00): dokładnie wtedy osobne zadanie uruchamia publikację. Godzinny harmonogram GitHuba bywa spóźniony o kilka godzin, więc inna godzina oznacza spóźniony post.
+  Rolka wychodzi sama dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00), a rolka próbna godzinę przed nią. Nie ustawiaj `reel_at`, chyba że zmieniasz ten rytm.
 - `cta_keyword`: **każda** karuzela ma słowo-klucz WIELKIMI LITERAMI, bo rolka zawsze kończy się przyciskiem "Napisz SŁOWO w komentarzu", a każdy taki komentarz to powiadomienie o kliencie dla Jakuba. Słowo ma pasować do tematu i być rzadkie w zwykłych komentarzach (dobre: TURBO, TELEFON, WYCENA; złe: STRONA, SUPER). Inne w każdej karuzeli tygodnia.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla osoby, która napisze słowo-klucz: o co dopytać + widełki z `facts.md`. Bez darmowych obietnic.
-- Rolka pokazuje okładkę, potem `reel_heading` i numerowaną listę nagłówków slajdów z ponumerowanym kickerem (np. "powód 2/5", "sprawdź 3/5", "krok 4"), a na końcu "reszta w opisie". Dlatego:
-  - główne punkty karuzeli mają kicker z numeracją, a ich liczba zgadza się z liczbą z okładki ("5 błędów" = 5 punktów),
-  - `reel_heading`: krótka linia zakończona dwukropkiem, która mówi, czym jest lista i łączy ją z okładką (np. "Co spowalnia stronę:", "Sprawdź, czy Twoja strona ma:", "5 kroków do nowej strony:"). Przeczytaj ją razem z punktami: całość ma być zrozumiała dla kogoś, kto nie zna się na stronach,
-  - każdy nagłówek musi mieć sens sam w sobie, a `caption_reel` zawiera resztę: krótko rozwinięte punkty i wezwanie do działania ze słowem-kluczem,
-  - `reel_points` (opcjonalnie): punkty listy w rolce, gdy nagłówki slajdów brzmią dobrze na slajdzie, ale sztywno w rolce. Najlepiej pytania albo krótkie zdania z czasownikiem ("Numer od razu dzwoni?"), tyle samo co na okładce.
-- **Lektor czyta ekrany rolki słowo w słowo**: tytuł i podtytuł okładki, `reel_heading` i każdy punkt listy, `reel_close` i przycisk ("Napisz TURBO w komentarzu"). Nie ma osobnego tekstu dla lektora. Dlatego te teksty piszesz tak, żeby dobrze brzmiały na głos (`skills/pl-naturalnie/SKILL.md`):
-  - bez skrótów, symboli, nawiasów i linków (liczby są OK, lektor przeczyta je słownie),
-  - emocje przez "?" i "!" w samym tekście ekranu, np. `reel_close` "Sprawdź, zanim znajdzie je Twój klient!",
-  - pytania, które naprawdę są pytaniami, kończ "?", bo lektor wtedy podnosi głos,
-  - całość czytana na głos: 15-25 sekund (około 200-330 znaków na wszystkich trzech ekranach razem),
-  - nagrania robi automat w GitHub Actions po wypchnięciu tygodnia (nie Ty). Sprawdza każde rozpoznawaniem mowy i zapisuje w `kN/voice.json`, co usłyszał. Zdanie oznaczone tam `uwaga` przepisz prościej w następnym tygodniu i dopisz zbitkę do `skills/pl-naturalnie/SKILL.md`.
-- **Rolka ma sprzedawać.** Ostatni ekran to `reel_close` (duże) + przycisk ze słowem-kluczem + "reszta w opisie". `reel_close` to jedno krótkie zdanie, które uderza w stratę albo pilność z punktu widzenia właściciela firmy (np. "Wolna strona oddaje klientów konkurencji.", "Sprawdź, zanim znajdzie je Twój klient!", "Chcesz stronę zrobioną od zera pod Twoją firmę?"). Bez wymyślonych liczb i bez obietnic czegokolwiek za darmo.
-- **Rolki są wyłączone, dopóki Jakub ich nie zatwierdzi.** Nigdy nie twórz pliku `config/ROLKI` i nie zmieniaj ustawień publikacji rolek. Pola rolki (`caption_reel`, `reel_heading`, `reel_close`, `reel_points`) i tak uzupełniaj, żeby były gotowe. Nagrania lektora robi osobny automat w GitHub Actions, nie Ty.
-- Gdy rolki zostaną włączone, każda karuzela wyjdzie też jako **rolka** zrobiona automatycznie ze slajdów, domyślnie dzień później o tej samej godzinie
-  (opcjonalnie `reel_at`, żeby ustawić inny termin; `"reel": false`, żeby jej nie robić).
+- **Rolka "wahadło"** (`reel_pendulum`, render: `tools/make_pendulum.py`). Każda karuzela dostaje swoją rolkę o tej samej treści, publikowaną dzień po karuzeli. Wygląd jest stały i nie zmieniasz go: ciemne tło jak na karuzelach z ledwo widocznym kosmosem 3D (mgławica, gwiazdy, siatka), duży tekst w ciemnym oknie przeglądarki z paskiem adresu, biały znaczek z logo PageHub na sznurku, logo na górze, pagehub.pl na dole, energiczna muzyka bez lektora. Wahadło kołysze się w rytm muzyki i tam, gdzie przejdzie sznurek, tekst zmienia się na następny: pytanie (białe), odpowiedź (w kolorze marki), pytanie, odpowiedź... Na końcu pojawia się przycisk "Napisz SŁOWO w komentarzu" z dźwiękiem "ping", znika przed końcem pętli i rolka kręci się bez widocznego końca.
+  - `questions`: 4-5 pytań z punktów **tej** karuzeli, w tej samej kolejności, WIELKIMI LITERAMI, każde kończy się "?". To problem albo potrzeba właściciela firmy, którą PageHub załatwia (np. "NIE DA SIĘ ZADZWONIĆ?", "BEZ SZABLONU?", "WIDOCZNA W GOOGLE?").
+  - Krótko: 2-4 słowa, najwyżej dwie linie po około 13 znaków ("ROZJEŻDŻA SIĘ / NA TELEFONIE?"). Dłuższe zmniejszają tekst w całej rolce.
+  - **Od razu jasne, o co chodzi.** Okno przeglądarki i adres już mówią, że chodzi o stronę internetową, ale każde pytanie musi być zrozumiałe samo, bez karuzeli. Złe: "NUMER NIE DZWONI?" (nie wiadomo, co z tym numerem). Dobre: "NIE DA SIĘ ZADZWONIĆ?". Pierwsze pytanie to hak: najmocniejszy problem z karuzeli.
+  - `answer`: jedna krótka odpowiedź na wszystkie pytania, domyślnie "OGARNIEMY TO.". Zmieniaj ją tylko wtedy, gdy nie pasuje do pytań.
+  - `url`: adres w pasku okna, domyślnie "twoja-strona.pl".
+  - Przycisk robi się sam z `cta_keyword` ("Napisz TELEFON w komentarzu"). Nie dopisuj go do pytań.
+  - Bez cen, liczb i obietnic spoza `facts.md`. Bez skrótów i symboli. Zasady `skills/pl-naturalnie/SKILL.md` obowiązują też tutaj.
+  - Rolka próbna (dla osób, które nie obserwują profilu) zaczyna się od drugiego pytania. Nic nie musisz dla niej pisać.
+- **Rolki są włączone** (`config/ROLKI`), rolki próbne też (`config/ROLKI_PROBNE`). Nie usuwaj i nie zmieniaj tych plików. Karuzela bez `reel_pendulum` nie dostanie rolki. `"reel": false` wyłącza rolkę jednej karuzeli, `"reel_trial": false` tylko jej rolkę próbną.
 - `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
-  (to samo słowo-klucz co w karuzeli, jeśli jest), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film.
+  (to samo słowo-klucz co w karuzeli, jeśli jest), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film. Ten sam opis dostaje rolka próbna.
 
 Zasady:
 - 6-9 slajdów (API przyjmuje maksymalnie 10): okładka, stawka (slajd 2 musi działać sam), jedna myśl na slajd, podsumowanie (lista), CTA.
@@ -100,12 +100,13 @@ Zasady:
 - Tekst slajdów to krótkie hasła, więc detect daje mu niski wynik z natury. Wystarczy, że humanize nic nie zmienia i nic nie flaguje.
 - Żadnych liczb z powietrza, także retorycznych ("co drugi", "sto innych"). Liczba = fakt ze źródłem albo `facts.md`.
 - `grep -nP "[—–]" weeks/<data>/*.json` nie może nic znaleźć.
-- **Pisownia:** `python3 tools/spellcheck.py weeks/<data>` musi dać 0 nieznanych słów (sprawdza też tekst lektora). Literówkę poprawiasz w tekście.
+- **Pisownia:** `python3 tools/spellcheck.py weeks/<data>` musi dać 0 nieznanych słów (sprawdza też pytania i odpowiedź rolki). Literówkę poprawiasz w tekście.
   Do `config/words.txt` dopisujesz tylko prawdziwą nazwę własną lub markę, nigdy literówkę.
-- **Zlepione lub zgubione słowa:** po wyrenderowaniu przeczytaj każdą okładkę i jeden slajd słowo po słowie (Read na PNG), a w rolce
-  sprawdź klatkę końcową: `python3 tools/make_reel.py weeks/<data>/kN.json --still 99 --out /tmp/kN.png`. Skrypt rolki sam
-  przerywa pracę, gdy pokazany tekst różni się od źródła.
-- **Naturalny polski:** przeczytaj `skills/pl-naturalnie/SKILL.md` przed pisaniem. `python3 tools/pl_check.py weeks/<data>` musi dać 0 uwag (kalki z angielskiego, korpomowa, tekst lektora). Przeczytaj na głos każde zdanie lektora i każdy punkt rolki: jeśli brzmi jak tłumaczenie, przepisz.
+- **Zlepione lub zgubione słowa:** po wyrenderowaniu przeczytaj każdą okładkę i jeden slajd słowo po słowie (Read na PNG).
+- **Rolka:** dla każdej karuzeli zrób dwie klatki i obejrzyj je (Read): pierwsze pytanie
+  `python3 tools/make_pendulum.py weeks/<data>/kN.json --still 0 --out /tmp/kN-a.png` i koniec z przyciskiem
+  `python3 tools/make_pendulum.py weeks/<data>/kN.json --still 99 --out /tmp/kN-b.png`. Tekst ma być czytelny, w dwóch liniach, bez ucięć.
+- **Naturalny polski:** przeczytaj `skills/pl-naturalnie/SKILL.md` przed pisaniem. `python3 tools/pl_check.py weeks/<data>` musi dać 0 uwag (kalki z angielskiego, korpomowa). Przeczytaj na głos każde pytanie rolki razem z odpowiedzią: ma brzmieć naturalnie i być jasne dla kogoś, kto nie zna się na stronach.
 - Przeczytaj każdą karuzelę od początku do końca jak klient: polski poprawny, sens jasny, nic, czego PageHub nie robi.
 - Karuzela, która po dwóch poprawkach nadal nie przechodzi: ustaw w niej `"skip": true` w `meta`, opisz powód w `plan.md`. Lepiej 2 dobre posty niż 3 z jednym słabym.
 
@@ -114,7 +115,7 @@ Zasady:
 - Ostrzeżenie o zmniejszeniu tekstu lub błąd "nie mieści się" = skróć tekst i wyrenderuj ponownie.
 - Obejrzyj każdą okładkę i co najmniej jeden slajd środkowy (Read na PNG). Popraw, jeśli coś jest ucięte lub nieczytelne.
 - Sprawdzenie na sucho: `cd tools && python3 publish.py --dry-run --now <publish_at karuzeli>` musi pokazać karuzelę jako gotową do publikacji.
-- Rolka: `python3 tools/make_reel.py weeks/<data>/k1.json --out /tmp/reel.mp4` musi się zbudować (nie commituj MP4, automat robi go sam przy publikacji).
+- Sprawdzenie rolek na sucho: `cd tools && python3 publish.py --dry-run --now <dzień po publish_at, ta sama godzina, +5 min>` musi pokazać rolkę, a godzinę wcześniej rolkę próbną. Nie commituj MP4, automat renderuje rolki sam przy publikacji.
 
 ## 6. Strona z podglądem (archiwum)
 - `python3 tools/build_page.py weeks/<data>` -> `index.html` + `files.json`.

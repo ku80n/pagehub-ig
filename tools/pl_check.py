@@ -40,6 +40,11 @@ def texts(spec):
         yield "meta.caption_fb", meta["caption_fb"], True
     for i, p in enumerate(meta.get("reel_points") or []):
         yield f"meta.reel_points[{i}]", p, True
+    rp = meta.get("reel_pendulum") or {}
+    for i, q in enumerate(rp.get("questions") or []):
+        yield f"meta.reel_pendulum.questions[{i}]", q, True
+    if rp.get("answer"):
+        yield "meta.reel_pendulum.answer", rp["answer"], True
     cover = meta.get("reel_cover") or {}
     for f in ("kicker", "title", "subtitle"):
         if cover.get(f):

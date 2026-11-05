@@ -5,10 +5,8 @@ name: Lektor do rolek
 # where make_reel.py picks them up. Only missing or changed lines are recorded.
 # Publishing Reels stays switched off until Jakub approves them.
 
+# Rolki "wahadło" nie mają lektora, więc ten workflow działa tylko ręcznie.
 on:
-  push:
-    branches: [main]
-    paths: ["weeks/*/k*.json"]
   workflow_dispatch:
     inputs:
       week:

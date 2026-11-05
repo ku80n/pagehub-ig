@@ -10,6 +10,18 @@
     "reply_hint": "Cześć! Dzięki za komentarz. Napisz, czym zajmuje się Twoja firma, i podeślij adres obecnej strony, jeśli ją masz. Odezwiemy się z wyceną. Landing page robimy od 800 zł, stronę firmową od 1500 zł.",
     "caption_ig": "5 minut i telefon. Tyle trwa test, którego Twoja strona może nie zdać.\n\nKlient szuka lokalnej firmy w kolejce, w autobusie, wieczorem na kanapie. Rzadko przy biurku.\n\nSprawdź 5 rzeczy: czy tekst da się czytać bez powiększania, czy numer telefonu można kliknąć, czy przyciski nie są za małe, czy adres i godziny widać od razu i czy formularz w ogóle działa.\n\nCoś nie przeszło? Napisz TELEFON w komentarzu, odezwiemy się z wyceną nowej strony.\n\n#stronywww #stronadlafirmy #lokalnybiznes #przemyśl #podkarpacie",
     "caption_reel": "5 błędów strony, które klient widzi na telefonie od razu.\n\nMasz 5 minut? Sprawdź swoją stronę, zanim zrobi to ktoś, kto szuka firmy w Przemyślu i ma do wyboru jeszcze kilka innych.\n\nCoś nie przeszło? Napisz TELEFON w komentarzu, odezwiemy się z wyceną nowej strony.\n\n#stronywww #lokalnybiznes #podkarpacie",
+    "reel_at": "2026-11-06T14:00:00+01:00",
+    "reel_pendulum": {
+      "questions": [
+        "ROZJEŻDŻA SIĘ NA TELEFONIE?",
+        "TEKST TRZEBA POWIĘKSZAĆ?",
+        "NIE DA SIĘ ZADZWONIĆ?",
+        "ZA MAŁE PRZYCISKI?",
+        "FORMULARZ NIE DZIAŁA?"
+      ],
+      "answer": "OGARNIEMY TO.",
+      "url": "twoja-strona.pl"
+    },
     "reel_heading": "Sprawdź na telefonie:",
     "reel_close": "Sprawdź, zanim znajdzie je Twój klient!",
     "reel_points": [

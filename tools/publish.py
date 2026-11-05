@@ -4,8 +4,10 @@ publish.py - publish the carousels (and their Reels) whose time has come.
 
 Runs hourly from GitHub Actions. A carousel is due when its meta.publish_at is
 in the past but less than LATE_LIMIT ago, it is not marked "skip", and it is
-not in state/published.json yet. Each carousel also becomes a Reel built from
-its slides (tools/make_reel.py), due at meta.reel_at, by default one day later.
+not in state/published.json yet. Each carousel also becomes a "wahadło" Reel
+(tools/make_pendulum.py, texts in meta.reel_pendulum), due at meta.reel_at, by
+default one day later, and a trial Reel (shown to non-followers only, never
+graduated automatically) one hour before it, starting with another question.
 Everything it does is recorded in state/ so a rerun never posts twice.
 
 The Instagram API only takes JPEG from a public URL and cannot schedule, so:
@@ -53,23 +55,35 @@ def all_posts():
         yield key, spec_path, spec
 
 
+TRIAL_BEFORE = timedelta(hours=1)    # the trial Reel goes out this long before the Reel
+
+
+def _switch(name, flag_file):
+    """On when the file config/<flag_file> exists (or the repo variable is "true");
+    the repo variable set to "false" always wins."""
+    v = env(name, required=False)
+    return (v == "true" or (ROOT / "config" / flag_file).exists()) and v != "false"
+
+
 def schedule(spec):
-    """[(kind, when)] for one carousel spec: the carousel itself and, unless off, its Reel."""
+    """[(kind, when)] for one carousel spec: the carousel, its Reel the next day and
+    the trial Reel an hour before that."""
     meta = spec.get("meta", {})
     if meta.get("skip") or not meta.get("publish_at"):
         return []
     at = datetime.fromisoformat(meta["publish_at"]).astimezone(TZ)
     out = [("carousel", at)]
-    # Reels are opt-in: on when the file config/ROLKI exists (or repo variable PUBLISH_REELS
-    # is "true"), and PUBLISH_REELS = "false" always wins.
-    switch = env("PUBLISH_REELS", required=False)
-    reels_on = (switch == "true" or (ROOT / "config" / "ROLKI").exists()) and switch != "false" \
-        and meta.get("reel", True) is not False
-    if reels_on:
+    if _switch("PUBLISH_REELS", "ROLKI") and meta.get("reel", True) is not False \
+            and (meta.get("reel_pendulum") or {}).get("questions"):
         reel_at = (datetime.fromisoformat(meta["reel_at"]).astimezone(TZ) if meta.get("reel_at")
                    else at + timedelta(days=1))
         out.append(("reel", reel_at))
+        if _switch("PUBLISH_TRIALS", "ROLKI_PROBNE") and meta.get("reel_trial", True) is not False:
+            out.append(("trial", reel_at - TRIAL_BEFORE))
     return out
+
+
+KEY_SUFFIX = {"carousel": "", "reel": "#reel", "trial": "#trial"}
 
 
 def media_prefix(key):
@@ -81,24 +95,27 @@ def due_posts(now, published, failures):
     due, missed = [], []
     for base, path, spec in all_posts():
         for kind, at in schedule(spec):
-            key = base if kind == "carousel" else f"{base}#reel"
+            key = base + KEY_SUFFIX[kind]
             if key in published or failures.get(key, {}).get("count", 0) >= MAX_ATTEMPTS:
                 continue
             item = (key, kind, path, spec)
-            if at <= now < at + LATE_LIMIT:
+            # a trial only makes sense before its Reel: after that it is quietly dropped
+            limit = TRIAL_BEFORE if kind == "trial" else LATE_LIMIT
+            if at <= now < at + limit:
                 due.append(item)
-            elif now >= at + LATE_LIMIT:
+            elif now >= at + limit:
                 missed.append(item + (at,))
     return due, missed
 
 
-def reel_bytes(path):
-    """Build the Reel MP4 for a carousel spec and return its bytes."""
+def reel_bytes(spec, trial=False):
+    """Build the "wahadło" Reel MP4 of a carousel spec and return its bytes."""
     import tempfile
-    from make_reel import build
+    import make_pendulum
+    pspec = make_pendulum.pendulum_spec(spec, trial)
     with tempfile.TemporaryDirectory() as tmp:
-        out, _ = build(path, f"{tmp}/reel.mp4")
-        return out.read_bytes()
+        out, _ = make_pendulum.build(pspec, f"{tmp}/reel.mp4")
+        return out.read_bytes() if hasattr(out, "read_bytes") else open(out, "rb").read()
 
 
 def jpegs(path, spec):
@@ -170,11 +187,13 @@ def _norm(text):
     return " ".join((text or "").split())[:120]
 
 
-def find_existing(caption, kind="carousel", hours=36):
+def find_existing(caption, kind="carousel", hours=36, skip_ids=()):
     """A post with this caption published recently, if any: (media_id, permalink) or None.
 
     Instagram sometimes answers media_publish with an error and publishes anyway,
     so every retry checks the profile first instead of risking a double post.
+    Posts already recorded for another key (the trial Reel has the Reel's caption)
+    are passed in skip_ids and never count.
     """
     token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
     since = datetime.now(timezone.utc) - timedelta(hours=hours)
@@ -184,7 +203,7 @@ def find_existing(caption, kind="carousel", hours=36):
         if datetime.strptime(m["timestamp"], "%Y-%m-%dT%H:%M:%S%z") < since:
             break
         is_reel = m.get("media_product_type") == "REELS" or m.get("media_type") == "VIDEO"
-        if (kind == "reel") != is_reel:
+        if (kind in ("reel", "trial")) != is_reel or m["id"] in skip_ids:
             continue
         if _norm(m.get("caption")) == want:
             return m["id"], m.get("permalink", "")
@@ -216,13 +235,17 @@ def publish_instagram(urls, caption):
     return publish_container(carousel, caption, "carousel")
 
 
-def publish_reel(url, caption, to_feed=False):
-    """Video Reel from a public MP4 URL. Video takes longer to process than photos."""
+def publish_reel(url, caption, to_feed=True, trial=False):
+    """Video Reel from a public MP4 URL. Video takes longer to process than photos.
+    A trial Reel (trial_params, Instagram API since 12.2025) is shown to non-followers
+    only and stays a trial ("MANUAL"), so followers never get the same video twice."""
     token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
+    extra = {"trial_params": json.dumps({"graduation_strategy": "MANUAL"})} if trial else \
+        {"share_to_feed": "true" if to_feed else "false"}
     container = graph("POST", f"{ig}/media", token, media_type="REELS", video_url=url,
-                      caption=caption, share_to_feed="true" if to_feed else "false")["id"]
-    wait_ready(container, token, "rolka", tries=120)
-    return publish_container(container, caption, "reel")
+                      caption=caption, **extra)["id"]
+    wait_ready(container, token, "rolka próbna" if trial else "rolka", tries=120)
+    return publish_container(container, caption, "trial" if trial else "reel")
 
 
 def publish_container(container, caption, kind):
@@ -304,6 +327,36 @@ def check():
     return 0 if not bad else 1
 
 
+# ---------------------------------------------------------------- trial reel test
+
+def trial_test():
+    """Can this account post trial Reels through the API? Renders the trial Reel of
+    the newest carousel with reel_pendulum, puts it on the media site and creates a
+    trial Reel container on Instagram, but never publishes it (an unpublished
+    container simply expires after 24 hours). Nothing appears on the profile."""
+    token, ig = env("META_PAGE_TOKEN"), env("IG_USER_ID")
+    spec = None
+    for _, _, s_ in sorted(all_posts(), reverse=True):
+        if (s_.get("meta", {}).get("reel_pendulum") or {}).get("questions"):
+            spec = s_
+            break
+    if spec is None:
+        print("brak karuzeli z reel_pendulum")
+        return 1
+    base = netlify_deploy({"test/proba.mp4": reel_bytes(spec, trial=True)})
+    try:
+        container = graph("POST", f"{ig}/media", token, media_type="REELS", video_url=f"{base}/test/proba.mp4",
+                          caption="test rolki próbnej (nie do publikacji)",
+                          trial_params=json.dumps({"graduation_strategy": "MANUAL"}))["id"]
+        status = wait_ready(container, token, "rolka próbna (test)", tries=120)
+    except ApiError as e:
+        print("ROLKI PRÓBNE NIEDOSTĘPNE:", e)
+        telegram(f"PageHub: test rolki próbnej nie przeszedł, Instagram odpowiedział: {e}")
+        return 1
+    print(f"ROLKI PRÓBNE DZIAŁAJĄ: kontener {container} w stanie {status}, nieopublikowany")
+    return 0
+
+
 # ---------------------------------------------------------------- watchdog
 
 def week_watch(now, dry_run=False):
@@ -343,6 +396,8 @@ def run(now, dry_run=False):
 
     for key, kind, _, spec, at in missed:
         published[key] = {"status": "missed", "noted_at": now.isoformat()}
+        if kind == "trial":
+            continue                                   # its Reel went out anyway, nothing to report
         what = "rolka" if kind == "reel" else "karuzela"
         telegram(f"PageHub: {what} {key} ({at:%d.%m %H:%M}) nie wyszła na czas "
                  "i została pominięta. Sprawdź zakładkę Actions w repo.", dry_run)
@@ -358,7 +413,7 @@ def run(now, dry_run=False):
             for name, data in jpegs(path, spec):
                 media[f"{media_prefix(key)}/{name}"] = data
         elif not dry_run:
-            media[f"{media_prefix(key)}/reel.mp4"] = reel_bytes(path)
+            media[f"{media_prefix(key)}/reel.mp4"] = reel_bytes(spec, trial=kind == "trial")
     if dry_run:
         for key, kind, _, spec in due:
             if kind == "carousel":
@@ -366,7 +421,8 @@ def run(now, dry_run=False):
                 print(f"[dry-run] {key}: {n} JPEG -> Netlify -> karuzela IG + post FB")
                 print("          podpis IG:", spec["meta"]["caption_ig"].splitlines()[0])
             else:
-                print(f"[dry-run] {key}: rolka MP4 ze slajdów -> Netlify -> Reels IG")
+                what = "rolka próbna (tylko dla nieobserwujących)" if kind == "trial" else "rolka"
+                print(f"[dry-run] {key}: {what} wahadło MP4 -> Netlify -> Reels IG")
                 print("          podpis:", (spec["meta"].get("caption_reel") or spec["meta"]["caption_ig"]).splitlines()[0])
         return 0
 
@@ -390,19 +446,21 @@ def run(now, dry_run=False):
         urls = [f"{base}/{m}" for m in sorted(media) if m.startswith(media_prefix(key) + "/")]
         caption = meta["caption_ig"] if kind == "carousel" else (meta.get("caption_reel") or meta["caption_ig"])
         try:
-            found = find_existing(caption, kind) if key in failures else None
+            known = {v.get("ig_media_id") for v in published.values() if v.get("ig_media_id")}
+            found = find_existing(caption, kind, skip_ids=known) if key in failures else None
             if found:
                 print(f"{key}: już jest na profilu po wcześniejszej próbie, nie publikuję drugi raz")
             if kind == "carousel":
                 media_id, link = found or publish_instagram(urls, caption)
             else:
-                media_id, link = found or publish_reel(urls[0], caption, bool(meta.get("reel_to_feed")))
+                media_id, link = found or publish_reel(urls[0], caption, meta.get("reel_to_feed", True) is not False,
+                                                       trial=kind == "trial")
             published[key] = {"status": "published", "ig_media_id": media_id, "permalink": link,
                               "cta_keyword": meta.get("cta_keyword", ""), "at": now.isoformat()}
             save_state("published.json", published)
             failures.pop(key, None)
             print(f"{key}: opublikowano na Instagramie {link}")
-            if kind == "reel":
+            if kind != "carousel":
                 continue
         except ApiError as e:
             code = 1
@@ -431,9 +489,12 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--now", help="ISO time override, for testing")
+    ap.add_argument("--trial-test", action="store_true", help="sprawdź rolki próbne bez publikowania")
     args = ap.parse_args()
     if args.check:
         sys.exit(check())
+    if args.trial_test:
+        sys.exit(trial_test())
     sys.exit(run(now_local(args.now), dry_run=args.dry_run))
 
 

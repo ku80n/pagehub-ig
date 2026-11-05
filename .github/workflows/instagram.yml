@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = test połączeń, dry-run = próba bez publikacji, run = normalne uruchomienie"
+        description: "check = test połączeń, dry-run = próba bez publikacji, run = normalne uruchomienie, trial-test = test rolek próbnych bez publikacji"
         type: choice
-        options: [check, dry-run, run]
+        options: [check, dry-run, run, trial-test]
         default: check
 
 permissions:
@@ -23,7 +23,7 @@ concurrency:
 jobs:
   instagram:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
@@ -58,6 +58,11 @@ jobs:
         if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'check'
         working-directory: tools
         run: python3 publish.py --check
+
+      - name: Test rolek próbnych (nic nie publikuje)
+        if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'trial-test'
+        working-directory: tools
+        run: python3 publish.py --trial-test
 
       - name: Próba bez publikacji
         if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'dry-run'

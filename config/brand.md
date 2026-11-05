@@ -15,8 +15,9 @@
 
 ## Publikacja
 - 3 karuzele tygodniowo
-- Domyślne terminy: wtorek 19:00, czwartek 19:00, sobota 10:00
-- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook). Dokładnie o 19:02 we wtorek i czwartek oraz o 10:02 w sobotę uruchamiają ją zaplanowane zadania; godzinny harmonogram GitHuba to tylko zapas, bo bywa spóźniony o kilka godzin
+- Domyślne terminy karuzel: wtorek 14:00, czwartek 14:00, sobota 10:00
+- Rolka do karuzeli: dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00), rolka próbna godzinę wcześniej
+- Publikacja: automatycznie przez GitHub Actions o godzinie z `publish_at` (Instagram + Facebook). Dokładnie o czasie (wt i czw 14:02, sob 10:02, rolki śr i pt 13:02 i 14:02, nd 9:02 i 10:02) uruchamiają ją zaplanowane zadania w Claude; godzinny harmonogram GitHuba to tylko zapas, bo bywa spóźniony o kilka godzin
 - Pauza: plik `config/PAUZA` w repo
 
 ## Podpisy

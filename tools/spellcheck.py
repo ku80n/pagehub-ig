@@ -36,6 +36,11 @@ def texts(spec):
             yield f"meta.{f}", meta[f]
     for i, p in enumerate(meta.get("reel_points") or []):
         yield f"meta.reel_points[{i}]", p
+    rp = meta.get("reel_pendulum") or {}                 # written in capitals: check them in lower case
+    for i, q in enumerate(rp.get("questions") or []):
+        yield f"meta.reel_pendulum.questions[{i}]", q.lower()
+    if rp.get("answer"):
+        yield "meta.reel_pendulum.answer", rp["answer"].lower()
     for n, s in enumerate(spec.get("slides", []), 1):
         for f in SLIDE_FIELDS:
             if s.get(f):
