@@ -6,10 +6,11 @@ across the screen. Wherever the cord has passed, the big text changes: a problem
 No narrator. The last swing brings back the first question, so the clip loops
 without a seam when Instagram plays it again.
 
-The look: a dark 3D space in the brand colours (teal nebula, stars flying out of
-the horizon, a glowing floor grid rolling towards the camera), a topic pill that
-says what it is about ("TWOJA STRONA INTERNETOWA"), white questions, the answer in
-the brand teal, a white tag with the PageHub logo and the logo on top. The comment button ("Napisz TELEFON w komentarzu") pops in with a
+The look: the carousels' near-black with a faint 3D space behind it (a hint of
+teal nebula, a few stars flying out of the horizon, a dim floor grid rolling
+towards the camera), the big text inside a quiet browser window with an address
+bar, so it is clear at a glance that this is about a website, white questions,
+the answer in the brand teal, a white tag with the PageHub logo, the logo on top. The comment button ("Napisz TELEFON w komentarzu") pops in with a
 "ping" only after the last answer and fades out before the loop point, so the
 clip has no visible end: the tag just keeps swinging.
 Sound: an upbeat club loop generated here (four-on-the-floor kick, claps, hats,
@@ -121,25 +122,25 @@ def make_space():
     rng = np.random.default_rng(5)
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     sky = np.zeros((H, W, 3), np.float32)
-    top, low = np.array((3, 5, 10), np.float32), np.array((6, 20, 34), np.float32)
+    top, low = np.array(BG, np.float32), np.array((10, 16, 24), np.float32)
     k = np.clip(yy / HORIZON, 0, 1)[..., None] ** 1.6
     sky[:] = top * (1 - k) + low * k
     neb = _fractal(rng)
     neb2 = _fractal(rng, base=4)
     teal = np.clip((neb - 0.45) * 2.4, 0, 1) ** 1.6 * np.exp(-((yy - 520) / 700) ** 2)
     blue = np.clip((neb2 - 0.5) * 2.2, 0, 1) ** 1.8 * np.exp(-((yy - 300) / 600) ** 2)
-    sky += teal[..., None] * np.array(ACCENT, np.float32) * 0.55
-    sky += blue[..., None] * np.array((30, 60, 160), np.float32) * 0.45
+    sky += teal[..., None] * np.array(ACCENT, np.float32) * 0.13
+    sky += blue[..., None] * np.array((30, 60, 160), np.float32) * 0.10
     # darker pool behind the big text, so it always reads
     pool = np.exp(-(((xx - 540) / 520) ** 2 + ((yy - TEXT_Y) / 300) ** 2) * 1.3)[..., None]
     sky *= 1 - 0.55 * pool
     # floor below the horizon: dark, a little lighter far away
     below = yy > HORIZON
     d = np.clip((yy - HORIZON) / (H - HORIZON), 0, 1)
-    floor = np.array((4, 10, 18), np.float32) * (1 - d[..., None]) + np.array((2, 4, 8), np.float32) * d[..., None]
+    floor = np.array((10, 15, 22), np.float32) * (1 - d[..., None]) + np.array(BG, np.float32) * d[..., None]
     sky = np.where(below[..., None], floor, sky)
     # horizon glow
-    glow = np.exp(-((yy - HORIZON) / 16) ** 2) * 0.9 + np.exp(-((yy - HORIZON) / 120) ** 2) * 0.35
+    glow = np.exp(-((yy - HORIZON) / 14) ** 2) * 0.22 + np.exp(-((yy - HORIZON) / 120) ** 2) * 0.08
     glow *= np.exp(-((xx - 540) / 700) ** 2)
     sky += glow[..., None] * np.array((60, 190, 235), np.float32)
     sky += rng.normal(0, 1.0, sky.shape)                          # grain against banding
@@ -156,10 +157,40 @@ def make_space():
     line_x = np.clip(1.3 - dist_x, 0, 1) + 0.22 * np.exp(-(dist_x / 4) ** 2)
     line_x *= np.clip(1 - fpx / (cell * 0.35), 0, 1)              # fade where lines get too dense
     fog = np.exp(-z / 260.0) * np.clip((gy - HORIZON) / 6, 0, 1)
-    ns = 700
+    ns = 420
     stars = {"X": rng.uniform(-1, 1, ns) * 1400, "Y": -rng.uniform(0.03, 1, ns) ** 0.8 * 1500,
              "z0": rng.uniform(0, 1, ns), "tw": rng.uniform(0, 2 * np.pi, ns), "b": rng.uniform(0.5, 1, ns)}
     return {"sky": sky, "z": z, "fpz": fpz, "line_x": line_x, "fog": fog, "cell": cell, "stars": stars}
+
+
+WIN = (110, 548, 970, 1100)           # browser window around the big text (x0, y0, x1, y1)
+WIN_BAR = 70
+
+
+def browser_window(url):
+    """A quiet browser window, as on the carousels: dark surface, thin border,
+    three dots and an address bar with a lock and `url`. Drawn 2x for clean edges."""
+    s2 = 2
+    x0, y0, x1, y1 = WIN
+    w, h = (x1 - x0) * s2, (y1 - y0) * s2
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    r = 28 * s2
+    d.rounded_rectangle([0, 0, w - 1, h - 1], radius=r, fill=(14, 19, 26, 215), outline=(38, 50, 66, 255), width=2 * s2)
+    d.rounded_rectangle([0, 0, w - 1, WIN_BAR * s2], radius=r, fill=(20, 27, 36, 230), outline=(38, 50, 66, 255), width=2 * s2,
+                        corners=(True, True, False, False))
+    for i, col in enumerate((ACCENT, (60, 74, 90), (60, 74, 90))):
+        cx = (34 + i * 26) * s2
+        d.ellipse([cx - 7 * s2, (WIN_BAR / 2 - 7) * s2, cx + 7 * s2, (WIN_BAR / 2 + 7) * s2], fill=col + (255,))
+    bx0, bx1 = 120 * s2, w - 40 * s2
+    by0, by1 = 16 * s2, (WIN_BAR - 16) * s2
+    d.rounded_rectangle([bx0, by0, bx1, by1], radius=(by1 - by0) / 2, fill=(10, 14, 19, 255))
+    f = font("Inter-Medium.otf", 25 * s2)
+    lx, ly = bx0 + 22 * s2, (by0 + by1) / 2
+    d.rounded_rectangle([lx, ly - 4 * s2, lx + 14 * s2, ly + 8 * s2], radius=2 * s2, fill=(120, 136, 152, 255))    # lock
+    d.arc([lx + 2 * s2, ly - 12 * s2, lx + 12 * s2, ly + 2 * s2], 180, 360, fill=(120, 136, 152, 255), width=2 * s2)
+    d.text((lx + 26 * s2, ly - 16 * s2), url, font=f, fill=(150, 166, 182, 255))
+    return img.resize((x1 - x0, y1 - y0), Image.LANCZOS)
 
 
 def space_frame(t, total, sp):
@@ -172,7 +203,7 @@ def space_frame(t, total, sp):
     line_z = np.clip(1.3 - dist_z, 0, 1) + 0.22 * np.exp(-(dist_z / 4) ** 2)
     line_z *= np.clip(1 - sp["fpz"] / (cell * 0.35), 0, 1)
     grid = np.maximum(sp["line_x"], line_z) * sp["fog"]
-    img[HORIZON + 1:] += grid[..., None] * np.array((40, 175, 225), np.float32) * 0.9
+    img[HORIZON + 1:] += grid[..., None] * np.array((40, 175, 225), np.float32) * 0.26
     st = sp["stars"]
     zmax = 1.0
     z = (st["z0"] - t / total) % zmax + 0.02                      # every star flies the whole way once per loop
@@ -181,7 +212,7 @@ def space_frame(t, total, sp):
     ys = HORIZON + st["Y"] / (z * 10) * f / 100
     near = np.clip(1 - z, 0, 1)
     size = 0.9 + 3.4 * near ** 2.0
-    bright = st["b"] * 1.6 * np.clip(near * 3, 0, 1) * np.clip((z - 0.03) / 0.12, 0, 1)
+    bright = st["b"] * 0.55 * np.clip(near * 3, 0, 1) * np.clip((z - 0.03) / 0.12, 0, 1)
     bright *= 0.8 + 0.2 * np.sin(2 * np.pi * 3 * t / total + st["tw"])
     for x, y, r, bv in zip(xs, ys, size, bright):
         if bv < 0.03 or not (-6 < x < W + 6 and -6 < y < HORIZON):
@@ -193,6 +224,8 @@ def space_frame(t, total, sp):
             continue
         gy, gx = np.mgrid[y0:y1, x0:x1]
         spot = np.exp(-((gx - x) ** 2 + (gy - y) ** 2) / (2 * (r * 0.55) ** 2)) * bv
+        if "star_mask" in sp:
+            spot *= sp["star_mask"][y0:y1, x0:x1]
         img[y0:y1, x0:x1] += spot[..., None] * np.array((200, 235, 255), np.float32)
     return img
 
@@ -416,7 +449,16 @@ def prepare(spec):
     static = np.asarray(static_layer(word, spec["site"], spec.get("topic_label", "")), np.float32) / 255.0
     sprite, anchor = pendulum_sprite(mark)
     button = cta_image(spec["cta"]) if spec.get("cta") else None
-    return make_space(), static, layers, sprite, anchor, button
+    space = make_space()
+    if spec.get("url"):                                           # the window sits in the background, under the text
+        win = np.asarray(browser_window(spec["url"]), np.float32) / 255.0
+        x0, y0, x1, y1 = WIN
+        a = win[..., 3:4]
+        space["sky"][y0:y1, x0:x1] = space["sky"][y0:y1, x0:x1] * (1 - a) + win[..., :3] * 255 * a
+        mask = np.ones((H, W), np.float32)
+        mask[y0:y1, x0:x1] = 1 - 0.9 * a[..., 0]                  # stars stay behind the window
+        space["star_mask"] = mask
+    return space, static, layers, sprite, anchor, button
 
 
 # ---------------------------------------------------------------- music
