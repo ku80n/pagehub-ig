@@ -7,8 +7,10 @@ No narrator. The last swing brings back the first question, so the clip loops
 without a seam when Instagram plays it again.
 
 The look is the carousels': near-black background with a soft teal glow, white
-questions, the answer in the brand teal, a white tag with the PageHub logo, the
-logo on top and the comment button ("Napisz TELEFON w komentarzu") at the bottom.
+questions, the answer in the brand teal, a white tag with the PageHub logo and
+the logo on top. The comment button ("Napisz TELEFON w komentarzu") pops in with a
+"ping" only after the last answer and fades out before the loop point, so the
+clip has no visible end: the tag just keeps swinging.
 Sound: an upbeat club loop generated here (four-on-the-floor kick, claps, hats,
 pumping chords, bass, arp) at the tempo of the swing, two beats per swing, and a
 whoosh every time the cord sweeps over the text. Nothing to license.
@@ -152,18 +154,39 @@ def text_layer(text, color, size, glow=False):
     return np.asarray(layer, np.float32) / 255.0
 
 
-def static_layer(word, cta, site):
+CTA_Y = 1328                         # centre of the comment button
+
+
+def cta_image(cta):
+    """The comment button, as in the other Reels (drawn 2x for a clean pop-in)."""
+    s = 2
+    f = font("Inter-Bold.otf", 38 * s)
+    bw, bh = int(f.getlength(cta) + 76 * s), 92 * s
+    img = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, bw - 1, bh - 1], radius=bh / 2, fill=ACCENT + (255,))
+    d.text((38 * s, 21 * s), cta, font=f, fill=INK + (255,))
+    return img
+
+
+def cta_state(t, total, t0):
+    """(scale, opacity) of the button: hidden until the last answer is up (t0), then
+    a quick pop with the ping, and gone again just before the loop point."""
+    if t < t0:
+        return 0.0, 0.0
+    u = t - t0
+    pop = min(1.0, u / 0.22)
+    scale = 1 + 0.12 * math.sin(math.pi * pop) if pop < 1 else 1.0
+    scale *= 0.7 + 0.3 * (1 - (1 - pop) ** 3)
+    alpha = min(1.0, u / 0.08) * min(1.0, max(0.0, (total - 0.02 - t) / 0.3))
+    return scale, alpha
+
+
+def static_layer(word, site):
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     wm = word.resize((380, int(word.height * 380 / word.width)), Image.LANCZOS)
     layer.alpha_composite(wm, ((W - wm.width) // 2, 262))
     d = ImageDraw.Draw(layer)
-    if cta:                                                       # the comment button, as in the other Reels
-        f = font("Inter-Bold.otf", 38)
-        tw = f.getlength(cta)
-        bw, bh = tw + 76, 92
-        x0, y0 = (W - bw) / 2, 1282
-        d.rounded_rectangle([x0, y0, x0 + bw, y0 + bh], radius=bh / 2, fill=ACCENT + (255,))
-        d.text((x0 + 38, y0 + 21), cta, font=f, fill=INK + (255,))
     f2 = font("Inter-Medium.otf", 28)
     d.text(((W - f2.getlength(site)) / 2, 1398), site, font=f2, fill=FG + (150,))
     return layer
@@ -222,17 +245,30 @@ def place(sprite, anchor, theta, box):
     return arr
 
 
+END_HOLD = 2                          # extra swings on the last answer, so the button can be read
+
+
 def states(spec):
+    """Question, answer, question, answer, ... and, when there is a button, the last
+    answer stays for END_HOLD more swings (an even count keeps the swing and the
+    music loop whole)."""
     seq = []
     for q in spec["questions"]:
         seq += [("q", q), ("a", spec["answer"])]
+    if spec.get("cta"):
+        seq += [("a", spec["answer"])] * END_HOLD
     return seq
 
 
+def cta_start(spec):
+    return HALF * (len(states(spec)) - END_HOLD - 1)
+
+
 def frame(t, spec, assets):
-    bg, static, layers, sprite, anchor = assets
+    bg, static, layers, sprite, anchor, button = assets
     seq = states(spec)
-    t = t % (HALF * len(seq))
+    total = HALF * len(seq)
+    t = t % total
     k = int(t // HALF)
     old, new = layers[seq[k]], layers[seq[(k + 1) % len(seq)]]
     theta = angle(t)
@@ -251,6 +287,13 @@ def frame(t, spec, assets):
     out[y0:y1] = band
     st = static
     out = out * (1 - st[..., 3:4]) + st[..., :3] * 255 * st[..., 3:4]
+    scale, alpha = cta_state(t, total, cta_start(spec))
+    if alpha > 0 and button is not None:
+        bw, bh = max(2, int(button.width / 2 * scale)), max(2, int(button.height / 2 * scale))
+        b = np.asarray(button.resize((bw, bh), Image.LANCZOS), np.float32) / 255.0
+        x0, y0 = (W - bw) // 2, CTA_Y - bh // 2
+        a = b[..., 3:4] * alpha
+        out[y0:y0 + bh, x0:x0 + bw] = out[y0:y0 + bh, x0:x0 + bw] * (1 - a) + b[..., :3] * 255 * a
     # the swinging tag, with a light motion blur (7 samples over a quarter of a frame)
     n, shutter = 7, 0.25 / FPS
     times = [t + shutter * (j / (n - 1) - 0.5) for j in range(n)]
@@ -269,9 +312,10 @@ def prepare(spec):
     for kind, text in states(spec):
         if (kind, text) not in layers:
             layers[(kind, text)] = text_layer(text, FG if kind == "q" else ACCENT, size, glow=kind == "a")
-    static = np.asarray(static_layer(word, spec.get("cta", ""), spec["site"]), np.float32) / 255.0
+    static = np.asarray(static_layer(word, spec["site"]), np.float32) / 255.0
     sprite, anchor = pendulum_sprite(mark)
-    return background(), static, layers, sprite, anchor
+    button = cta_image(spec["cta"]) if spec.get("cta") else None
+    return background(), static, layers, sprite, anchor, button
 
 
 # ---------------------------------------------------------------- music
@@ -287,8 +331,8 @@ def _hp(x, cut, taps=63):
 def club_bed(bars, rng, bpm=BPM):
     """An upbeat club loop, `bars` bars long and periodic: four-on-the-floor kick,
     claps on 2 and 4, 16th hats with open hats on the off-beats, an off-beat bass,
-    wide chords pumping under the kick, a plucky 16th arp, a clap roll into the
-    loop point. One chord per bar, so the loop closes on the dominant (E -> Am).
+    wide chords pumping under the kick, a plucky 16th arp. No fill or break, so
+    nothing marks the loop point. One chord per bar, so the loop closes on the dominant (E -> Am).
     Stereo (L, R)."""
     beat = 60 / bpm
     bar = 4 * beat
@@ -351,9 +395,6 @@ def club_bed(bars, rng, bpm=BPM):
             f = _hz(m)
             pluck = (np.sin(2 * np.pi * f * kp) + 0.35 * np.sin(2 * np.pi * 2 * f * kp)) * mr._env(lp, 0.002, 0.07)
             mr._put(arp_b, pluck * (1.0 if e % 4 == 0 else 0.7), t_bar + e * beat / 4)
-        if b % bars == bars - 1:                                  # clap roll into the loop point
-            for r in range(8):
-                mr._put(clap_b, clap * (0.25 + 0.09 * r), t_bar + 2 * beat + r * beat / 4)
         t_bar += bar
         b += 1
 
@@ -405,6 +446,18 @@ def soundtrack(spec, total):
     on = np.abs(fx_l) + np.abs(fx_r) > 1e-4
     g = 0.55 * bed_rms / max(np.sqrt(np.mean((fx_l[on] ** 2 + fx_r[on] ** 2) / 2)), 1e-9)
     mix = np.stack([l + fx_l * g, r + fx_r * g], axis=1)
+    if spec.get("cta"):                                        # the same "ping" as in the other Reels
+        ln = int(1.0 * SR)
+        k = np.arange(ln) / SR
+        f0 = 440 * 2 ** ((88 - 69) / 12)                       # E6
+        ding = (np.sin(2 * np.pi * f0 * k) + 0.4 * np.sin(2 * np.pi * 2 * f0 * k) * np.exp(-k / 0.1)
+                + 0.2 * np.sin(2 * np.pi * 3.01 * f0 * k) * np.exp(-k / 0.06)) * mr._env(ln, 0.002, 0.35)
+        t0 = int(cta_start(spec) * SR)
+        for delay, gain, pan in ((0.0, 1.0, 0.0), (0.2, 0.42, -0.6), (0.4, 0.2, 0.6)):
+            i = t0 + int(delay * SR)
+            seg = ding[: max(0, n - i)] * gain * bed_rms * 2.4
+            mix[i:i + len(seg), 0] += seg * (1 - pan)
+            mix[i:i + len(seg), 1] += seg * (1 + pan)
     mix = np.tanh(mix / np.abs(mix).max() * 1.3) / np.tanh(1.3)       # glue it like a limiter would
     return mix * 0.8
 
