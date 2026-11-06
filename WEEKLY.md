@@ -13,6 +13,17 @@ Wynik: commit w repo (na nim działa publikacja) i strona z podglądem (archiwum
 
 Wszystkie ścieżki poniżej są względem katalogu repo.
 
+## Zasady nadrzędne (audyt z 6.11.2026)
+- **Profil prowadzi wyłącznie AI.** Nie planuj twarzy, nagrań właściciela, osobistych historii ani niczego, co wymaga obecności człowieka. Gdy poradnik albo pomysł mówi "pokaż człowieka", zamiast tego pokaż produkt, proces albo funkcję strony.
+- Mówimy jako marka PageHub ("my", "w PageHub"). Nie udajemy człowieka i nie tworzymy persony AI z osobistymi doświadczeniami.
+- **Każda publikacja wnosi konkretną wartość.** Nie publikuj po to, żeby wypełnić harmonogram. Lepiej mniej i lepiej: rolkę bez własnej wartości wyłącz (`"reel": false`).
+- Najpierw problem klienta i jego skutek dla firmy, potem rozwiązanie. Technologia (Angular, Netlify) tylko jako uzasadnienie.
+- Dowody zamiast deklaracji: prawdziwe funkcje, prawdziwa realizacja (Envision Studio), konkretne rozwiązania. Koncepcję albo makietę oznacz jako przykład.
+- Lokalność (Przemyśl, Rzeszów, Podkarpacie) wtedy, gdy temat naprawdę jej dotyczy, bez upychania nazw miast.
+- Każda publikacja ma w `plan.md` jeden mierzalny cel: zasięg, zapis, udostępnienie, wejście na profil, kliknięcie albo zapytanie.
+- Nie powtarzaj za mocno ostatnich publikacji (tematy, kąty, pierwsze zdania z `log.md` i ostatnich tygodni w `weeks/`).
+- Jeśli w `state/raport/` jest raport z ostatniego tygodnia, przeczytaj go przed planowaniem. Wnioski wyciągaj ostrożnie: porównuj grupy podobnych postów z kilku tygodni, nie zmieniaj strategii przez jeden post.
+
 ## 0. Przygotowanie
 - `python3 -c "import playwright, spylls, numpy"` - czego brakuje, doinstaluj: `pip install playwright spylls numpy --break-system-packages`. Przeglądarka: `/usr/bin/google-chrome` (bez pobierania).
 - Folder tygodnia: `weeks/<data poniedziałku tego tygodnia, RRRR-MM-DD>/`. Jeśli już istnieje i ma `index.html`, ten tydzień jest zrobiony: zakończ z krótką informacją.
@@ -27,7 +38,8 @@ Wszystkie ścieżki poniżej są względem katalogu repo.
 
 ## 2. Zaplanuj 3 karuzele -> `weeks/<data>/plan.md`
 - Podział według `config/pillars.md`, terminy z `config/brand.md`.
-- Dla każdej: filar, temat, konkretny kąt (nie "SEO", tylko "3 rzeczy, przez które Google nie pokazuje Twojej firmy w Mapach"), termin.
+- Dla każdej: filar, temat, konkretny kąt (nie "SEO", tylko "3 rzeczy, przez które Google nie pokazuje Twojej firmy w Mapach"), termin, mierzalny cel i CTA.
+- Dla każdej rolki: czym różni się od swojej karuzeli (jeden przykład, jedno rozwiązanie, jeden wniosek). Jeśli nie umiesz tego napisać jednym zdaniem, ta karuzela nie dostaje rolki.
 - Każda liczba spoza `facts.md` musi mieć publiczne źródło: sprawdź ją wyszukiwarką i wpisz link w `plan.md`. Bez źródła nie ma liczby.
 - Niczego nie wymyślaj o PageHub: klientów, wyników, opinii, terminów realizacji. Ceny tylko z `facts.md`, zawsze jako "od".
 - Bez tematów politycznych, kontrowersyjnych, o konkurencji z nazwy.
@@ -41,16 +53,16 @@ Format (jak w `tools/render_carousel.py`):
   "meta": {
     "when": "wtorek 10.11, 14:00",
     "publish_at": "2026-11-10T14:00:00+01:00",
-    "pillar": "Edukacja",
+    "pillar": "Edukacja i problemy klientów",
     "topic": "krótki opis tematu",
     "cta_keyword": "TELEFON",
     "reply_hint": "Proponowana pierwsza odpowiedź dla osoby, która napisze słowo-klucz",
     "caption_ig": "...",
     "caption_reel": "...",
     "reel_pendulum": {
-      "questions": ["ROZJEŻDŻA SIĘ NA TELEFONIE?", "TEKST TRZEBA POWIĘKSZAĆ?", "NIE DA SIĘ ZADZWONIĆ?",
-                    "ZA MAŁE PRZYCISKI?", "FORMULARZ NIE DZIAŁA?"],
-      "answer": "OGARNIEMY TO.",
+      "questions": ["ROZJEŻDŻA SIĘ NA TELEFONIE?", "TEKST TRZEBA POWIĘKSZAĆ?", "NIE DA SIĘ ZADZWONIĆ?", "FORMULARZ NIE DZIAŁA?"],
+      "answers": ["UKŁAD POD KAŻDY EKRAN.", "CZYTELNY OD RAZU.", "NUMER, KTÓRY DZWONI.", "WIADOMOŚCI DOCHODZĄ."],
+      "closing": "TAK DZIAŁA DOBRA STRONA.",
       "url": "twoja-strona.pl"
     },
     "caption_fb": "...",
@@ -67,20 +79,22 @@ Format (jak w `tools/render_carousel.py`):
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
   Używaj **tylko** domyślnych terminów z `config/brand.md` (wtorek 14:00, czwartek 14:00, sobota 10:00): dokładnie wtedy osobne zadanie uruchamia publikację. Godzinny harmonogram GitHuba bywa spóźniony o kilka godzin, więc inna godzina oznacza spóźniony post.
   Rolka wychodzi sama dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00); gdy rolki próbne zostaną włączone, próbna wyjdzie godzinę przed nią. Nie ustawiaj `reel_at`, chyba że zmieniasz ten rytm.
-- `cta_keyword`: **każda** karuzela ma słowo-klucz WIELKIMI LITERAMI, bo rolka zawsze kończy się przyciskiem "Napisz SŁOWO w komentarzu", a każdy taki komentarz to powiadomienie o kliencie dla Jakuba. Słowo ma pasować do tematu i być rzadkie w zwykłych komentarzach (dobre: TURBO, TELEFON, WYCENA; złe: STRONA, SUPER). Inne w każdej karuzeli tygodnia.
+- `cta_keyword`: **każda** karuzela ma słowo-klucz WIELKIMI LITERAMI, bo rolka kończy się przyciskiem "Napisz SŁOWO w komentarzu", a każdy taki komentarz to powiadomienie o kliencie dla Jakuba. To jedna z dwóch dróg kontaktu: w opisach, gdzie pasuje, dodaj drugą ("albo wypełnij formularz na pagehub.pl"). CTA ma pasować do intencji posta: post edukacyjny może prosić o zapis, oferta o wycenę. Słowo ma pasować do tematu i być rzadkie w zwykłych komentarzach (dobre: TURBO, TELEFON, WYCENA; złe: STRONA, SUPER). Inne w każdej karuzeli tygodnia.
 - `reply_hint`: krótka odpowiedź w głosie PageHub dla osoby, która napisze słowo-klucz: o co dopytać + widełki z `facts.md`. Bez darmowych obietnic.
-- **Rolka "wahadło"** (`reel_pendulum`, render: `tools/make_pendulum.py`). Każda karuzela dostaje swoją rolkę o tej samej treści, publikowaną dzień po karuzeli. Wygląd jest stały i nie zmieniasz go: ciemne tło jak na karuzelach z ledwo widocznym kosmosem 3D (mgławica, gwiazdy, siatka), duży tekst w ciemnym oknie przeglądarki z paskiem adresu, biały znaczek z logo PageHub na sznurku, logo na górze, pagehub.pl na dole, energiczna muzyka bez lektora. Wahadło kołysze się w rytm muzyki i tam, gdzie przejdzie sznurek, tekst zmienia się na następny: pytanie (białe), odpowiedź (w kolorze marki), pytanie, odpowiedź... Na końcu pojawia się przycisk "Napisz SŁOWO w komentarzu" z dźwiękiem "ping", znika przed końcem pętli i rolka kręci się bez widocznego końca.
-  - `questions`: 4-5 pytań z punktów **tej** karuzeli, w tej samej kolejności, WIELKIMI LITERAMI, każde kończy się "?". To problem albo potrzeba właściciela firmy, którą PageHub załatwia (np. "NIE DA SIĘ ZADZWONIĆ?", "BEZ SZABLONU?", "WIDOCZNA W GOOGLE?").
+- **Rolka "wahadło"** (`reel_pendulum`, render: `tools/make_pendulum.py`). Karuzela dostaje rolkę na ten sam temat, publikowaną dzień po karuzeli, ale rolka nie jest jej skrótem: pokazuje problem i jego konkretne rozwiązanie, para po parze. Wygląd jest stały i nie zmieniasz go: ciemne tło jak na karuzelach z ledwo widocznym kosmosem 3D (mgławica, gwiazdy, siatka), duży tekst w ciemnym oknie przeglądarki z paskiem adresu, biały znaczek z logo PageHub na sznurku, logo na górze, pagehub.pl na dole, energiczna muzyka bez lektora. Wahadło kołysze się w rytm muzyki i tam, gdzie przejdzie sznurek, tekst zmienia się na następny: pytanie (białe), odpowiedź (w kolorze marki), pytanie, odpowiedź... Na końcu pojawia się przycisk "Napisz SŁOWO w komentarzu" z dźwiękiem "ping", znika przed końcem pętli i rolka kręci się bez widocznego końca.
+  - `questions`: 4 pytania (najwyżej 5) z punktów **tej** karuzeli, w tej samej kolejności, WIELKIMI LITERAMI, każde kończy się "?". To problem albo potrzeba właściciela firmy, którą PageHub załatwia (np. "NIE DA SIĘ ZADZWONIĆ?", "BEZ SZABLONU?", "WIDOCZNA W GOOGLE?").
   - Krótko: 2-4 słowa, najwyżej dwie linie po około 13 znaków ("ROZJEŻDŻA SIĘ / NA TELEFONIE?"). Dłuższe zmniejszają tekst w całej rolce.
   - **Od razu jasne, o co chodzi.** Okno przeglądarki i adres już mówią, że chodzi o stronę internetową, ale każde pytanie musi być zrozumiałe samo, bez karuzeli. Złe: "NUMER NIE DZWONI?" (nie wiadomo, co z tym numerem). Dobre: "NIE DA SIĘ ZADZWONIĆ?". Pierwsze pytanie to hak: najmocniejszy problem z karuzeli.
-  - `answer`: jedna krótka odpowiedź na wszystkie pytania, domyślnie "OGARNIEMY TO.". Zmieniaj ją tylko wtedy, gdy nie pasuje do pytań.
+  - `answers`: **do każdego pytania jego konkretne rozwiązanie**, 2-4 słowa, kropka na końcu, prawdziwe według `facts.md` ("NUMER, KTÓRY DZWONI.", "KOD PISANY OD ZERA.", "ZGŁASZAMY JĄ DO GOOGLE."). Nie powtarzaj w kółko tej samej odpowiedzi: "OGARNIEMY TO." to deklaracja, a nie dowód.
+  - `closing`: puenta na koniec, przy której pojawia się przycisk, np. "TAK DZIAŁA DOBRA STRONA.", "TAK POWSTAJE TWOJA STRONA.". Może być "OGARNIEMY TO.", ale najwyżej w jednej rolce na tydzień.
+  - `answer`: zapasowa wspólna odpowiedź, gdy któregoś z `answers` brakuje.
   - `url`: adres w pasku okna, domyślnie "twoja-strona.pl".
   - Przycisk robi się sam z `cta_keyword` ("Napisz TELEFON w komentarzu"). Nie dopisuj go do pytań.
   - Bez cen, liczb i obietnic spoza `facts.md`. Bez skrótów i symboli. Zasady `skills/pl-naturalnie/SKILL.md` obowiązują też tutaj.
   - Rolka próbna (dla osób, które nie obserwują profilu) zaczyna się od drugiego pytania. Nic nie musisz dla niej pisać.
 - **Rolki są włączone** (`config/ROLKI`). Nie usuwaj i nie zmieniaj tego pliku. Rolki próbne są na razie wyłączone (Instagram odrzuca je dla tego konta, zwykle wymagają co najmniej 200 obserwujących); nie twórz `config/ROLKI_PROBNE`, włączy je Jakub. Karuzela bez `reel_pendulum` nie dostanie rolki. `"reel": false` wyłącza rolkę jednej karuzeli, `"reel_trial": false` tylko jej rolkę próbną.
-- `caption_reel`: osobny, krótszy opis do rolki. Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, jedno wezwanie do działania
-  (to samo słowo-klucz co w karuzeli, jeśli jest), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film. Ten sam opis dostaje rolka próbna.
+- `caption_reel`: osobny, krótszy opis do rolki, zgodny z tym, co pokazuje rolka (pary problem - rozwiązanie). Pierwsza linia to hook do 125 znaków, potem 1-2 zdania, wezwanie do działania
+  (słowo-klucz, a gdzie pasuje także formularz na pagehub.pl), 3 hashtagi. Nie pisz "przesuń" ani "zapisz karuzelę" - to film. Ten sam opis dostaje rolka próbna.
 
 Zasady:
 - 6-9 slajdów (API przyjmuje maksymalnie 10): okładka, stawka (slajd 2 musi działać sam), jedna myśl na slajd, podsumowanie (lista), CTA.
@@ -108,6 +122,7 @@ Zasady:
   `python3 tools/make_pendulum.py weeks/<data>/kN.json --still 99 --out /tmp/kN-b.png`. Tekst ma być czytelny, w dwóch liniach, bez ucięć.
 - **Naturalny polski:** przeczytaj `skills/pl-naturalnie/SKILL.md` przed pisaniem. `python3 tools/pl_check.py weeks/<data>` musi dać 0 uwag (kalki z angielskiego, korpomowa). Przeczytaj na głos każde pytanie rolki razem z odpowiedzią: ma brzmieć naturalnie i być jasne dla kogoś, kto nie zna się na stronach.
 - Przeczytaj każdą karuzelę od początku do końca jak klient: polski poprawny, sens jasny, nic, czego PageHub nie robi.
+- **Lista kontrolna z audytu** (każdy punkt w `plan.md` z odpowiedzią tak/nie): każde twierdzenie zgodne z `facts.md`; brak fikcyjnych klientów, opinii i wyników; tekst czytelny na telefonie; CTA i link poprawne; materiał wnosi coś innego niż ostatnie publikacje; rolka nie jest mechanicznym powtórzeniem karuzeli; treść nie sugeruje, że za profilem stoi człowiek. Wynik "czy brzmi jak AI" to tylko jedna z bramek: ważniejsze, czy tekst jest konkretny, prawdziwy i przydatny.
 - Karuzela, która po dwóch poprawkach nadal nie przechodzi: ustaw w niej `"skip": true` w `meta`, opisz powód w `plan.md`. Lepiej 2 dobre posty niż 3 z jednym słabym.
 
 ## 5. Grafiki
