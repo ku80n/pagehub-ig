@@ -390,20 +390,30 @@ def place(sprite, anchor, theta, box):
 END_HOLD = 2                          # extra swings on the last answer, so the button can be read
 
 
+def answer_for(spec, i):
+    """The answer to question i: its own one from `answers` (the concrete fix), or
+    the one shared `answer`."""
+    answers = spec.get("answers") or []
+    return answers[i] if i < len(answers) and answers[i] else spec["answer"]
+
+
 def states(spec):
-    """Question, answer, question, answer, ... and, when there is a button, the last
-    answer stays for END_HOLD more swings (an even count keeps the swing and the
-    music loop whole)."""
+    """Question, its answer, question, its answer, ... then, when there is a button,
+    the closing line (or the last answer) stays for END_HOLD swings while the button
+    is up (an even count keeps the swing and the music loop whole)."""
     seq = []
-    for q in spec["questions"]:
-        seq += [("q", q), ("a", spec["answer"])]
+    for i, q in enumerate(spec["questions"]):
+        seq += [("q", q), ("a", answer_for(spec, i))]
     if spec.get("cta"):
-        seq += [("a", spec["answer"])] * END_HOLD
+        last = ("a", spec["closing"]) if spec.get("closing") else seq[-1]
+        seq += [last] * END_HOLD
     return seq
 
 
 def cta_start(spec):
-    return HALF * (len(states(spec)) - END_HOLD - 1)
+    """The button pops up as soon as the closing line (or the last answer) is fully on screen."""
+    held = END_HOLD if spec.get("closing") else END_HOLD + 1
+    return HALF * (len(states(spec)) - held)
 
 
 def frame(t, spec, assets):
@@ -676,10 +686,13 @@ def pendulum_spec(carousel, trial=False):
     kw = meta.get("cta_keyword", "").strip()
     spec = dict(DEFAULT)
     spec.update({"questions": list(rp["questions"]), "answer": rp.get("answer", "OGARNIEMY TO."),
+                 "answers": list(rp.get("answers") or []), "closing": rp.get("closing", ""),
                  "url": rp.get("url", "twoja-strona.pl"),
                  "cta": rp.get("cta") or (f"Napisz {kw} w komentarzu" if kw else "Napisz do nas wiadomość")})
     if trial and len(spec["questions"]) > 1:
         spec["questions"] = spec["questions"][1:] + spec["questions"][:1]
+        if spec["answers"]:
+            spec["answers"] = spec["answers"][1:] + spec["answers"][:1]
     return spec
 
 

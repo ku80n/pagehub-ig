@@ -9,16 +9,21 @@
     "cta_keyword": "WYCENA",
     "reply_hint": "Cześć! Dzięki za komentarz. Napisz, czym zajmuje się Twoja firma i czego potrzebujesz na stronie, a odezwiemy się z wyceną. Landing page robimy od 800 zł, stronę firmową od 1500 zł.",
     "caption_ig": "Każdą stronę w PageHub piszemy od zera. Pokazujemy, jak to wygląda od środka.\n\nBez kreatora i bez gotowego motywu. Zaczynamy od rozmowy o Twoich klientach, potem projekt pod branżę, kod w Angularze, prosty panel do samodzielnych zmian i publikacja razem z Google Search Console.\n\nEfekt: strona, która ma tylko to, czego potrzebujesz, i którą aktualizujesz sam.\n\nMasz stronę, która odstaje od reszty Twojej firmy? Napisz do nas wiadomość.\n\n#stronywww #webdesign #angular #przemyśl #stronadlafirmy",
-    "caption_reel": "Bez szablonów. Tak powstaje strona w PageHub.\n\nNajpierw rozmowa o Twoich klientach i o tym, co mają zrobić na stronie. Potem projekt, kod pisany od zera w Angularze, a na koniec publikacja i podpięcie Google Search Console. Tak powstała między innymi strona Envision Studio z Przemyśla.\n\nChcesz taką stronę? Napisz WYCENA w komentarzu. Landing page robimy od 800 zł, stronę firmową od 1500 zł.\n\n#stronywww #webdesign #przemyśl",
+    "caption_reel": "Bez szablonów. Tak powstaje strona w PageHub.\n\nNajpierw rozmowa o Twoich klientach i o tym, co mają zrobić na stronie. Potem projekt, kod pisany od zera w Angularze, a na koniec publikacja i podpięcie Google Search Console. Tak powstała między innymi strona Envision Studio z Przemyśla.\n\nChcesz taką stronę? Napisz WYCENA w komentarzu albo wypełnij formularz na pagehub.pl. Landing page robimy od 800 zł, stronę firmową od 1500 zł.\n\n#stronywww #webdesign #przemyśl",
     "reel_pendulum": {
       "questions": [
         "BEZ SZABLONU?",
         "PROJEKT POD TWOJĄ BRANŻĘ?",
-        "KOD PISANY OD ZERA?",
         "SAM CHCESZ ZMIENIAĆ CENY?",
         "WIDOCZNA W GOOGLE?"
       ],
-      "answer": "OGARNIEMY TO.",
+      "answers": [
+        "KOD PISANY OD ZERA.",
+        "NAJPIERW ROZMOWA.",
+        "WŁASNY PANEL DO ZMIAN.",
+        "ZGŁASZAMY JĄ DO GOOGLE."
+      ],
+      "closing": "TAK POWSTAJE TWOJA STRONA.",
       "url": "twoja-strona.pl"
     },
     "reel_heading": "5 kroków do nowej strony:",

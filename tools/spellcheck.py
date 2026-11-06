@@ -41,6 +41,10 @@ def texts(spec):
         yield f"meta.reel_pendulum.questions[{i}]", q.lower()
     if rp.get("answer"):
         yield "meta.reel_pendulum.answer", rp["answer"].lower()
+    for i, a in enumerate(rp.get("answers") or []):
+        yield f"meta.reel_pendulum.answers[{i}]", a.lower()
+    if rp.get("closing"):
+        yield "meta.reel_pendulum.closing", rp["closing"].lower()
     for n, s in enumerate(spec.get("slides", []), 1):
         for f in SLIDE_FIELDS:
             if s.get(f):
