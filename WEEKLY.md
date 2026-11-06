@@ -22,6 +22,7 @@ Wszystkie ścieżki poniżej są względem katalogu repo.
 - Lokalność (Przemyśl, Rzeszów, Podkarpacie) wtedy, gdy temat naprawdę jej dotyczy, bez upychania nazw miast.
 - Każda publikacja ma w `plan.md` jeden mierzalny cel: zasięg, zapis, udostępnienie, wejście na profil, kliknięcie albo zapytanie.
 - Nie powtarzaj za mocno ostatnich publikacji (tematy, kąty, pierwsze zdania z `log.md` i ostatnich tygodni w `weeks/`).
+- **Decyzje Jakuba (6.11.2026), nie proponuj ich ponownie:** bez Stories, bez rolek z nagrań prawdziwych stron, bez zmian w formularzu na pagehub.pl, bez osobnej definicji "jakościowego leada" (leadem jest każdy komentarz ze słowem-kluczem, pytanie o stronę, cenę lub współpracę i każda wiadomość DM, jak w `tools/leads.py`).
 - Przeczytaj najnowszy raport z `state/raport/` (robi go `tools/report.py` w poniedziałek rano: zasięg, wyświetlenia, zapisy, udostępnienia, leady na post, filar). Wnioski wyciągaj ostrożnie: porównuj grupy podobnych postów z kilku tygodni, nie zmieniaj strategii przez jeden post.
 
 ## 0. Przygotowanie
