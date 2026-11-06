@@ -21,3 +21,7 @@ landing
 page
 slider
 online
+barber
+barbera
+barberem
+barberze

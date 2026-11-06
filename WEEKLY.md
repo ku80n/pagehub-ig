@@ -77,6 +77,9 @@ Format (jak w `tools/render_carousel.py`):
   ]
 }
 ```
+- Slajd `palette` (paleta kolorów z małą stroną w tych kolorach, kodami i zmierzonym kontrastem):
+  `{"type": "palette", "kicker": "branża", "title": "Grafit i *pomarańcz*", "palette": {"bg": "#..", "text": "#..", "main": "#..", "accent": "#..", "names": {"bg": "..", "text": "..", "main": "..", "accent": ".."}}, "mock": {"headline": "..", "line": "..", "button": "Zadzwoń"}, "note": ".."}`.
+  Kontrast liczy renderer; poniżej 4,5:1 slajd nie przejdzie. Wzór: `ideas/kolory-dla-branz.json`.
 - `publish_at`: data i godzina w czasie polskim z właściwym przesunięciem (+01:00 zimą, +02:00 latem). Musi być w przyszłości.
   Używaj **tylko** domyślnych terminów z `config/brand.md` (wtorek 14:00, czwartek 14:00, sobota 10:00): dokładnie wtedy osobne zadanie uruchamia publikację. Godzinny harmonogram GitHuba bywa spóźniony o kilka godzin, więc inna godzina oznacza spóźniony post.
   Rolka wychodzi sama dzień później o tej samej godzinie (środa 14:00, piątek 14:00, niedziela 10:00); gdy rolki próbne zostaną włączone, próbna wyjdzie godzinę przed nią. Nie ustawiaj `reel_at`, chyba że zmieniasz ten rytm.
@@ -89,6 +92,7 @@ Format (jak w `tools/render_carousel.py`):
   - `answers`: **do każdego pytania jego konkretne rozwiązanie**, 2-4 słowa, kropka na końcu, prawdziwe według `facts.md` ("NUMER, KTÓRY DZWONI.", "KOD PISANY OD ZERA.", "ZGŁASZAMY JĄ DO GOOGLE."). Nie powtarzaj w kółko tej samej odpowiedzi: "OGARNIEMY TO." to deklaracja, a nie dowód.
   - `closing`: puenta na koniec, przy której pojawia się przycisk, np. "TAK DZIAŁA DOBRA STRONA.", "TAK POWSTAJE TWOJA STRONA.". Może być "OGARNIEMY TO.", ale najwyżej w jednej rolce na tydzień.
   - `answer`: zapasowa wspólna odpowiedź, gdy któregoś z `answers` brakuje.
+  - `palettes` (zamiast `answers`, tylko przy tematach o kolorach): do każdego pytania paleta `{"name": "GRAFIT I POMARAŃCZ", "bg", "text", "main", "accent", "button": "Zadzwoń"}`; odpowiedzią jest wtedy okno zamienione w małą stronę w tych kolorach.
   - `url`: adres w pasku okna, domyślnie "twoja-strona.pl".
   - Przycisk robi się sam z `cta_keyword` ("Napisz TELEFON w komentarzu"). Nie dopisuj go do pytań.
   - Bez cen, liczb i obietnic spoza `facts.md`. Bez skrótów i symboli. Zasady `skills/pl-naturalnie/SKILL.md` obowiązują też tutaj.

@@ -1,0 +1,228 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "",
+    "publish_at": "",
+    "pillar": "Edukacja i problemy klientów",
+    "topic": "Kolory strony dobrane do branży: 6 gotowych palet z kodami",
+    "goal": "zapisy i udostępnienia (materiał do zachowania na później)",
+    "cta_keyword": "KOLORY",
+    "reply_hint": "Cześć, dzięki za komentarz! Jaka to branża i czy masz już logo albo kolory firmowe? Kolory dopasowujemy do marki w ramach projektu strony: landing page od 800 zł, strona firmowa od 1500 zł. Chętnie przygotuję wycenę.",
+    "caption_ig": "6 palet kolorów na stronę: warsztat, barber, salon kosmetyczny, gabinet, restauracja i firma budowlana.\n\nKażda ma 4 kody: tło, tekst, kolor główny i akcent. W każdej zmierzyliśmy kontrast, żeby tekst był czytelny na telefonie.\n\nProsta zasada: 60% tło, 30% kolor główny, 10% akcent. Akcent zostaw na przycisk, w który klient ma kliknąć.\n\nZapisz, przyda się przy stronie, wizytówce i szyldzie. Planujesz stronę? Napisz KOLORY w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #webdesign #lokalnybiznes #stronadlafirmy",
+    "caption_reel": "Warsztat, barber, gabinet, restauracja. Każda branża ma kolory, które do niej pasują.\n\n4 palety z kodami w rolce, 6 w karuzeli na profilu. Akcent zawsze tylko na przycisku, w który klient ma kliknąć.\n\nNapisz KOLORY w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #webdesign #lokalnybiznes",
+    "caption_fb": "6 palet kolorów na stronę firmy: warsztat, barber, salon kosmetyczny, gabinet, restauracja i firma budowlana.\n\nKażda ma 4 kody kolorów: tło, tekst, kolor główny i akcent. Przy każdej podajemy zmierzony kontrast tekstu, bo kolory dobrane na oko często dają szary tekst na beżowym tle, którego nie da się przeczytać na telefonie.\n\nProsta zasada: 60% tło, 30% kolor główny, 10% akcent. Akcent tylko na przycisk: Zadzwoń, Umów wizytę, Zamów.\n\nZapisz post na później. Planujesz stronę? Napisz KOLORY w komentarzu albo wypełnij formularz na pagehub.pl. Kolory dopasowujemy do marki w ramach projektu strony.",
+    "alt": "Okładka karuzeli PageHub: Kolory na stronę Twojej branży, 6 gotowych palet z kodami",
+    "reel_pendulum": {
+      "questions": [
+        "KOLORY DLA WARSZTATU?",
+        "A DLA BARBERA?",
+        "A DLA GABINETU?",
+        "A DLA RESTAURACJI?"
+      ],
+      "palettes": [
+        {
+          "bg": "#F2F3F5",
+          "text": "#1D2126",
+          "main": "#3E4A56",
+          "accent": "#E4570F",
+          "name": "GRAFIT I POMARAŃCZ",
+          "button": "Zadzwoń"
+        },
+        {
+          "bg": "#151515",
+          "text": "#F1ECE3",
+          "main": "#3A322A",
+          "accent": "#C49A4A",
+          "name": "CZERŃ I MOSIĄDZ",
+          "button": "Umów wizytę"
+        },
+        {
+          "bg": "#FFFFFF",
+          "text": "#14283B",
+          "main": "#DDF1EC",
+          "accent": "#0E7469",
+          "name": "BIEL I MORSKI",
+          "button": "Umów wizytę"
+        },
+        {
+          "bg": "#F7F0E4",
+          "text": "#241D18",
+          "main": "#6E7B3B",
+          "accent": "#B8361F",
+          "name": "KREM I POMIDOR",
+          "button": "Zamów"
+        }
+      ],
+      "closing": "KOLORY POD TWOJĄ BRANŻĘ.",
+      "url": "twoja-strona.pl"
+    }
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "kolory",
+      "title": "Kolory na stronę *Twojej branży*",
+      "subtitle": "6 gotowych palet z kodami. Każda sprawdzona pod kątem czytelności."
+    },
+    {
+      "type": "text",
+      "title": "Kolory *na oko* to ryzyko",
+      "body": "Szary tekst na beżowym tle ciężko przeczytać na telefonie. Przycisk w kolorze tła ginie i nikt w niego nie klika.\n\nDlatego przy każdej palecie podajemy zmierzony kontrast. Norma WCAG zaleca dla tekstu co najmniej *4,5:1*."
+    },
+    {
+      "type": "palette",
+      "kicker": "warsztat samochodowy",
+      "title": "Grafit i *pomarańcz*",
+      "palette": {
+        "bg": "#F2F3F5",
+        "text": "#1D2126",
+        "main": "#3E4A56",
+        "accent": "#E4570F",
+        "names": {
+          "bg": "jasna stal",
+          "text": "grafit",
+          "main": "stal",
+          "accent": "pomarańcz"
+        }
+      },
+      "mock": {
+        "headline": "Serwis i naprawa aut",
+        "line": "Przeglądy, hamulce, opony",
+        "button": "Zadzwoń"
+      },
+      "note": "Technika i porządek. Pomarańcz tylko na przycisku *Zadzwoń*, wtedy widać go od razu."
+    },
+    {
+      "type": "palette",
+      "kicker": "barber i fryzjer",
+      "title": "Czerń i *mosiądz*",
+      "palette": {
+        "bg": "#151515",
+        "text": "#F1ECE3",
+        "main": "#3A322A",
+        "accent": "#C49A4A",
+        "names": {
+          "bg": "czerń",
+          "text": "kość słoniowa",
+          "main": "ciepły brąz",
+          "accent": "mosiądz"
+        }
+      },
+      "mock": {
+        "headline": "Strzyżenie i broda",
+        "line": "Klasycznie i bez pośpiechu",
+        "button": "Umów wizytę"
+      },
+      "note": "Klimat klasycznego barbera. Ciemne tło potrzebuje jasnego tekstu, inaczej wszystko się zlewa."
+    },
+    {
+      "type": "palette",
+      "kicker": "salon kosmetyczny",
+      "title": "Krem i *malinowy róż*",
+      "palette": {
+        "bg": "#FBF6F4",
+        "text": "#3B2C33",
+        "main": "#EBD3CF",
+        "accent": "#A4505C",
+        "names": {
+          "bg": "krem",
+          "text": "śliwkowy grafit",
+          "main": "pudrowy róż",
+          "accent": "malina"
+        }
+      },
+      "mock": {
+        "headline": "Zabiegi na twarz i ciało",
+        "line": "Kosmetologia i stylizacja",
+        "button": "Zarezerwuj termin"
+      },
+      "note": "Delikatnie, ale czytelnie. Pudrowy róż na tło sekcji, mocniejszy na przycisk."
+    },
+    {
+      "type": "palette",
+      "kicker": "gabinet: fizjoterapia, stomatologia",
+      "title": "Biel i *morski*",
+      "palette": {
+        "bg": "#FFFFFF",
+        "text": "#14283B",
+        "main": "#DDF1EC",
+        "accent": "#0E7469",
+        "names": {
+          "bg": "biel",
+          "text": "granat",
+          "main": "mięta",
+          "accent": "morski"
+        }
+      },
+      "mock": {
+        "headline": "Fizjoterapia i masaż",
+        "line": "Rehabilitacja po urazach",
+        "button": "Umów wizytę"
+      },
+      "note": "Czysto i spokojnie. Granat zamiast czerni wygląda łagodniej i nadal świetnie się czyta."
+    },
+    {
+      "type": "palette",
+      "kicker": "restauracja i pizzeria",
+      "title": "Krem, oliwka i *pomidor*",
+      "palette": {
+        "bg": "#F7F0E4",
+        "text": "#241D18",
+        "main": "#6E7B3B",
+        "accent": "#B8361F",
+        "names": {
+          "bg": "krem",
+          "text": "ciepła czerń",
+          "main": "oliwka",
+          "accent": "pomidor"
+        }
+      },
+      "mock": {
+        "headline": "Pizza i makarony",
+        "line": "Na miejscu i na wynos",
+        "button": "Zamów"
+      },
+      "note": "Ciepłe kolory pasują do jedzenia. Czerwony akcent na przycisku *Zamów*, nie na całej stronie."
+    },
+    {
+      "type": "palette",
+      "kicker": "firma budowlana",
+      "title": "Granat i *żółty*",
+      "palette": {
+        "bg": "#1A2735",
+        "text": "#F3F4F6",
+        "main": "#3B4B5C",
+        "accent": "#F2B705",
+        "names": {
+          "bg": "granat",
+          "text": "złamana biel",
+          "main": "stalowy",
+          "accent": "żółty"
+        }
+      },
+      "mock": {
+        "headline": "Budowa i remonty",
+        "line": "Domy, dachy, wykończenia",
+        "button": "Poproś o wycenę"
+      },
+      "note": "Żółty kojarzy się z budową i maszynami. Na granatowym tle przycisk widać z daleka."
+    },
+    {
+      "type": "list",
+      "title": "Jak użyć *palety*",
+      "items": [
+        "60% tło, 30% kolor główny, 10% akcent",
+        "Akcent tylko tam, gdzie klient ma kliknąć: Zadzwoń, Umów, Zamów",
+        "Te same kolory na stronie, wizytówce i szyldzie",
+        "Kody kolorów wklejasz w każdy program graficzny i kreator strony"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Zapisz na *później*",
+      "body": "Planujesz nową stronę? Kolory dopasowujemy do marki w ramach projektu, razem z układem i tekstami.\n\nNapisz *KOLORY* w komentarzu albo wypełnij formularz na pagehub.pl.",
+      "button": "Napisz KOLORY"
+    }
+  ]
+}

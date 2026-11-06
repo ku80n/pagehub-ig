@@ -16,9 +16,18 @@ Spec
        "subtitle": "5 rzeczy do sprawdzenia w 10 minut"},
       {"type": "text",  "title": "...", "body": "..."},
       {"type": "list",  "title": "...", "items": ["...", "..."]},
-      {"type": "cta",   "title": "...", "body": "..."}
+      {"type": "cta",   "title": "...", "body": "..."},
+      {"type": "palette", "kicker": "warsztat samochodowy", "title": "Grafit i *pomarańcz*",
+       "palette": {"bg": "#F2F3F5", "text": "#1D2126", "main": "#3E4A56", "accent": "#E4570F",
+                   "names": {"bg": "jasna stal", "text": "grafit", "main": "stal", "accent": "pomarańcz"}},
+       "mock": {"headline": "Serwis i naprawa aut", "line": "Przeglądy, hamulce, opony", "button": "Zadzwoń"},
+       "note": "Kojarzy się z techniką i porządkiem."}
     ]
   }
+
+A "palette" slide shows a small website in those colours, the four swatches
+with their codes and the measured contrast (WCAG): text on background and the
+button text on the accent. The contrast is computed here, never typed by hand.
 
 Wrap a word in *asterisks* to colour it with the accent. Text is shrunk to fit,
 never cut, and the script fails loudly if a slide still overflows.
@@ -101,6 +110,28 @@ em {{ font-style: normal; color: {ACCENT}; }}
   font: 500 26px "DejaVu Sans Mono", monospace; color: #6B7888;
 }}
 .foot .swipe {{ color: {ACCENT}; }}
+.mock {{
+  border-radius: 22px; overflow: hidden; border: 1px solid #243040; margin: 6px 0 34px;
+  padding: 26px 34px 34px; display: flex; flex-direction: column; gap: 16px; flex: none;
+}}
+.mock .nav {{ display: flex; align-items: center; gap: 14px; font: 600 22px "Inter", "DejaVu Sans", sans-serif; }}
+.mock .logo {{ width: 30px; height: 30px; border-radius: 8px; }}
+.mock .links {{ margin-left: auto; display: flex; gap: 18px; opacity: .55; }}
+.mock .links span {{ width: 64px; height: 8px; border-radius: 4px; }}
+.mock .h {{ font: 800 50px/1.1 "Inter", "DejaVu Sans", sans-serif; letter-spacing: -1px; margin-top: 14px; }}
+.mock .l {{ font: 400 26px "Inter", "DejaVu Sans", sans-serif; opacity: .85; }}
+.mock .row {{ display: flex; align-items: center; gap: 18px; margin-top: 8px; }}
+.mock .btn {{ font: 700 26px "Inter", "DejaVu Sans", sans-serif; border-radius: 12px; padding: 14px 26px; }}
+.mock .ghost {{ width: 150px; height: 52px; border-radius: 12px; }}
+.sw {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; flex: none; }}
+.sw .c {{ height: 104px; border-radius: 16px; border: 1px solid #2B3746; }}
+.sw .r {{ font: 500 20px "DejaVu Sans Mono", monospace; color: #6B7888; margin-top: 12px; }}
+.sw .x {{ font: 700 26px "DejaVu Sans Mono", monospace; color: #E6EDF3; margin-top: 4px; }}
+.sw .n {{ font: 400 22px "Inter", "DejaVu Sans", sans-serif; color: #A9B4C2; margin-top: 2px; }}
+.palette .title {{ font-size: 62px; margin-bottom: 30px; }}
+.palette .para {{ font-size: 32px; margin-top: 30px; }}
+.ratio {{ font: 500 22px "DejaVu Sans Mono", monospace; color: #6B7888; margin-top: 16px; }}
+.ratio b {{ color: {ACCENT}; font-weight: 700; }}
 .cta .button {{
   align-self: flex-start; margin-top: 56px;
   font: 700 38px "DejaVu Sans Mono", monospace; color: #0B0F14;
@@ -130,6 +161,50 @@ def rich(text):
     return t.replace("\n", "<br>")
 
 
+def _lum(hex_):
+    c = [int(hex_.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def contrast(a, b):
+    """WCAG contrast ratio of two #RRGGBB colours."""
+    hi, lo = sorted((_lum(a), _lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def button_ink(pal):
+    """Text colour for the accent button: the more readable of white and near-black."""
+    return max(("#FFFFFF", "#111111"), key=lambda c: contrast(c, pal["accent"]))
+
+
+def ratio(x):
+    return f"{x:.1f}".replace(".", ",") + ":1"
+
+
+ROLES = (("bg", "tło"), ("text", "tekst"), ("main", "główny"), ("accent", "akcent"))
+
+
+def palette_html(slide):
+    pal, mock = slide["palette"], slide.get("mock", {})
+    names, ink = pal.get("names", {}), button_ink(pal)
+    e = html.escape
+    site = (f'<div class="mock" style="background:{pal["bg"]};color:{pal["text"]}">'
+            f'<div class="nav"><span class="logo" style="background:{pal["main"]}"></span>Twoja firma'
+            f'<div class="links">' + f'<span style="background:{pal["text"]}"></span>' * 3 + '</div></div>'
+            f'<div class="h">{e(mock.get("headline", "Twoja strona"))}</div>'
+            f'<div class="l">{e(mock.get("line", ""))}</div>'
+            f'<div class="row"><span class="btn" style="background:{pal["accent"]};color:{ink}">'
+            f'{e(mock.get("button", "Zadzwoń"))}</span>'
+            f'<span class="ghost" style="border:3px solid {pal["main"]}"></span></div></div>')
+    cells = "".join(f'<div><div class="c" style="background:{pal[k]}"></div><div class="r">{label}</div>'
+                    f'<div class="x">{pal[k].upper()}</div><div class="n">{e(names.get(k, ""))}</div></div>'
+                    for k, label in ROLES)
+    meas = (f'<div class="ratio">kontrast tekstu <b>{ratio(contrast(pal["text"], pal["bg"]))}</b>, '
+            f'przycisku <b>{ratio(contrast(ink, pal["accent"]))}</b> (WCAG AA od 4,5:1)</div>')
+    return site + f'<div class="sw">{cells}</div>' + meas
+
+
 def gutter(n=24):
     return "\n".join(f"{i:>2}" for i in range(1, n + 1))
 
@@ -153,6 +228,10 @@ def slide_html(slide, idx, total, handle, ig):
         parts.append(f"<ul>{items}</ul>")
     if kind == "cta" and slide.get("button"):
         parts.append(f'<div class="button">{rich(slide["button"])}</div>')
+    if kind == "palette":
+        parts.append(palette_html(slide))
+        if slide.get("note"):
+            parts.append(f'<div class="para">{rich(slide["note"])}</div>')
     swipe = '<span class="swipe">przesuń &rarr;</span>' if idx == 1 and total > 1 else "<span></span>"
     return f"""<!doctype html><html lang="pl"><head><meta charset="utf-8">
 <style>{CSS}</style></head><body>
@@ -188,6 +267,13 @@ def render(spec_path, out_dir=None):
             page.set_content(slide_html(slide, i, len(slides), handle, ig), wait_until="load")
             page.evaluate("document.fonts.ready")
             fit = page.evaluate(FIT_JS)
+            pal = slide.get("palette")
+            if pal:
+                ink = button_ink(pal)
+                for what, a, b in (("tekstu", pal["text"], pal["bg"]), ("przycisku", ink, pal["accent"])):
+                    if contrast(a, b) < 4.5:
+                        problems.append(f"slajd {i}: kontrast {what} {ratio(contrast(a, b))} jest poniżej 4,5:1, "
+                                        "zmień kolory, nie pokazuj nieczytelnej palety")
             if fit["overflow"]:
                 problems.append(f"slajd {i}: tekst się nie mieści nawet po zmniejszeniu, skróć go")
             elif fit["scale"] < 0.8:
@@ -208,7 +294,7 @@ def main():
     print(f"{len(files)} slajdów -> {pathlib.Path(files[0]).parent}")
     for pr in problems:
         print("  UWAGA", pr)
-    sys.exit(1 if any("nie mieści" in p for p in problems) else 0)
+    sys.exit(1 if any("nie mieści" in p or "kontrast" in p for p in problems) else 0)
 
 
 if __name__ == "__main__":

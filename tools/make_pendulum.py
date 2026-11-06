@@ -24,6 +24,9 @@ Usage
 Spec
   {"questions": ["...?", ...], "answer": "OGARNIEMY TO.",
    "cta": "Napisz TELEFON w komentarzu", "site": "pagehub.pl"}
+  Optional "palettes": [{"name": "GRAFIT I POMARAŃCZ", "bg": "#F2F3F5", "text": "#1D2126",
+  "main": "#3E4A56", "accent": "#E4570F", "button": "Zadzwoń"}, ...], one per question:
+  instead of a text answer the window turns into a small website in those colours.
 """
 
 import argparse
@@ -171,6 +174,77 @@ def make_space():
 
 WIN = (110, 548, 970, 1100)           # browser window around the big text (x0, y0, x1, y1)
 WIN_BAR = 70
+
+
+def hex_rgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _lum(rgb):
+    c = [v / 255 for v in rgb]
+    c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def _contrast(a, b):
+    hi, lo = sorted((_lum(a), _lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+PANEL = (WIN[0] + 2, WIN[1] + WIN_BAR, WIN[2] - 2, WIN[3] - 2)   # the page area of the window
+
+
+def palette_layer(pal):
+    """The answer as a small website in the palette's colours, filling the window's
+    page area: a nav bar, the palette name as the headline, the four swatches with
+    their codes and the button in the accent colour. Drawn 2x for clean edges."""
+    s2 = 2
+    x0, y0, x1, y1 = PANEL
+    w, h = (x1 - x0) * s2, (y1 - y0) * s2
+    bg, fg, main, acc = (hex_rgb(pal[k]) for k in ("bg", "text", "main", "accent"))
+    ink = max(((255, 255, 255), (17, 17, 17)), key=lambda c: _contrast(c, acc))
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, w - 1, h - 1], radius=26 * s2, fill=bg + (255,), corners=(False, False, True, True))
+    px = 46 * s2
+    # nav: logo square, "Twoja firma", three link bars
+    ny = 34 * s2
+    d.rounded_rectangle([px, ny, px + 30 * s2, ny + 30 * s2], radius=8 * s2, fill=main + (255,))
+    fn = font("Inter-SemiBold.otf", 24 * s2)
+    d.text((px + 44 * s2, ny + 1 * s2), "Twoja firma", font=fn, fill=fg + (255,))
+    for i in range(3):
+        bx = w - px - (3 - i) * 82 * s2 + 18 * s2
+        d.rounded_rectangle([bx, ny + 11 * s2, bx + 64 * s2, ny + 19 * s2], radius=4 * s2, fill=fg + (120,))
+    # headline: the palette name
+    fh = font("InterDisplay-Black.ttf", 70 * s2)
+    lines = two_lines(pal["name"], fh)
+    while max(fh.getlength(l) for l in lines) > w - 2 * px and fh.size > 40 * s2:
+        fh = font("InterDisplay-Black.ttf", fh.size - 4)
+        lines = two_lines(pal["name"], fh)
+    hy = 100 * s2
+    for i, line in enumerate(lines):
+        d.text((px, hy + i * fh.size * 1.02), line, font=fh, fill=fg + (255,))
+    # swatches with codes
+    sy = hy + len(lines) * fh.size * 1.02 + 28 * s2
+    gap, sw = 18 * s2, (w - 2 * px - 3 * 18 * s2) / 4
+    fx = font("Inter-SemiBold.otf", 22 * s2)
+    for i, (k, col) in enumerate((("bg", bg), ("text", fg), ("main", main), ("accent", acc))):
+        sx = px + i * (sw + gap)
+        d.rounded_rectangle([sx, sy, sx + sw, sy + 70 * s2], radius=14 * s2, fill=col + (255,),
+                            outline=fg + (70,), width=2 * s2)
+        d.text((sx + 2 * s2, sy + 80 * s2), pal[k].upper(), font=fx, fill=fg + (200,))
+    # the button: the accent is for what the client should click
+    by = sy + 128 * s2
+    fb = font("Inter-Bold.otf", 28 * s2)
+    label = pal.get("button", "Zadzwoń")
+    bw = fb.getlength(label) + 56 * s2
+    d.rounded_rectangle([px, by, px + bw, by + 64 * s2], radius=14 * s2, fill=acc + (255,))
+    d.text((px + 28 * s2, by + 14 * s2), label, font=fb, fill=ink + (255,))
+    small = img.resize((x1 - x0, y1 - y0), Image.LANCZOS)
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    layer.alpha_composite(small, (x0, y0))
+    return np.asarray(layer, np.float32) / 255.0
 
 
 def browser_window(url):
@@ -397,13 +471,19 @@ def answer_for(spec, i):
     return answers[i] if i < len(answers) and answers[i] else spec["answer"]
 
 
+def palette_for(spec, i):
+    pals = spec.get("palettes") or []
+    return pals[i] if i < len(pals) and pals[i] else None
+
+
 def states(spec):
     """Question, its answer, question, its answer, ... then, when there is a button,
     the closing line (or the last answer) stays for END_HOLD swings while the button
     is up (an even count keeps the swing and the music loop whole)."""
     seq = []
     for i, q in enumerate(spec["questions"]):
-        seq += [("q", q), ("a", answer_for(spec, i))]
+        pal = palette_for(spec, i)
+        seq += [("q", q), ("p", pal["name"]) if pal else ("a", answer_for(spec, i))]
     if spec.get("cta"):
         last = ("a", spec["closing"]) if spec.get("closing") else seq[-1]
         seq += [last] * END_HOLD
@@ -426,7 +506,7 @@ def frame(t, spec, assets):
     theta = angle(t)
     out = space_frame(t, total, space)
     # the big text: where the cord line has already swept, the next text shows
-    y0, y1 = TEXT_BAND
+    y0, y1 = space.get("band", TEXT_BAND)
     ys = np.arange(y0, y1, dtype=np.float32)[:, None]
     xs = np.arange(W, dtype=np.float32)[None, :]
     line_x = PIVOT[0] + (ys - PIVOT[1]) * math.tan(theta)
@@ -459,15 +539,22 @@ def frame(t, spec, assets):
 
 def prepare(spec):
     word, mark = logo_images()
-    size = min(fit_size(text) for _, text in states(spec))     # one size for every text, like a title card
+    size = min(fit_size(text) for kind, text in states(spec) if kind != "p")   # one size for every text
+    pals = {p["name"]: p for p in spec.get("palettes") or [] if p}
     layers = {}
     for kind, text in states(spec):
-        if (kind, text) not in layers:
+        if (kind, text) in layers:
+            continue
+        if kind == "p":
+            layers[(kind, text)] = palette_layer(pals[text])
+        else:
             layers[(kind, text)] = text_layer(text, FG if kind == "q" else ACCENT, size, glow=kind == "a")
     static = np.asarray(static_layer(word, spec["site"], spec.get("topic_label", "")), np.float32) / 255.0
     sprite, anchor = pendulum_sprite(mark)
     button = cta_image(spec["cta"]) if spec.get("cta") else None
     space = make_space()
+    if pals:                                                      # the wipe has to cover the whole page area
+        space["band"] = (min(TEXT_BAND[0], PANEL[1]), max(TEXT_BAND[1], PANEL[3]))
     if spec.get("url"):                                           # the window sits in the background, under the text
         win = np.asarray(browser_window(spec["url"]), np.float32) / 255.0
         x0, y0, x1, y1 = WIN
@@ -687,12 +774,14 @@ def pendulum_spec(carousel, trial=False):
     spec = dict(DEFAULT)
     spec.update({"questions": list(rp["questions"]), "answer": rp.get("answer", "OGARNIEMY TO."),
                  "answers": list(rp.get("answers") or []), "closing": rp.get("closing", ""),
+                 "palettes": list(rp.get("palettes") or []),
                  "url": rp.get("url", "twoja-strona.pl"),
                  "cta": rp.get("cta") or (f"Napisz {kw} w komentarzu" if kw else "Napisz do nas wiadomość")})
     if trial and len(spec["questions"]) > 1:
         spec["questions"] = spec["questions"][1:] + spec["questions"][:1]
-        if spec["answers"]:
-            spec["answers"] = spec["answers"][1:] + spec["answers"][:1]
+        for k in ("answers", "palettes"):
+            if spec[k]:
+                spec[k] = spec[k][1:] + spec[k][:1]
     return spec
 
 

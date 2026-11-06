@@ -49,6 +49,10 @@ def texts(spec):
         yield f"meta.reel_pendulum.answers[{i}]", a, True
     if rp.get("closing"):
         yield "meta.reel_pendulum.closing", rp["closing"], True
+    for i, pal in enumerate(rp.get("palettes") or []):
+        for f in ("name", "button"):
+            if pal.get(f):
+                yield f"meta.reel_pendulum.palettes[{i}].{f}", pal[f], True
     cover = meta.get("reel_cover") or {}
     for f in ("kicker", "title", "subtitle"):
         if cover.get(f):
@@ -59,6 +63,10 @@ def texts(spec):
                 yield f"slajd {n}.{f}", s[f], True
         for i, it in enumerate(s.get("items", [])):
             yield f"slajd {n}.items[{i}]", it, True
+        for f, v in [("note", s.get("note"))] + [(f"mock.{k}", v) for k, v in (s.get("mock") or {}).items()] \
+                + [(f"palette.names.{k}", v) for k, v in ((s.get("palette") or {}).get("names") or {}).items()]:
+            if v:
+                yield f"slajd {n}.{f}", v, True
 
 
 def check_spec(path, published=False):
