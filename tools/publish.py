@@ -27,6 +27,7 @@ Pause everything: create the file config/PAUZA. Delete it to resume.
 import argparse
 import io
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -276,6 +277,17 @@ def publish_container(container, caption, kind):
     return media_id, permalink
 
 
+BARE_SITE = re.compile(r"(?<![\w./@])pagehub\.pl(?![\w/])")
+
+
+def with_utm(text, key):
+    """First bare "pagehub.pl" in a Facebook post becomes a tagged link, so the
+    site's analytics shows which post brought the visit. Instagram captions keep
+    plain text (links there are not clickable)."""
+    campaign = key.replace("/", "-").replace("#", "-")
+    return BARE_SITE.sub(f"pagehub.pl/?utm_source=facebook&utm_medium=social&utm_campaign={campaign}", text, count=1)
+
+
 def publish_facebook(urls, message):
     token, page = env("META_PAGE_TOKEN"), env("FB_PAGE_ID")
     photo_ids = [graph("POST", f"{page}/photos", token, url=u, published="false")["id"] for u in urls]
@@ -481,7 +493,7 @@ def run(now, dry_run=False):
             continue
         if env("FB_PAGE_ID", required=False) and env("PUBLISH_FB", required=False) != "false":
             try:
-                post_id = publish_facebook(urls, meta.get("caption_fb") or meta["caption_ig"])
+                post_id = publish_facebook(urls, with_utm(meta.get("caption_fb") or meta["caption_ig"], key))
                 published[key]["fb_post_id"] = post_id
             except ApiError as e:
                 published[key]["fb_error"] = str(e)

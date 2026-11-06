@@ -29,5 +29,6 @@ Konfiguracja jednorazowa: `SETUP.md`. Pauza: plik `config/PAUZA`.
 - `tools/make_reel.py` - rolka 9:16 ze slajdów karuzeli
 - `tools/spellcheck.py` - słownik polski dla wszystkich tekstów tygodnia (literówki, zlepione słowa)
 - `tools/leads.py` - powiadomienia o potencjalnych klientach na Telegram
+- `tools/report.py` - raport tygodnia (poniedziałek rano): liczby z Instagrama, leady, zapis w `state/raport/`
 - `.github/workflows/instagram.yml` - harmonogram publikacji i powiadomień
 - `WEEKLY.md` - instrukcja, którą wykonuje cotygodniowe zadanie

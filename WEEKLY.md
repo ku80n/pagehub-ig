@@ -22,7 +22,7 @@ Wszystkie ścieżki poniżej są względem katalogu repo.
 - Lokalność (Przemyśl, Rzeszów, Podkarpacie) wtedy, gdy temat naprawdę jej dotyczy, bez upychania nazw miast.
 - Każda publikacja ma w `plan.md` jeden mierzalny cel: zasięg, zapis, udostępnienie, wejście na profil, kliknięcie albo zapytanie.
 - Nie powtarzaj za mocno ostatnich publikacji (tematy, kąty, pierwsze zdania z `log.md` i ostatnich tygodni w `weeks/`).
-- Jeśli w `state/raport/` jest raport z ostatniego tygodnia, przeczytaj go przed planowaniem. Wnioski wyciągaj ostrożnie: porównuj grupy podobnych postów z kilku tygodni, nie zmieniaj strategii przez jeden post.
+- Przeczytaj najnowszy raport z `state/raport/` (robi go `tools/report.py` w poniedziałek rano: zasięg, wyświetlenia, zapisy, udostępnienia, leady na post, filar). Wnioski wyciągaj ostrożnie: porównuj grupy podobnych postów z kilku tygodni, nie zmieniaj strategii przez jeden post.
 
 ## 0. Przygotowanie
 - `python3 -c "import playwright, spylls, numpy"` - czego brakuje, doinstaluj: `pip install playwright spylls numpy --break-system-packages`. Przeglądarka: `/usr/bin/google-chrome` (bez pobierania).

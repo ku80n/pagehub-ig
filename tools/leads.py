@@ -109,6 +109,7 @@ def run():
     kw_map = keywords_by_media()
     all_kw = sorted({v[0] for v in kw_map.values() if v[0]})
     alerts = []
+    log = state.get("log", [])       # what was sent, for the weekly report (no usernames)
 
     for media, c in fetch_comments(token, ig, own):
         if c["id"] in seen_c:
@@ -117,6 +118,7 @@ def run():
         kw, hint, topic = kw_map.get(media["id"], ("", "", ""))
         reason = is_lead(c.get("text"), [kw] + all_kw)
         if reason and not first_run:
+            log.append({"at": c.get("timestamp", ""), "kind": "komentarz", "media": media["id"], "reason": reason})
             user = c.get("username", "")
             alerts.append(
                 f"Potencjalny klient: komentarz ({reason})\n"
@@ -134,6 +136,7 @@ def run():
             new_by_conv.setdefault(conv["id"], (user, []))[1].append(msg.get("message") or "(załącznik)")
         if not first_run:
             for user, texts in new_by_conv.values():
+                log.append({"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "kind": "wiadomość"})
                 alerts.append(
                     f"Nowa wiadomość na Instagramie\n@{user}: \"{' / '.join(reversed(texts))[:400]}\"\n\n"
                     f"Odpowiedz w aplikacji Instagram, w Wiadomościach.\n"
@@ -146,7 +149,8 @@ def run():
     if first_run:
         telegram("PageHub: śledzenie komentarzy i wiadomości jest włączone. "
                  "Od teraz dostaniesz tu każdego potencjalnego klienta.")
-    state.update(initialized=True, comments=sorted(seen_c)[-KEEP_IDS:], messages=sorted(seen_m)[-KEEP_IDS:])
+    state.update(initialized=True, comments=sorted(seen_c)[-KEEP_IDS:], messages=sorted(seen_m)[-KEEP_IDS:],
+                 log=log[-500:])
     save_state("leads.json", state)
     print(f"leady: {len(alerts)} powiadomień" + (" (pierwsze uruchomienie, tylko oznaczono)" if first_run else ""))
     return 0

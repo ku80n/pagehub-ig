@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = test połączeń, dry-run = próba bez publikacji, run = normalne uruchomienie, trial-test = test rolek próbnych bez publikacji"
+        description: "check = test połączeń, dry-run = próba bez publikacji, run = normalne uruchomienie, trial-test = test rolek próbnych bez publikacji, report = raport tygodnia na Telegram, report-test = raport tylko w logu"
         type: choice
-        options: [check, dry-run, run, trial-test]
+        options: [check, dry-run, run, trial-test, report, report-test]
         default: check
 
 permissions:
@@ -64,6 +64,16 @@ jobs:
         working-directory: tools
         run: python3 publish.py --trial-test
 
+      - name: Raport tygodnia
+        if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'report'
+        working-directory: tools
+        run: python3 report.py
+
+      - name: Raport tygodnia (tylko log)
+        if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'report-test'
+        working-directory: tools
+        run: python3 report.py --dry-run
+
       - name: Próba bez publikacji
         if: steps.cfg.outputs.configured == 'true' && inputs.mode == 'dry-run'
         working-directory: tools
@@ -85,7 +95,7 @@ jobs:
         run: python3 token_watch.py
 
       - name: Zapisz stan
-        if: always() && steps.cfg.outputs.configured == 'true' && env.NORMAL_RUN == 'true'
+        if: always() && steps.cfg.outputs.configured == 'true' && (env.NORMAL_RUN == 'true' || inputs.mode == 'report')
         run: |
           git config user.name "pagehub-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

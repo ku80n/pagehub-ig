@@ -23,7 +23,7 @@ Nazwy przycisków u Meta czasem się zmieniają, więc mogą się trochę różn
    - po prawej wybierz swoją aplikację,
    - "Użytkownik lub strona" -> **Get User Access Token**,
    - zaznacz uprawnienia: `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `pages_manage_metadata`,
-     `business_management`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`,
+     `business_management`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`, `instagram_manage_insights`, `read_insights`,
    - **Generate Access Token**, zaloguj się i zaznacz stronę PageHub oraz konto Instagram.
 4. Przedłuż token: https://developers.facebook.com/tools/debug/accesstoken -> wklej token -> **Debug** -> na dole **Extend Access Token** -> skopiuj nowy token.
 5. Wróć do Graph API Explorer, wklej przedłużony token w pole Access Token i wykonaj zapytanie GET:
