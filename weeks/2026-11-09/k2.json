@@ -1,0 +1,91 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "czwartek 12.11, 14:00",
+    "publish_at": "2026-11-12T14:00:00+01:00",
+    "pillar": "Demonstracje i proces",
+    "topic": "Jak sam zmieniasz cennik i zdjęcia w panelu strony",
+    "goal": "zapisy (materiał pokazujący funkcję strony)",
+    "cta_keyword": "PANEL",
+    "reply_hint": "Cześć, dzięki za komentarz! Co najczęściej zmieniasz na stronie: ceny, godziny, zdjęcia? I czy masz już stronę, czy budujemy od zera? Zakres panelu ustalamy przy wycenie. Landing page robimy od 800 zł, stronę firmową od 1500 zł.",
+    "caption_ig": "Nowa cena od poniedziałku, a strona dalej pokazuje starą? Zmienisz to sam w 4 krokach, bez informatyka.\n\nW naszych stronach używamy panelu Decap CMS. Otwierasz go w przeglądarce, wybierasz sekcję, na przykład cennik albo godziny otwarcia, i wpisujesz nową treść w zwykłe pola, tak jak w formularzu. Zdjęcie dodajesz z dysku.\n\nPotem Opublikuj. Gotowe.\n\nKodu nie dotykasz, a układ zostaje taki, jak go zaprojektowaliśmy. Chcesz tak zmieniać swoją stronę? Napisz PANEL w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes #lokalnybiznes",
+    "caption_reel": "Czekasz na wykonawcę przy każdej zmianie ceny? Nie musisz.\n\nW panelu Decap CMS wpisujesz nową treść w zwykłe pola, dodajesz zdjęcie z dysku i klikasz Opublikuj, a kod i układ Twojej strony zostają bez zmian, więc nic się nie rozjedzie. Tyle.\n\nNapisz PANEL w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes",
+    "reel_pendulum": {
+      "questions": [
+        "CZEKASZ NA KAŻDĄ ZMIANĘ?",
+        "NIE ZNASZ SIĘ NA KODZIE?",
+        "CHCESZ NOWE ZDJĘCIE?",
+        "COŚ SIĘ POPSUJE?"
+      ],
+      "answers": [
+        "SAM ZMIENIASZ W PANELU.",
+        "WPISUJESZ W ZWYKŁE POLA.",
+        "DODAJESZ JE Z DYSKU.",
+        "UKŁAD ZOSTAJE BEZ ZMIAN."
+      ],
+      "closing": "TAK ZMIENIASZ SWOJĄ STRONĘ.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "Zmiana ceny na stronie nie powinna wymagać telefonu do wykonawcy i czekania kilka dni.\n\nDlatego w naszych stronach używamy panelu Decap CMS. Otwierasz go w przeglądarce. Wybierasz sekcję, na przykład cennik, godziny albo galerię, i wpisujesz nową treść w zwykłe pola, tak jak w formularzu. Zdjęcie dodajesz z dysku. Klikasz Opublikuj i po chwili zmiana jest na stronie, a poprzednia wersja zostaje w historii.\n\n4 kroki. Bez kodu.\n\nUkład, kolory i szybkość strony zostają takie, jak je zaprojektowaliśmy, bo stronę piszemy od zera w Angularze, a strona działa na hostingu Netlify. Ty zmieniasz tylko teksty i zdjęcia.\n\nChcesz stronę, którą sam aktualizujesz? Napisz do nas albo zajrzyj na https://pagehub.pl",
+    "alt": "Okładka karuzeli PageHub: napis Zmieniasz cennik? Bez informatyka, w 4 krokach oraz zapowiedź pokazu panelu do zmian na stronie."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "panel",
+      "title": "Zmieniasz cennik? *Bez informatyka*, w 4 krokach",
+      "subtitle": "Pokazujemy krok po kroku, jak działa panel do zmian na stronie."
+    },
+    {
+      "type": "text",
+      "title": "Każda zmiana *przez telefon*?",
+      "body": "Nowa cena, inne godziny, świeże zdjęcie. Jeśli za każdym razem czekasz na wykonawcę, strona szybko przestaje być *aktualna*."
+    },
+    {
+      "type": "text",
+      "kicker": "krok 1",
+      "title": "Otwierasz panel",
+      "body": "Logujesz się w zwykłej przeglądarce. Nie instalujesz żadnego programu."
+    },
+    {
+      "type": "text",
+      "kicker": "krok 2",
+      "title": "Wybierasz sekcję",
+      "body": "Widzisz listę części swojej strony, na przykład cennik, godziny albo galerię. Klikasz tę, którą chcesz poprawić."
+    },
+    {
+      "type": "text",
+      "kicker": "krok 3",
+      "title": "Wpisujesz nową treść",
+      "body": "Zwykłe pola: nazwa usługi, cena, opis. Zdjęcie dodajesz z dysku. Kodu nie widzisz wcale."
+    },
+    {
+      "type": "text",
+      "kicker": "krok 4",
+      "title": "Klikasz *Opublikuj*",
+      "body": "Po chwili zmiana jest na stronie. Poprzednia wersja zostaje zapisana w historii zmian."
+    },
+    {
+      "type": "text",
+      "title": "Treść Twoja, układ *bezpieczny*",
+      "body": "Panel zmienia tylko teksty i zdjęcia. Układ, kolory i szybkość strony zostają takie, jak je zaprojektowaliśmy."
+    },
+    {
+      "type": "list",
+      "title": "Zmiana w *4 krokach*",
+      "items": [
+        "Otwierasz panel w przeglądarce",
+        "Wybierasz sekcję: cennik, godziny, galeria",
+        "Wpisujesz tekst albo dodajesz zdjęcie",
+        "Klikasz Opublikuj"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Chcesz sam zmieniać *stronę*?",
+      "body": "Napisz *PANEL* w komentarzu albo wypełnij formularz na pagehub.pl. Powiemy, co da się zmieniać w Twojej stronie.",
+      "button": "Napisz PANEL"
+    }
+  ]
+}

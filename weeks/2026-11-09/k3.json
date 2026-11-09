@@ -1,0 +1,95 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "sobota 14.11, 10:00",
+    "publish_at": "2026-11-14T10:00:00+01:00",
+    "pillar": "Oferta i sprzedaż",
+    "topic": "Landing page czy strona firmowa: co wybrać dla małej firmy",
+    "goal": "zapytania (komentarz PAKIET lub formularz)",
+    "cta_keyword": "PAKIET",
+    "reply_hint": "Cześć, dzięki za komentarz! Czym zajmuje się Twoja firma i ile usług chcesz pokazać na stronie? Landing page robimy od 800 zł, stronę firmową od 1500 zł. Dokładną cenę ustalimy po krótkiej rozmowie.",
+    "caption_ig": "Landing page od 800 zł czy strona firmowa od 1500 zł? Wybór zależy od tego, ile masz usług.\n\nJedna główna usługa i prosty kontakt? Wystarczy jedna strona. Kilka usług, cennik i galeria? Wtedy lepiej sprawdzi się strona firmowa z maksymalnie 5 podstronami i formularzem kontaktowym, bo każdy klient od razu trafia tam, gdzie szuka.\n\nW obu pakietach projekt i kod robimy od zera. Cenę ustalamy po rozmowie.\n\nNie wiesz, co wybrać? Napisz PAKIET w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes #przemyśl",
+    "caption_reel": "Jedna usługa czy kilka? Od tego zależy, jakiej strony potrzebujesz.\n\nDo jednej usługi wystarczy landing page, od 800 zł. Masz kilka usług, cennik i chcesz, żeby klienci pisali do Ciebie przez formularz, zamiast szukać numeru? Wtedy lepsza będzie strona firmowa z maksymalnie 5 podstronami, od 1500 zł. Proste.\n\nNapisz PAKIET w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes",
+    "reel_pendulum": {
+      "questions": [
+        "MASZ JEDNĄ USŁUGĘ?",
+        "KILKA USŁUG I CENNIK?",
+        "POTRZEBNY FORMULARZ?",
+        "NIE WIESZ, CO WYBRAĆ?"
+      ],
+      "answers": [
+        "WYSTARCZY LANDING PAGE.",
+        "WYBIERZ STRONĘ FIRMOWĄ.",
+        "JEST W STRONIE FIRMOWEJ.",
+        "DOBIERZEMY PO ROZMOWIE."
+      ],
+      "closing": "TAK DOBIERASZ STRONĘ.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "Landing page czy strona firmowa? To pytanie słyszymy najczęściej, więc zebraliśmy różnice w jednym miejscu.\n\nLanding page (od 800 zł) to jedna strona: kim jesteś, co robisz i jak się z Tobą skontaktować. Projekt i kod od zera, widok na telefonie, tablecie i komputerze, domena na rok w cenie, hosting Netlify bez opłat, podstawowe SEO. Dobry wybór dla freelancera albo firmy z jedną główną usługą.\n\nStrona firmowa (od 1500 zł) ma do 5 podstron, formularz kontaktowy, design dopasowany do marki, domenę na 2 lata, optymalizację szybkości i wsparcie po wdrożeniu. Sprawdzi się, gdy masz kilka usług, cennik i galerię.\n\nDokładną cenę zawsze ustalamy po rozmowie. Wycena: https://pagehub.pl/#contact",
+    "alt": "Okładka karuzeli PageHub: napis Jedna strona czy 5 podstron? Nie przepłać oraz zapowiedź porównania landing page i strony firmowej.",
+    "reel_heading": "Co wybrać:"
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "oferta",
+      "title": "Jedna strona czy 5 podstron? *Nie przepłać*",
+      "subtitle": "Landing page czy strona firmowa: zakres i ceny od."
+    },
+    {
+      "type": "text",
+      "title": "Za dużo albo *za mało*",
+      "body": "Pięć podstron dla jednej usługi to przepłacanie. Jedna strona dla firmy z kilkoma usługami to bałagan. Wybór zaczyna się od Twojej *oferty*."
+    },
+    {
+      "type": "text",
+      "title": "Landing page: *jedna* strona",
+      "body": "Kim jesteś, co robisz i jak klient ma się z Tobą skontaktować, wszystko na jednej przewijanej stronie. Dla freelancera i firmy z jedną usługą."
+    },
+    {
+      "type": "list",
+      "title": "Landing page od *800 zł*",
+      "items": [
+        "Projekt i kod od zera",
+        "Widok na telefonie, tablecie i komputerze",
+        "Domena na rok w cenie",
+        "Hosting Netlify bez opłat",
+        "Podstawowe SEO"
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Strona firmowa: *podstrony*",
+      "body": "Osobne miejsce na każdą usługę, cennik, galerię i kontakt. Klient od razu trafia tam, gdzie szuka."
+    },
+    {
+      "type": "list",
+      "title": "Strona firmowa od *1500 zł*",
+      "items": [
+        "Do 5 podstron i formularz kontaktowy",
+        "Design dopasowany do marki",
+        "Domena na 2 lata w cenie",
+        "Optymalizacja szybkości ładowania",
+        "Wsparcie po wdrożeniu"
+      ]
+    },
+    {
+      "type": "list",
+      "title": "Co *wybrać*?",
+      "items": [
+        "Jedna usługa, prosty kontakt: landing page",
+        "Kilka usług i cennik: strona firmowa",
+        "Potrzebny formularz: strona firmowa",
+        "Nie wiesz: dobierzemy po rozmowie"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Ile kosztuje *Twoja* strona?",
+      "body": "Cenę ustalamy po krótkiej rozmowie. Napisz *PAKIET* w komentarzu albo wypełnij formularz na pagehub.pl.",
+      "button": "Napisz PAKIET"
+    }
+  ]
+}
