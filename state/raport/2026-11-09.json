@@ -1,0 +1,85 @@
+{
+  "made_at": "2026-11-09T06:44:58+01:00",
+  "week": [
+    "2026-11-02",
+    "2026-11-08"
+  ],
+  "insights": false,
+  "posts": [
+    {
+      "id": "18108100784304447",
+      "key": "2026-11-02/k3#reel",
+      "kind": "rolka",
+      "at": "2026-11-08T10:06+01:00",
+      "permalink": "https://www.instagram.com/reel/DfeZO05uW9_/",
+      "topic": "Jak powstaje strona w PageHub, krok po kroku",
+      "pillar": "Kulisy",
+      "cta_keyword": "WYCENA",
+      "likes": 6,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "18081527912718816",
+      "key": "2026-11-02/k3",
+      "kind": "karuzela",
+      "at": "2026-11-07T10:04+01:00",
+      "permalink": "https://www.instagram.com/p/Dfb0PD2Eyl3/",
+      "topic": "Jak powstaje strona w PageHub, krok po kroku",
+      "pillar": "Kulisy",
+      "cta_keyword": "WYCENA",
+      "likes": 8,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "18094899155278325",
+      "key": "2026-11-02/k2#reel",
+      "kind": "rolka",
+      "at": "2026-11-06T14:06+01:00",
+      "permalink": "https://www.instagram.com/reel/DfZrLZlBbnt/",
+      "topic": "Test strony na telefonie w 5 minut",
+      "pillar": "Edukacja",
+      "cta_keyword": "TELEFON",
+      "likes": 5,
+      "comments": 2,
+      "leads": 0
+    },
+    {
+      "id": "17963727717238221",
+      "key": "2026-11-02/k2",
+      "kind": "karuzela",
+      "at": "2026-11-05T19:52+01:00",
+      "permalink": "https://www.instagram.com/p/DfXt9X_F79M/",
+      "topic": "Test strony na telefonie w 5 minut",
+      "pillar": "Edukacja",
+      "cta_keyword": "TELEFON",
+      "likes": 5,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "17974385637191152",
+      "key": "2026-11-02/k1",
+      "kind": "karuzela",
+      "at": "2026-11-03T12:18+01:00",
+      "permalink": "https://www.instagram.com/p/DfRwdHXl7ti/",
+      "topic": "5 rzeczy, które spowalniają stronę firmy",
+      "pillar": "Edukacja",
+      "cta_keyword": "TURBO",
+      "likes": 6,
+      "comments": 0,
+      "leads": 0
+    }
+  ],
+  "account": {
+    "followers_count": 14,
+    "follows_count": 1,
+    "media_count": 24
+  },
+  "insights_error": "GET https://graph.facebook.com/v26.0/18108100784304447/insights -> HTTP 400: (#10) Application does not have permission for this action",
+  "leads": {
+    "komentarze": 0,
+    "wiadomości": 0
+  }
+}
