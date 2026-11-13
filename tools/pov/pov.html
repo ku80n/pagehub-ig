@@ -1,0 +1,146 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Inter;font-weight:400;src:url(../../assets/fonts/Inter-Regular.otf)}
+@font-face{font-family:Inter;font-weight:500;src:url(../../assets/fonts/Inter-Medium.otf)}
+@font-face{font-family:Inter;font-weight:600;src:url(../../assets/fonts/Inter-SemiBold.otf)}
+@font-face{font-family:Inter;font-weight:700;src:url(../../assets/fonts/Inter-Bold.otf)}
+@font-face{font-family:Disp;font-weight:900;src:url(../../assets/fonts/InterDisplay-Black.ttf)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:360px;height:640px;overflow:hidden;font-family:Inter,sans-serif;background:#000;position:relative}
+.scr{position:absolute;inset:0;display:none}
+#status{position:absolute;top:0;left:0;right:0;height:30px;z-index:20;display:flex;align-items:center;padding:0 18px;font-weight:600;font-size:13px}
+#status .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.bat{width:22px;height:11px;border:1.5px solid currentColor;border-radius:3px;position:relative}.bat i{position:absolute;left:1px;top:1px;bottom:1px;width:9px;background:currentColor;border-radius:1px}
+.sig{display:flex;gap:2px;align-items:flex-end}.sig i{width:3px;background:currentColor;border-radius:1px}
+#cap{position:absolute;left:0;right:0;top:122px;z-index:30;text-align:center;padding:0 22px}
+#cap span{display:inline-block;background:#fff;color:#0b0f14;font-weight:700;font-size:19px;line-height:1.25;padding:8px 14px;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.35)}
+#touch{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(120,130,145,.45);border:2px solid rgba(255,255,255,.85);z-index:40;display:none}
+/* search */
+#search{background:#f4f5f7;color:#111}
+.bar{position:absolute;left:16px;right:16px;top:184px;height:46px;border-radius:23px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.15);display:flex;align-items:center;padding:0 16px;font-size:17px;gap:10px}
+.mag{width:15px;height:15px;border:2px solid #6b7280;border-radius:50%;position:relative;flex:none}.mag:after{content:"";position:absolute;width:7px;height:2px;background:#6b7280;right:-6px;bottom:-3px;transform:rotate(45deg)}
+.caret{width:2px;height:20px;background:#1c98c3;margin-left:-8px}
+.res{position:absolute;left:16px;right:16px;background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.res .u{font-size:12px;color:#4b5563}.res .t{font-size:18px;font-weight:600;color:#1a56c4;margin:3px 0 4px}.res .d{font-size:13px;color:#4b5563;line-height:1.35}
+/* browser chrome */
+.chrome{position:absolute;top:30px;left:0;right:0;height:40px;background:#eceef1;display:flex;align-items:center;padding:0 10px;gap:10px;font-size:13px;color:#374151;z-index:5}
+.chrome .back{font-size:22px;width:24px;text-align:center}.chrome .url{flex:1;background:#fff;border-radius:10px;padding:7px 12px}
+.page{position:absolute;top:70px;left:0;right:0;bottom:0;overflow:hidden}
+#load{position:absolute;top:70px;left:0;height:3px;background:#1c98c3;z-index:6}
+/* bad site: desktop layout squeezed */
+#bad .page{background:#fff}
+#desk{width:1200px;transform-origin:0 0;transform:scale(.3);font-family:Georgia,serif;color:#333}
+#desk .nav{background:#2b2b2b;color:#ddd;display:flex;gap:34px;padding:22px 40px;font-size:20px}
+#desk .hero{height:330px;background:linear-gradient(135deg,#8c7a5b,#4d4234);color:#fff;padding:70px 60px;font-size:54px}
+#desk .hero small{display:block;font-size:22px;margin-top:18px;opacity:.85}
+#desk .cols{display:flex;gap:40px;padding:40px}#desk .cols div{flex:1;font-size:19px;line-height:1.5;color:#777}
+#desk .cols b{display:block;font-size:26px;color:#444;margin-bottom:10px}
+#desk .foot{padding:10px 40px 60px;font-size:17px;color:#999}
+/* good site */
+#good .page{background:#151515;color:#f1ece3;padding:20px 20px}
+#good .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px}#good .logo i{width:22px;height:22px;border-radius:6px;background:#c49a4a}
+#good h1{font-family:Disp;font-weight:900;font-size:40px;line-height:1.02;margin:82px 0 12px;letter-spacing:-.5px}
+#good p{font-size:16px;color:#cfc8bb;line-height:1.4}
+#good .open{display:inline-block;margin-top:14px;font-size:14px;font-weight:600;color:#9ad29a}
+#good .btn{margin-top:22px;background:#c49a4a;color:#111;font-weight:700;font-size:20px;text-align:center;padding:15px;border-radius:14px}
+#good .btn2{margin-top:10px;border:2px solid #3a322a;color:#f1ece3;font-weight:600;font-size:17px;text-align:center;padding:13px;border-radius:14px}
+#good .row{display:flex;gap:10px;margin-top:22px}#good .row div{flex:1;background:#201d1a;border-radius:12px;padding:12px;font-size:13px;color:#cfc8bb}#good .row b{display:block;color:#f1ece3;font-size:15px;margin-bottom:3px}
+#call{position:absolute;inset:0;background:rgba(10,14,18,.96);color:#fff;z-index:15;display:none;text-align:center;padding-top:190px}
+#call .av{width:92px;height:92px;border-radius:50%;background:#c49a4a;margin:0 auto 18px;font:900 40px Disp;color:#111;line-height:92px}
+#call .n{font-size:26px;font-weight:700}#call .s{font-size:16px;color:#9aa5b1;margin-top:8px}
+#call .end{width:66px;height:66px;border-radius:50%;background:#e5484d;margin:120px auto 0}
+/* end card */
+#end{background:radial-gradient(120% 70% at 50% 35%,#0f2530 0%,#090c11 60%);color:#f0f4f8;text-align:center}
+#end img{width:170px;position:absolute;left:95px;top:120px}
+#end h2{position:absolute;left:24px;right:24px;top:215px;font-family:Disp;font-weight:900;font-size:40px;line-height:1.04;letter-spacing:-.5px}
+#end h2 em{font-style:normal;color:#1c98c3}
+#end p{position:absolute;left:30px;right:30px;top:345px;font-size:17px;color:#a9b4c2;line-height:1.4}
+#cta{position:absolute;left:28px;right:28px;top:416px;background:#1c98c3;color:#08121a;font-weight:700;font-size:17px;white-space:nowrap;padding:15px 6px;border-radius:16px;box-shadow:0 10px 34px rgba(28,152,195,.45)}
+</style></head><body>
+<div id="status"><span>17:40</span><div class="r"><div class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></div><span>LTE</span><div class="bat"><i></i></div></div></div>
+<div id="cap"><span></span></div><div id="touch"></div>
+
+<div class="scr" id="search">
+ <div class="bar"><div class="mag"></div><span id="q"></span><div class="caret" id="caret"></div></div>
+ <div class="res" id="r1" style="top:252px"><div class="u">barber-kowalski.pl</div><div class="t">Barber Kowalski - Przemyśl</div><div class="d">Witamy na naszej stronie internetowej. Zapraszamy do zapoznania się z ofertą...</div></div>
+ <div class="res" id="r2" style="top:368px"><div class="u">barber-nowak.pl</div><div class="t">Barber Nowak - strzyżenie i broda</div><div class="d">Otwarte do 20:00. Zadzwoń albo umów wizytę jednym kliknięciem.</div></div>
+</div>
+
+<div class="scr" id="bad">
+ <div class="chrome"><div class="back">&#8249;</div><div class="url">barber-kowalski.pl</div></div><div id="load"></div>
+ <div class="page"><div id="desk">
+  <div class="nav"><span>Strona główna</span><span>O nas</span><span>Oferta</span><span>Galeria</span><span>Aktualności</span><span>Cennik</span><span>Partnerzy</span><span>Kontakt</span></div>
+  <div class="hero">Witamy na naszej stronie<small>Zapraszamy do zapoznania się z naszą bogatą ofertą usług fryzjerskich</small></div>
+  <div class="cols"><div><b>O nas</b>Nasz salon istnieje od wielu lat i świadczy usługi na najwyższym poziomie. Zapraszamy wszystkich zainteresowanych do zapoznania się z naszą ofertą oraz galerią zdjęć z realizacji.</div><div><b>Oferta</b>W naszej ofercie znajdą Państwo szeroki zakres usług. Szczegółowe informacje dostępne są w zakładce oferta oraz w cenniku, który można pobrać w formacie PDF.</div><div><b>Aktualności</b>Informujemy, że strona jest w trakcie aktualizacji. Wkrótce pojawią się nowe treści. Dziękujemy za cierpliwość i zapraszamy ponownie.</div></div>
+  <div class="cols"><div><b>Galeria</b>Zapraszamy do obejrzenia zdjęć. Galeria jest dostępna w wersji na komputery stacjonarne.</div><div><b>Partnerzy</b>Współpracujemy z wieloma dostawcami kosmetyków i akcesoriów fryzjerskich.</div><div><b>Informacje</b>Wszelkie prawa zastrzeżone. Kopiowanie treści bez zgody jest zabronione.</div></div>
+  <div class="foot">Kontakt dostępny w zakładce Kontakt</div>
+ </div></div>
+</div>
+
+<div class="scr" id="good">
+ <div class="chrome"><div class="back">&#8249;</div><div class="url">barber-nowak.pl</div></div>
+ <div class="page"><div class="logo"><i></i>Barber Nowak</div>
+  <h1>Strzyżenie<br>i broda</h1><p>Przemyśl, przy rynku. Bez kolejki, na umówioną godzinę.</p><span class="open">&#9679; Otwarte dziś do 20:00</span>
+  <div class="btn" id="btn">Zadzwoń</div><div class="btn2">Umów wizytę online</div>
+  <div class="row"><div><b>Strzyżenie</b>od 60 zł</div><div><b>Broda</b>od 40 zł</div></div></div>
+ <div id="call"><div class="av">N</div><div class="n">Barber Nowak</div><div class="s" id="dial">Łączenie...</div><div class="end"></div></div>
+</div>
+
+<div class="scr" id="end"><img src="../../assets/logo/pagehub-dark.png">
+ <h2>Klient wybrał<br>w <em>10 sekund.</em></h2><p>Na którą z tych stron trafia klient, gdy szuka Twojej firmy?</p>
+ <div id="cta">Napisz STRONA w komentarzu</div></div>
+
+<script>
+const $=id=>document.getElementById(id), cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=cl(x);return 1-Math.pow(1-x,3)};
+const QUERY="barber przemyśl";
+const TAPS=[[2.55,150,296],[6.15,22,50],[7.05,150,412],[9.35,180,395]];
+const CAPS=[[0,"17:40. Klient szuka barbera."],[3.0,"Klika pierwszy wynik..."],[4.85,"Nic nie widać. Numeru nie ma."],[6.6,"Wraca. Klika drugi."],[7.6,"Tu wszystko widać od razu."],[9.6,"I dzwoni."],[10.8,""]];
+function show(id){for(const s of document.querySelectorAll('.scr'))s.style.display=s.id===id?'block':'none'}
+function render(t){
+  let scene=t<3?'search':t<6.6?'bad':t<7.4?'search':t<10.8?'good':'end';
+  show(scene);
+  const dark=scene==='good'||scene==='end';
+  $('status').style.color=dark?'#fff':'#111';
+  $('status').style.background=scene==='search'?'#f4f5f7':scene==='bad'?'#eceef1':scene==='good'?'#0d0d0d':'transparent';
+  // caption
+  let c=CAPS[0];for(const k of CAPS)if(t>=k[0])c=k;
+  const cs=$('cap').firstElementChild;cs.textContent=c[1];
+  const ca=ease((t-c[0])/0.22);cs.style.display=c[1]?'inline-block':'none';
+  cs.style.transform=`scale(${0.8+0.2*ca})`;cs.style.opacity=ca;
+  // search
+  if(scene==='search'){
+    const n=t<3?Math.floor(cl((t-0.3)/1.2)*QUERY.length):QUERY.length;
+    $('q').textContent=QUERY.slice(0,n);
+    $('caret').style.opacity=(t<1.6&&Math.floor(t*2.5)%2===0)||n<QUERY.length&&n>0?1:0;
+    for(const [id,t0] of [['r1',1.7],['r2',1.85]]){const a=t<3?ease((t-t0)/0.3):1;$(id).style.opacity=a;$(id).style.transform=`translateY(${(1-a)*14}px)`}
+    $('r1').style.background=(t>2.55&&t<3)?'#e8edf5':'#fff';
+    $('r1').querySelector('.t').style.color=t>6.6?'#6b3fa0':'#1a56c4';
+    $('r2').style.background=(t>7.05)?'#e8edf5':'#fff';
+  }
+  if(scene==='bad'){
+    const p=cl((t-3)/1.8);$('load').style.width=(360*(0.15+0.75*Math.pow(p,2.2)+(t>4.75?0.1:0)))+'px';
+    $('load').style.display=t<4.85?'block':'none';
+    $('desk').style.opacity=t<4.8?0:1;
+    $('desk').style.transform=`scale(.3) translateY(${-cl((t-5.2)/0.8)*260}px)`;
+  }
+  if(scene==='good'){
+    const a=ease((t-7.4)/0.25);$('good').querySelector('.page').style.opacity=a;
+    $('btn').style.transform=`scale(${t>9.35&&t<9.55?0.96:1})`;
+    const ca2=ease((t-9.55)/0.25);$('call').style.display=t>9.55?'block':'none';$('call').style.opacity=ca2;
+    $('dial').textContent='Łączenie'+'.'.repeat(1+Math.floor(Math.max(0,t-9.55)*2.5)%3);
+  }
+  if(scene==='end'){
+    const a=ease((t-10.8)/0.4);$('end').style.opacity=a;
+    const b=cl((t-11.7)/0.35),pop=b<1?1-Math.pow(1-b,3)*(1)+Math.sin(b*Math.PI)*0.12:1;
+    const out=cl((TOTAL-t)/0.3);
+    $('cta').style.transform=`scale(${t<11.7?0:pop})`;$('cta').style.opacity=out;
+    $('end').style.opacity=a*Math.max(out,0.0);
+  }
+  // touch dot
+  const td=$('touch');td.style.display='none';
+  for(const [tt,x,y] of TAPS){const d=t-tt;if(d>-0.35&&d<0.25){td.style.display='block';td.style.left=x+'px';td.style.top=y+'px';
+    const s=d<0?1.25-0.25*ease((d+0.35)/0.35):1-0.3*cl(d/0.08)+0.3*cl((d-0.08)/0.17);
+    td.style.transform=`scale(${s})`;td.style.opacity=d<0?ease((d+0.35)/0.2):1-cl((d-0.1)/0.15)}}
+}
+let TOTAL=13.77;
+</script></body></html>
