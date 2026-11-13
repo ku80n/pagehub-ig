@@ -60,12 +60,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     ap.add_argument("--still", type=float)
+    ap.add_argument("--cine", action="store_true", help="phone in a 3D scene with a handheld camera")
     a = ap.parse_args()
     from playwright.sync_api import sync_playwright
     with sync_playwright() as pw:
         b = pw.chromium.launch()
         page = b.new_page(viewport={"width": 360, "height": 640}, device_scale_factor=3)
-        page.goto((ROOT / "tools" / "pov" / "pov.html").as_uri())
+        page.goto((ROOT / "tools" / "pov" / "pov.html").as_uri() + ("?cine=1" if a.cine else ""))
         page.evaluate(f"TOTAL={TOTAL}; document.fonts.ready")
         page.wait_for_timeout(300)
         if a.still is not None:

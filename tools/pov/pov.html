@@ -11,7 +11,7 @@ body{width:360px;height:640px;overflow:hidden;font-family:Inter,sans-serif;backg
 #status .r{margin-left:auto;display:flex;gap:6px;align-items:center}
 .bat{width:22px;height:11px;border:1.5px solid currentColor;border-radius:3px;position:relative}.bat i{position:absolute;left:1px;top:1px;bottom:1px;width:9px;background:currentColor;border-radius:1px}
 .sig{display:flex;gap:2px;align-items:flex-end}.sig i{width:3px;background:currentColor;border-radius:1px}
-#cap{position:absolute;left:0;right:0;top:122px;z-index:30;text-align:center;padding:0 22px}
+#cap{position:absolute;left:0;right:0;top:var(--capy,122px);z-index:30;text-align:center;padding:0 22px}
 #cap span{display:inline-block;background:#fff;color:#0b0f14;font-weight:700;font-size:19px;line-height:1.25;padding:8px 14px;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.35)}
 #touch{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(120,130,145,.45);border:2px solid rgba(255,255,255,.85);z-index:40;display:none}
 /* search */
@@ -55,9 +55,28 @@ body{width:360px;height:640px;overflow:hidden;font-family:Inter,sans-serif;backg
 #end h2 em{font-style:normal;color:#1c98c3}
 #end p{position:absolute;left:30px;right:30px;top:345px;font-size:17px;color:#a9b4c2;line-height:1.4}
 #cta{position:absolute;left:28px;right:28px;top:416px;background:#1c98c3;color:#08121a;font-weight:700;font-size:17px;white-space:nowrap;padding:15px 6px;border-radius:16px;box-shadow:0 10px 34px rgba(28,152,195,.45)}
+#phone{position:absolute;inset:0;transform-style:preserve-3d}
+#screen{position:absolute;inset:0;overflow:hidden;background:#000}
+#bg,#vig,#glare{display:none}
+body.cine{background:#07090d;perspective:900px;--capy:74px}
+body.cine #bg{display:block;position:absolute;inset:-60px;background:radial-gradient(90% 40% at 50% 100%,#3a2a1c 0%,transparent 70%),linear-gradient(180deg,#101a24 0%,#0c1016 55%,#1a140f 100%)}
+body.cine #bg i{position:absolute;border-radius:50%;filter:blur(14px)}
+body.cine #vig{display:block;position:absolute;inset:0;background:radial-gradient(75% 60% at 50% 50%,transparent 55%,rgba(0,0,0,.5) 100%);z-index:1}
+body.cine #phone{inset:auto;left:33px;top:118px;width:294px;height:522px;border-radius:40px;background:#0b0b0d;z-index:2;
+  box-shadow:0 0 0 1.5px #3a3d44,0 40px 70px rgba(0,0,0,.75),0 0 90px rgba(28,152,195,.10)}
+body.cine #screen{inset:auto;left:7px;top:7px;width:360px;height:640px;transform:scale(.7778);transform-origin:0 0;border-radius:42px}
+body.cine #glare{display:block;position:absolute;inset:0;z-index:60;pointer-events:none}
+body.cine #cap span{font-size:18px;white-space:nowrap}
+body.cine #end{z-index:5}
+body.part-screen #cap,body.part-screen #end{display:none!important}
+body.part-overlay{background:transparent;--capy:74px}
+body.part-overlay #phone{display:none}
+body.part-overlay #end{background:radial-gradient(120% 70% at 50% 35%,rgba(15,37,48,.82) 0%,rgba(9,12,17,.9) 60%)}
+body.part-overlay #cap span{font-size:18px;white-space:nowrap}
 </style></head><body>
-<div id="status"><span>17:40</span><div class="r"><div class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></div><span>LTE</span><div class="bat"><i></i></div></div></div>
-<div id="cap"><span></span></div><div id="touch"></div>
+<div id="bg"><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="vig"></div>
+<div id="phone"><div id="screen"><div id="status"><span>17:40</span><div class="r"><div class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></div><span>LTE</span><div class="bat"><i></i></div></div></div>
+<div id="touch"></div>
 
 <div class="scr" id="search">
  <div class="bar"><div class="mag"></div><span id="q"></span><div class="caret" id="caret"></div></div>
@@ -85,11 +104,14 @@ body{width:360px;height:640px;overflow:hidden;font-family:Inter,sans-serif;backg
  <div id="call"><div class="av">N</div><div class="n">Barber Nowak</div><div class="s" id="dial">Łączenie...</div><div class="end"></div></div>
 </div>
 
+<div id="glare"></div></div></div>
+<div id="cap"><span></span></div>
 <div class="scr" id="end"><img src="../../assets/logo/pagehub-dark.png">
  <h2>Klient wybrał<br>w <em>10 sekund.</em></h2><p>Na którą z tych stron trafia klient, gdy szuka Twojej firmy?</p>
  <div id="cta">Napisz STRONA w komentarzu</div></div>
 
 <script>
+const PART=(location.search.match(/part=(\w+)/)||[])[1]||'';if(PART)document.body.classList.add('part-'+PART);
 const $=id=>document.getElementById(id), cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const ease=x=>{x=cl(x);return 1-Math.pow(1-x,3)};
 const QUERY="barber przemyśl";
@@ -98,6 +120,7 @@ const CAPS=[[0,"17:40. Klient szuka barbera."],[3.0,"Klika pierwszy wynik..."],[
 function show(id){for(const s of document.querySelectorAll('.scr'))s.style.display=s.id===id?'block':'none'}
 function render(t){
   let scene=t<3?'search':t<6.6?'bad':t<7.4?'search':t<10.8?'good':'end';
+  if(PART==='screen'&&scene==='end')scene='good';
   show(scene);
   const dark=scene==='good'||scene==='end';
   $('status').style.color=dark?'#fff':'#111';
@@ -143,4 +166,17 @@ function render(t){
     td.style.transform=`scale(${s})`;td.style.opacity=d<0?ease((d+0.35)/0.2):1-cl((d-0.1)/0.15)}}
 }
 let TOTAL=13.77;
+const CINE=location.search.includes('cine');if(CINE)document.body.classList.add('cine');
+const BOKEH=[[40,90,70,'#1c98c3',.20],[300,60,90,'#f2b36b',.16],[330,420,80,'#1c98c3',.14],[-10,480,110,'#f2b36b',.12],[200,700,90,'#c4543a',.12],[120,-10,60,'#ffffff',.10]];
+function cine(t){
+  const w=2*Math.PI*t/TOTAL, ry=7*Math.sin(w)+1.6*Math.sin(3*w+1), rx=5+2.2*Math.sin(2*w+.6)+.8*Math.sin(5*w);
+  const rz=1.2*Math.sin(w+2)+.4*Math.sin(4*w), sx=3*Math.sin(2*w+1)+1.2*Math.sin(7*w), sy=3*Math.sin(3*w)+1.5*Math.sin(5*w+2);
+  let dip=0;for(const [tt] of TAPS){const d=t-tt;if(d>0&&d<.35)dip+=Math.sin(d/.35*Math.PI)*Math.exp(-d*5)*2.2}
+  const push=.84+.1*ease(t/10.8), out=ease((t-10.75)/.4);
+  $('phone').style.transform=`translate(${sx}px,${sy+out*40}px) scale(${push*(1-out*.12)}) rotateY(${ry}deg) rotateX(${rx+dip}deg) rotateZ(${rz}deg)`;
+  $('phone').style.opacity=1-out;$('phone').style.filter=`blur(${out*8}px)`;
+  $('glare').style.background=`linear-gradient(${115+ry*2}deg,transparent ${38+ry*3}%,rgba(255,255,255,.07) ${50+ry*3}%,transparent ${60+ry*3}%)`;
+  [...$('bg').children].forEach((e,i)=>{const b=BOKEH[i];e.style.cssText=`left:${b[0]+60-ry*(2+i)}px;top:${b[1]+60+rx*(1+i*.5)}px;width:${b[2]}px;height:${b[2]}px;background:${b[3]};opacity:${Math.min(1,b[4]*3.2*(.8+.2*Math.sin(w*2+i)))}`});
+}
+const _r=render;render=function(t){_r(t);if(CINE)cine(t)};
 </script></body></html>
