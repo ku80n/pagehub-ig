@@ -12,7 +12,7 @@ W, H, FPS, STEP = 1080, 1920, 30, 4
 work = pathlib.Path(sys.argv[1])
 corners = {int(k): (np.float32(v) * (W, H)).astype(np.float32) for k, v in json.loads((work / "corners.json").read_text()).items()}
 N = len(corners)
-SW, SH, R = 720, 1560, 91
+SW, SH, R = 720, 1560, 110
 src = np.float32([[0, 0], [SW, 0], [SW, SH], [0, SH]])
 mask0 = np.zeros((SH, SW), np.float32)
 cv2.rectangle(mask0, (R, 0), (SW - R, SH), 1, -1); cv2.rectangle(mask0, (0, R), (SW, SH - R), 1, -1)

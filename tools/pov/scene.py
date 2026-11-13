@@ -83,14 +83,14 @@ nt.links.new(n1.outputs["Fac"], bump.inputs["Height"]); nt.links.new(bump.output
 prim("primitive_plane_add", [wood], smooth=False, size=4)
 
 # ---- phone
-PW, PH, PT = 71.5 * mm, 153 * mm, 8.2 * mm
-SWm, SHm = 67 * mm, 67 * mm * 780 / 360
+PW, PH, PT = 71.6 * mm, 151.4 * mm, 7.8 * mm
+SWm, SHm = 68.2 * mm, 68.2 * mm * 780 / 360
 glass = material("glass", **{"Base Color": (0.004, 0.004, 0.005, 1), "Roughness": 0.03, "Coat Weight": 1.0, "Coat Roughness": 0.02})
-frame = material("frame", **{"Base Color": (0.25, 0.26, 0.28, 1), "Metallic": 1.0, "Roughness": 0.28})
+frame = material("frame", **{"Base Color": (0.62, 0.63, 0.65, 1), "Metallic": 1.0, "Roughness": 0.42})   # satin aluminium, flat sides
 phone_rot = (0, 0, math.radians(-8))
-body = obj("phone", rounded_rect("phone", PW, PH, 10.5 * mm), glass, frame, rot=phone_rot)
+body = obj("phone", rounded_rect("phone", PW, PH, 12 * mm, seg=14), glass, frame, rot=phone_rot)
 so = body.modifiers.new("s", "SOLIDIFY"); so.thickness, so.offset, so.material_offset_rim = PT, 1, 1
-bv = body.modifiers.new("b", "BEVEL"); bv.width, bv.segments, bv.limit_method, bv.angle_limit = 1.3 * mm, 4, "ANGLE", math.radians(40)
+bv = body.modifiers.new("b", "BEVEL"); bv.width, bv.segments, bv.limit_method, bv.angle_limit = 0.55 * mm, 3, "ANGLE", math.radians(40)
 body.location.z = 0.0
 for p in body.data.polygons:
     p.use_smooth = True
@@ -98,7 +98,7 @@ for y, ln in ((30 * mm, 16 * mm), (8 * mm, 9 * mm)):                # side butto
     bt = prim("primitive_cube_add", [frame], smooth=False, size=1)
     bt.scale = (1.2 * mm, ln, 2.4 * mm); bt.parent = body; bt.location = (PW / 2 + 0.2 * mm, y, PT / 2)
 ZS = PT + 0.03 * mm
-scr = obj("screen", rounded_rect("screen", SWm, SHm, 8.5 * mm, uv=True), rot=phone_rot, loc=(0, 0, ZS))
+scr = obj("screen", rounded_rect("screen", SWm, SHm, 10.4 * mm, seg=14, uv=True), rot=phone_rot, loc=(0, 0, ZS))
 m = bpy.data.materials.new("screen"); m.use_nodes = True; scr.data.materials.append(m)
 nt = m.node_tree; b = nt.nodes["Principled BSDF"]
 b.inputs["Base Color"].default_value = (0, 0, 0, 1)
