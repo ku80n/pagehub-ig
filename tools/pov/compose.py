@@ -8,16 +8,19 @@ import json, pathlib, subprocess, sys, tempfile
 import cv2, numpy as np
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
-W, H, FPS, STEP = 1080, 1920, 30, 3
+W, H, FPS, STEP = 1080, 1920, 30, 4
 work = pathlib.Path(sys.argv[1])
 corners = {int(k): (np.float32(v) * (W, H)).astype(np.float32) for k, v in json.loads((work / "corners.json").read_text()).items()}
 N = len(corners)
-SW, SH = 720, 1280
+SW, SH, R = 720, 1560, 91
 src = np.float32([[0, 0], [SW, 0], [SW, SH], [0, SH]])
 mask0 = np.zeros((SH, SW), np.float32)
-cv2.rectangle(mask0, (60, 0), (SW - 60, SH), 1, -1); cv2.rectangle(mask0, (0, 60), (SW, SH - 60), 1, -1)
-for c in ((60, 60), (SW - 60, 60), (60, SH - 60), (SW - 60, SH - 60)):
-    cv2.circle(mask0, c, 60, 1, -1, cv2.LINE_AA)
+cv2.rectangle(mask0, (R, 0), (SW - R, SH), 1, -1); cv2.rectangle(mask0, (0, R), (SW, SH - R), 1, -1)
+for c in ((R, R), (SW - R, R), (R, SH - R), (SW - R, SH - R)):
+    cv2.circle(mask0, c, R, 1, -1, cv2.LINE_AA)
+yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+VIG = (1 - 0.42 * np.clip(((xx / W - 0.5) ** 2 + (yy / H - 0.5) ** 2) / 0.5, 0, 1) ** 1.3)[..., None]
+rng = np.random.default_rng(3)
 
 
 def frame(f):
@@ -32,8 +35,12 @@ def frame(f):
     warped = cv2.warpPerspective(scr, M, (W, H), flags=cv2.INTER_AREA).astype(np.float32)
     m = cv2.GaussianBlur(cv2.warpPerspective(mask0, M, (W, H), flags=cv2.INTER_LINEAR), (0, 0), 1.2)[..., None]
     out = cg.astype(np.float32)
-    glare = np.clip(out - 150, 0, 255) * 0.25              # keep a little of the rendered reflections
-    out = out * (1 - m) + (warped * 0.96 + glare) * m
+    warped = cv2.GaussianBlur(warped, (0, 0), 0.7)          # as soft as the lens, not pasted-on sharp
+    lit = 255 * (1 - (1 - warped * 0.97 / 255) * (1 - np.clip(out, 0, 255) * 0.75 / 255))   # screen under the glass reflections
+    out = out * (1 - m) + lit * m
+    glow = cv2.GaussianBlur(np.clip(out - 185, 0, 255), (0, 0), 22)
+    out = (out + glow * 0.45) * VIG
+    out += cv2.GaussianBlur(rng.standard_normal((H, W, 1)).astype(np.float32), (0, 0), 0.6)[..., None] * 5.0   # film grain
     t = (f - 1) / FPS
     if t > 10.7:
         s = min(1, (t - 10.7) / 0.5)
