@@ -1,0 +1,163 @@
+{
+  "made_at": "2026-11-16T06:45:10+01:00",
+  "week": [
+    "2026-11-09",
+    "2026-11-15"
+  ],
+  "insights": false,
+  "posts": [
+    {
+      "id": "18122405362956137",
+      "key": "2026-11-09/k3#reel",
+      "kind": "rolka",
+      "at": "2026-11-15T10:04+01:00",
+      "permalink": "https://www.instagram.com/reel/Dfwaqc9s-7-/",
+      "topic": "Landing page czy strona firmowa: co wybrać dla małej firmy",
+      "pillar": "Oferta i sprzedaż",
+      "cta_keyword": "PAKIET",
+      "likes": 2,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "17967916416208266",
+      "key": "2026-11-09/k3",
+      "kind": "karuzela",
+      "at": "2026-11-14T10:03+01:00",
+      "permalink": "https://www.instagram.com/p/Dft1xNLjdC3/",
+      "topic": "Landing page czy strona firmowa: co wybrać dla małej firmy",
+      "pillar": "Oferta i sprzedaż",
+      "cta_keyword": "PAKIET",
+      "likes": 0,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "17995027458026964",
+      "key": "2026-11-09/k2#reel",
+      "kind": "rolka",
+      "at": "2026-11-13T14:04+01:00",
+      "permalink": "https://www.instagram.com/reel/DfrsfdeOB_V/",
+      "topic": "Jak sam zmieniasz cennik i zdjęcia w panelu strony",
+      "pillar": "Demonstracje i proces",
+      "cta_keyword": "PANEL",
+      "likes": 0,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "17900706480396805",
+      "key": "2026-11-09/k2",
+      "kind": "karuzela",
+      "at": "2026-11-12T14:04+01:00",
+      "permalink": "https://www.instagram.com/p/DfpHwXYjeVP/",
+      "topic": "Jak sam zmieniasz cennik i zdjęcia w panelu strony",
+      "pillar": "Demonstracje i proces",
+      "cta_keyword": "PANEL",
+      "likes": 1,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "18160754311506749",
+      "key": "2026-11-09/k1#reel",
+      "kind": "rolka",
+      "at": "2026-11-11T14:06+01:00",
+      "permalink": "https://www.instagram.com/reel/DfmjLTuyPP0/",
+      "topic": "Kolory strony dobrane do branży: 6 gotowych palet z kodami",
+      "pillar": "Edukacja i problemy klientów",
+      "cta_keyword": "KOLORY",
+      "likes": 6,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "17924817687219812",
+      "key": "2026-11-09/k1",
+      "kind": "karuzela",
+      "at": "2026-11-10T14:06+01:00",
+      "permalink": "https://www.instagram.com/p/Dfj-WAqDHGV/",
+      "topic": "Kolory strony dobrane do branży: 6 gotowych palet z kodami",
+      "pillar": "Edukacja i problemy klientów",
+      "cta_keyword": "KOLORY",
+      "likes": 4,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "18108100784304447",
+      "key": "2026-11-02/k3#reel",
+      "kind": "rolka",
+      "at": "2026-11-08T10:06+01:00",
+      "permalink": "https://www.instagram.com/reel/DfeZO05uW9_/",
+      "topic": "Jak powstaje strona w PageHub, krok po kroku",
+      "pillar": "Kulisy",
+      "cta_keyword": "WYCENA",
+      "likes": 6,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "18081527912718816",
+      "key": "2026-11-02/k3",
+      "kind": "karuzela",
+      "at": "2026-11-07T10:04+01:00",
+      "permalink": "https://www.instagram.com/p/Dfb0PD2Eyl3/",
+      "topic": "Jak powstaje strona w PageHub, krok po kroku",
+      "pillar": "Kulisy",
+      "cta_keyword": "WYCENA",
+      "likes": 8,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "18094899155278325",
+      "key": "2026-11-02/k2#reel",
+      "kind": "rolka",
+      "at": "2026-11-06T14:06+01:00",
+      "permalink": "https://www.instagram.com/reel/DfZrLZlBbnt/",
+      "topic": "Test strony na telefonie w 5 minut",
+      "pillar": "Edukacja",
+      "cta_keyword": "TELEFON",
+      "likes": 5,
+      "comments": 2,
+      "leads": 0
+    },
+    {
+      "id": "17963727717238221",
+      "key": "2026-11-02/k2",
+      "kind": "karuzela",
+      "at": "2026-11-05T19:52+01:00",
+      "permalink": "https://www.instagram.com/p/DfXt9X_F79M/",
+      "topic": "Test strony na telefonie w 5 minut",
+      "pillar": "Edukacja",
+      "cta_keyword": "TELEFON",
+      "likes": 5,
+      "comments": 0,
+      "leads": 0
+    },
+    {
+      "id": "17974385637191152",
+      "key": "2026-11-02/k1",
+      "kind": "karuzela",
+      "at": "2026-11-03T12:18+01:00",
+      "permalink": "https://www.instagram.com/p/DfRwdHXl7ti/",
+      "topic": "5 rzeczy, które spowalniają stronę firmy",
+      "pillar": "Edukacja",
+      "cta_keyword": "TURBO",
+      "likes": 6,
+      "comments": 0,
+      "leads": 0
+    }
+  ],
+  "account": {
+    "followers_count": 14,
+    "follows_count": 1,
+    "media_count": 30
+  },
+  "insights_error": "GET https://graph.facebook.com/v26.0/18122405362956137/insights -> HTTP 400: (#10) Application does not have permission for this action",
+  "leads": {
+    "komentarze": 0,
+    "wiadomości": 0
+  }
+}
