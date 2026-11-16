@@ -1,0 +1,86 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "wtorek 17.11, 14:00",
+    "publish_at": "2026-11-17T14:00:00+01:00",
+    "pillar": "Edukacja i problemy klientów",
+    "topic": "4 pytania, na które strona główna musi odpowiedzieć od razu",
+    "goal": "zapisy (lista do sprawdzenia na własnej stronie)",
+    "cta_keyword": "WITAMY",
+    "reply_hint": "Cześć, dzięki za komentarz! Masz już stronę, czy zaczynamy od zera? Napisz, czym zajmuje się Twoja firma i gdzie działasz, a powiemy, jak mogłaby wyglądać Twoja strona główna. Landing page robimy od 800 zł, stronę firmową od 1500 zł. Dokładną cenę ustalamy po rozmowie.",
+    "caption_ig": "\"Witamy na naszej stronie\" nie mówi klientowi nic. Kompletnie.\n\nKlient chce wiedzieć 4 rzeczy: co robisz, gdzie, za ile i jak Cię złapać, a strona główna powinna na nie odpowiedzieć, zanim ktoś w ogóle zacznie przewijać, bo jeśli tego nie zrobi, klient po prostu wraca do Google i klika następny wynik. Konkretna usługa zamiast powitania, na przykład \"Naprawa samochodów osobowych\". Miasto: Przemyśl, Rzeszów, Krosno. Cena od. Jeden przycisk.\n\nResztę doczyta sam.\n\nChcesz stronę, która od pierwszego ekranu mówi, czym się zajmujesz? Napisz WITAMY w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes #lokalnybiznes",
+    "caption_reel": "Co robisz, gdzie, za ile i jak Cię złapać? Tyle klient chce wiedzieć z pierwszego ekranu.\n\nNa każde z tych 4 pytań strona ma prostą odpowiedź: \"Naprawa samochodów osobowych\" zamiast \"Witamy\", Przemyśl i okolice, cena od i jeden przycisk Zadzwoń. Bez tego klient wraca do Google.\n\nNapisz WITAMY w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes",
+    "reel_pendulum": {
+      "questions": [
+        "NIE WIADOMO, CO ROBISZ?",
+        "NIE WIDAĆ MIASTA?",
+        "ILE TO KOSZTUJE?",
+        "JAK SIĘ UMÓWIĆ?"
+      ],
+      "answers": [
+        "USŁUGA W NAGŁÓWKU.",
+        "MIASTO NA WIERZCHU.",
+        "PODAJESZ CENĘ OD.",
+        "JEDEN WYRAŹNY PRZYCISK."
+      ],
+      "closing": "TAK MÓWI DOBRA STRONA.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "\"Witamy na naszej stronie\". Klient czyta to i dalej nie wie, czy trafił dobrze.\n\nKiedy ktoś z Przemyśla albo Rzeszowa wchodzi na stronę lokalnej firmy, ma w głowie 4 pytania: co tu robią, czy działają w mojej okolicy, ile to mniej więcej kosztuje i jak się z nimi skontaktować. Jeśli pierwszy ekran nie odpowiada na żadne z nich, łatwo wrócić do Google i kliknąć kogoś innego.\n\nDlatego przy każdej stronie zaczynamy od tych odpowiedzi. \"Naprawa samochodów osobowych\" zamiast powitania. \"Przemyśl i okolice\" zamiast ogólników. Cena od. Jeden przycisk Zadzwoń, Zapisz się albo Napisz.\n\nProste? Tak. A wciąż brakuje tego na wielu stronach.\n\nChcesz stronę, która od pierwszego ekranu mówi, czym się zajmujesz? Landing page robimy od 800 zł, stronę firmową od 1500 zł. Napisz do nas albo zajrzyj na https://pagehub.pl",
+    "alt": "Okładka karuzeli PageHub: napis Tylko Witamy? Klient nie wie, co robisz oraz zapowiedź 4 pytań, na które strona główna powinna odpowiedzieć od razu."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "strona główna",
+      "title": "Tylko *Witamy*? Klient nie wie, co robisz",
+      "subtitle": "4 pytania, na które strona główna musi odpowiedzieć od razu."
+    },
+    {
+      "type": "text",
+      "title": "Powitanie nic *nie mówi*",
+      "body": "Klient wchodzi na stronę z konkretnym pytaniem. Jeśli pierwszy ekran na nie nie odpowiada, wraca do Google i klika *kogoś innego*."
+    },
+    {
+      "type": "text",
+      "kicker": "pytanie 1/4",
+      "title": "Co *robisz*?",
+      "body": "Nazwa usługi zamiast hasła. \"Naprawa samochodów osobowych\" mówi więcej niż \"Pasja i jakość od lat\"."
+    },
+    {
+      "type": "text",
+      "kicker": "pytanie 2/4",
+      "title": "Gdzie *działasz*?",
+      "body": "Miasto i okolica na pierwszym ekranie. Klient z Przemyśla od razu wie, że nie musi jechać na drugi koniec województwa."
+    },
+    {
+      "type": "text",
+      "kicker": "pytanie 3/4",
+      "title": "Ile to *kosztuje*?",
+      "body": "Wystarczy cena od. Klient widzi, czy to jego przedział, i pisze z konkretnym pytaniem, a nie z ciekawości."
+    },
+    {
+      "type": "text",
+      "kicker": "pytanie 4/4",
+      "title": "Jak się z Tobą *umówić*?",
+      "body": "Jeden wyraźny przycisk: zadzwoń, zapisz się albo napisz. Gdy jest ich pięć obok siebie, klient nie wybiera żadnego."
+    },
+    {
+      "type": "list",
+      "title": "Pierwszy ekran *odpowiada*",
+      "items": [
+        "Co robisz: nazwa usługi",
+        "Gdzie: miasto i okolica",
+        "Za ile: cena od",
+        "Jak: jeden wyraźny przycisk"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Twoja strona tylko *wita*?",
+      "body": "Zapisz listę i sprawdź z nią swoją stronę. Chcesz nową? Napisz *WITAMY* w komentarzu albo wypełnij formularz na pagehub.pl.",
+      "button": "Napisz WITAMY"
+    }
+  ]
+}

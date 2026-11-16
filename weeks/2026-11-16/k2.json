@@ -1,0 +1,86 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "czwartek 19.11, 14:00",
+    "publish_at": "2026-11-19T14:00:00+01:00",
+    "pillar": "Lokalność",
+    "topic": "Usługa i miasto na stronie: co pomaga Google pokazać lokalną firmę",
+    "goal": "zapisy i udostępnienia (lista do sprawdzenia na własnej stronie)",
+    "cta_keyword": "MIASTO",
+    "reply_hint": "Cześć, dzięki za komentarz! Jaką usługę chcesz pokazać w Google i w jakich miastach pracujesz? Masz już stronę? Każdą stronę piszemy od zera, z podstawowym SEO i Google Search Console. Landing page robimy od 800 zł, stronę firmową od 1500 zł. Dokładną cenę ustalamy po rozmowie.",
+    "caption_ig": "Ktoś wpisuje \"mechanik Przemyśl\". Czy Twoja strona w ogóle mówi Google, że jesteś mechanikiem z Przemyśla?\n\nGoogle nie zgaduje. Czyta tytuł strony, nagłówki i tekst. Jeśli nigdzie nie ma nazwy usługi i miasta, trudno, żeby pokazał Cię przy takim wyszukiwaniu. Pomaga też osobna podstrona dla każdej usługi i strona zgłoszona w Google Search Console.\n\nPierwszego miejsca nikt uczciwy nie obiecuje. Ale bez tych podstaw zaczynasz z dużą stratą.\n\nChcesz stronę, która od startu mówi Google, gdzie działasz? Napisz MIASTO w komentarzu.\n\n#stronywww #stronadlafirmy #przemyśl #rzeszów #podkarpacie",
+    "caption_reel": "Google nie zgaduje, co robisz i gdzie. Trzeba mu to napisać na stronie.\n\nNazwa usługi i miasto w tytule strony i w tekście, osobna podstrona dla każdej usługi, zgłoszenie w Google Search Console. To podstawy, od których zaczyna każda lokalna firma.\n\nNapisz MIASTO w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #przemyśl #podkarpacie",
+    "reel_pendulum": {
+      "questions": [
+        "GOOGLE CIĘ NIE POKAZUJE?",
+        "PISZESZ ŻARGONEM?",
+        "WSZYSTKO NA JEDNEJ STRONIE?",
+        "GOOGLE NIE ZNA STRONY?"
+      ],
+      "answers": [
+        "USŁUGA I MIASTO W TYTULE.",
+        "SŁOWA KLIENTÓW.",
+        "PODSTRONA NA USŁUGĘ.",
+        "ZGŁASZAMY JĄ DO GOOGLE."
+      ],
+      "closing": "TAK CIĘ ZNAJDĄ W OKOLICY.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "Ktoś wpisuje w Google \"fryzjer Przemyśl\" albo \"księgowa Rzeszów\". Czy Twoja strona w ogóle mówi, że robisz to i działasz właśnie tam?\n\nGoogle nie zgaduje. Czyta tytuł strony, nagłówki i zwykły tekst, a jeśli na stronie jest tylko \"Witamy\" i ładne zdjęcie, nie ma z czego się dowiedzieć, czym się zajmujesz i w jakiej okolicy.\n\nCo pomaga:\n- nazwa usługi i miasto w tytule strony, czyli w niebieskim linku w wynikach,\n- usługa i okolica w nagłówkach i tekście, takimi słowami, jakie wpisują klienci,\n- osobna podstrona dla każdej usługi,\n- strona zgłoszona w Google Search Console.\n\nPierwszego miejsca nie obiecujemy. Nikt uczciwy tego nie robi.\n\nAle te podstawy ustawiamy przy każdej stronie, którą piszemy, a dzięki Angular SSR Google widzi jej treść od razu, bez czekania, aż coś się doładuje w przeglądarce.\n\nWięcej o tym, jak pracujemy: https://pagehub.pl",
+    "alt": "Okładka karuzeli PageHub: napis Google nie wie, gdzie działasz? Sprawdź 4 rzeczy oraz zapowiedź listy rzeczy na stronie, które pomagają lokalnej firmie w wynikach wyszukiwania."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "Google lokalnie",
+      "title": "Google nie wie, gdzie działasz? *Sprawdź* 4 rzeczy",
+      "subtitle": "Usługa i miasto na stronie: tak Google wie, komu Cię pokazać."
+    },
+    {
+      "type": "text",
+      "title": "Google *nie zgaduje*",
+      "body": "Klient wpisuje \"mechanik Przemyśl\". Google szuka stron, na których widać usługę i miasto. Jeśli Twoja o nich *milczy*, pokazuje innych."
+    },
+    {
+      "type": "text",
+      "kicker": "1/4",
+      "title": "Usługa i miasto w *tytule*",
+      "body": "Tytuł strony to niebieski link w wynikach. \"Mechanik samochodowy Przemyśl\" działa lepiej niż \"Strona główna\" albo sama nazwa firmy."
+    },
+    {
+      "type": "text",
+      "kicker": "2/4",
+      "title": "Słowa, które *wpisują* klienci",
+      "body": "W nagłówkach i tekście pisz tak, jak szukają ludzie: wymiana opon, Przemyśl i okolice. Bez branżowego żargonu."
+    },
+    {
+      "type": "text",
+      "kicker": "3/4",
+      "title": "Każda usługa ma *swoją* podstronę",
+      "body": "Jedna strona o wszystkim mówi o niczym. Osobna podstrona o wymianie opon łatwiej trafia do kogoś, kto szuka właśnie tego."
+    },
+    {
+      "type": "text",
+      "kicker": "4/4",
+      "title": "Zgłoś stronę w *Search Console*",
+      "body": "Bezpłatne narzędzie Google. Widzisz w nim, czy strona jest w wynikach, i możesz poprosić o sprawdzenie nowej podstrony."
+    },
+    {
+      "type": "list",
+      "title": "Sprawdź u *siebie*",
+      "items": [
+        "Usługa i miasto w tytule",
+        "Słowa klientów w tekście",
+        "Podstrona dla każdej usługi",
+        "Strona w Google Search Console"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Google wie, *gdzie* jesteś?",
+      "body": "Te podstawy ustawiamy przy każdej stronie. Napisz *MIASTO* w komentarzu albo wypełnij formularz na pagehub.pl.",
+      "button": "Napisz MIASTO"
+    }
+  ]
+}
