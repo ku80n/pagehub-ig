@@ -1,0 +1,95 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "sobota 28.11, 10:00",
+    "publish_at": "2026-11-28T10:00:00+01:00",
+    "pillar": "Oferta i sprzedaż",
+    "topic": "Zanim zamówisz stronę: 4 pytania do wykonawcy i jak odpowiadamy na nie w PageHub",
+    "goal": "zapytania (komentarz OFERTA albo formularz)",
+    "cta_keyword": "OFERTA",
+    "reply_hint": "Cześć, dzięki za komentarz! Czym zajmuje się Twoja firma i czy masz już stronę albo domenę? Landing page jest od 800 zł (domena na rok w cenie), strona firmowa od 1500 zł (do 5 podstron, domena na 2 lata, wsparcie po wdrożeniu). Dokładną cenę ustalamy po krótkiej rozmowie.",
+    "caption_ig": "Dwie oferty na stronę z podobną ceną mogą znaczyć coś zupełnie innego. Te 4 pytania pokażą różnicę.\n\nSzablon czy kod od zera? Kto zmieni cennik, gdy przyjdzie nowy sezon? Ile kosztuje utrzymanie strony co roku? I co się dzieje, gdy strona już działa?\n\nU nas: projekt od zera, prosty panel do zmian, hosting na Netlify bez opłat, domena w cenie (rok przy Landing Page od 800 zł, 2 lata przy Stronie Firmowej od 1500 zł). Dokładną cenę ustalamy po rozmowie.\n\nChcesz wycenę? Napisz OFERTA w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes #lokalnybiznes",
+    "caption_reel": "Strona na szablonie i niejasne koszty utrzymania? Zapytaj o to, zanim zamówisz.\n\nKod od zera, panel do samodzielnych zmian, bezpłatny hosting na Netlify i wsparcie po wdrożeniu w Stronie Firmowej. Tak odpowiadamy w PageHub.\n\nNapisz OFERTA w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes",
+    "reel_pendulum": {
+      "questions": [
+        "STRONA NA SZABLONIE?",
+        "KTO ZMIENI CENNIK?",
+        "DROGIE UTRZYMANIE?",
+        "CO PO WDROŻENIU?"
+      ],
+      "answers": [
+        "KOD PISANY OD ZERA.",
+        "TY, W PROSTYM PANELU.",
+        "HOSTING BEZ OPŁAT.",
+        "WSPARCIE PO WDROŻENIU."
+      ],
+      "closing": "TAK WYBIERASZ WYKONAWCĘ.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "Zbierasz oferty na stronę firmy i widzisz podobne kwoty? To jeszcze nic nie znaczy.\n\nRóżnica wychodzi zwykle później: przy pierwszej zmianie w cenniku, przy rachunku za hosting albo wtedy, gdy coś przestaje działać, a wykonawca nie odbiera. Dlatego warto zapytać wcześniej:\n- czy strona powstaje na szablonie, czy od zera,\n- kto i jak zmieni teksty, zdjęcia i ceny,\n- ile co roku kosztuje utrzymanie (hosting, domena),\n- co dzieje się po wdrożeniu.\n\nU nas: każdy projekt od zera, prosty panel do zmian, hosting na Netlify bez opłat, domena w cenie. Landing Page od 800 zł, Strona Firmowa od 1500 zł z wsparciem po wdrożeniu. Dokładną cenę ustalamy po rozmowie.\n\nWycena: https://pagehub.pl/#contact",
+    "alt": "Okładka karuzeli PageHub: napis Zanim zapłacisz za stronę, zadaj 4 pytania oraz zapowiedź, że odpowiedzi powiedzą więcej niż sama cena."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "zanim zamówisz",
+      "title": "Zanim zapłacisz za stronę, zadaj *4 pytania*",
+      "subtitle": "Odpowiedzi powiedzą Ci więcej niż sama cena."
+    },
+    {
+      "type": "text",
+      "title": "Cena to nie *wszystko*",
+      "body": "Dwie oferty z podobną kwotą mogą znaczyć coś zupełnie innego. Różnica wychodzi później: przy pierwszej zmianie, rachunku albo *awarii*."
+    },
+    {
+      "type": "text",
+      "kicker": "1/4",
+      "title": "Szablon czy *od zera*?",
+      "body": "Gotowy szablon ma też wiele innych stron. W PageHub każdy projekt rysujemy i kodujemy od zera, specjalnie dla Twojej firmy."
+    },
+    {
+      "type": "text",
+      "kicker": "2/4",
+      "title": "Kto zmieni *cennik*?",
+      "body": "Zapytaj, czy dostaniesz panel do zmian. Do naszych stron podpinamy prosty panel, w którym sam zmienisz tekst, zdjęcie i ceny."
+    },
+    {
+      "type": "text",
+      "kicker": "3/4",
+      "title": "Ile kosztuje *utrzymanie*?",
+      "body": "Hosting i domena to koszty, które wracają. U nas hosting na Netlify jest bezpłatny, a domena jest w cenie: na rok albo na 2 lata."
+    },
+    {
+      "type": "text",
+      "kicker": "4/4",
+      "title": "Co *po wdrożeniu*?",
+      "body": "Po starcie zawsze pojawiają się pytania i drobne zmiany. W pakiecie Strona Firmowa wsparcie po wdrożeniu jest w cenie."
+    },
+    {
+      "type": "list",
+      "title": "Ile to *kosztuje*?",
+      "items": [
+        "Landing Page od 800 zł",
+        "Strona Firmowa od 1500 zł",
+        "Dokładna cena po rozmowie"
+      ]
+    },
+    {
+      "type": "list",
+      "title": "4 pytania: *lista*",
+      "items": [
+        "Szablon czy kod od zera?",
+        "Kto zmieni teksty i ceny?",
+        "Ile kosztuje utrzymanie?",
+        "Co po wdrożeniu?"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Chcesz znać *cenę*?",
+      "body": "Napisz *OFERTA* w komentarzu albo wypełnij formularz na pagehub.pl. Cenę ustalamy po krótkiej rozmowie.",
+      "button": "Napisz OFERTA"
+    }
+  ]
+}

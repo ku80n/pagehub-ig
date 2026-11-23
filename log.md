@@ -10,4 +10,7 @@
 | 2026-11-09 | sobota 14.11 | Oferta | landing page czy strona firmowa | Jedna strona czy 5 podstron? Nie przepłać |
 | 2026-11-16 | wtorek 17.11 | Edukacja | strona główna: 4 pytania pierwszego ekranu | Tylko Witamy? Klient nie wie, co robisz |
 | 2026-11-16 | czwartek 19.11 | Lokalność | usługa i miasto na stronie, widoczność w Google | Google nie wie, gdzie działasz? Sprawdź 4 rzeczy |
-| 2026-11-16 | sobota 21.11 | Demonstracje | czyja jest domena firmy | Domena nie na Ciebie? Możesz stracić adres |
+| 2026-11-16 | sobota 21.11 | Demonstracje | czyja jest domena firmy (nie wyszła, błąd Netlify 403) | Domena nie na Ciebie? Możesz stracić adres |
+| 2026-11-23 | wtorek 24.11 | Edukacja | kłódka i https: ostrzeżenie przeglądarki | Połączenie nie jest prywatne? Tracisz klienta |
+| 2026-11-23 | czwartek 26.11 | Demonstracje | czyja jest domena firmy (nie wyszła 21.11) | Domena nie na Ciebie? Możesz stracić adres |
+| 2026-11-23 | sobota 28.11 | Oferta | 4 pytania do wykonawcy przed zamówieniem strony | Zanim zapłacisz za stronę, zadaj 4 pytania |

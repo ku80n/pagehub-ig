@@ -1,0 +1,199 @@
+
+<title>PageHub Instagram</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* layout: one column of posts in publishing order; each post = slide strip + two caption panes */
+:root {
+  --bg: #0B0F14; --panel: #121821; --line: #243040; --fg: #E6EDF3;
+  --muted: #8B98A8; --accent: #1C98C3; --accent-ink: #0B0F14; --ok: #3FB68B;
+  --display: "IBM Plex Mono", "DejaVu Sans Mono", ui-monospace, monospace;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #F3F6F8; --panel: #FFFFFF; --line: #D5DEE6; --fg: #0F1720;
+  --muted: #5A6878; --accent: #13789C; --accent-ink: #FFFFFF; --ok: #1F8A63; color-scheme: light } }
+:root[data-theme="light"] {
+  --bg: #F3F6F8; --panel: #FFFFFF; --line: #D5DEE6; --fg: #0F1720;
+  --muted: #5A6878; --accent: #13789C; --accent-ink: #FFFFFF; --ok: #1F8A63; color-scheme: light }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 1000px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px; }
+header { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font: 500 13px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 700 clamp(28px, 5vw, 40px)/1.15 var(--display); letter-spacing: -.02em; text-wrap: balance; margin: 0; }
+.how { color: var(--muted); max-width: 62ch; margin: 0; }
+.how b { color: var(--fg); font-weight: 600; }
+article { display: flex; flex-direction: column; gap: 18px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { font: 500 13px var(--display); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); }
+.chip.when { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+h2 { font: 700 clamp(20px, 3.4vw, 26px)/1.25 var(--display); margin: 0; text-wrap: balance; }
+.strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+.strip img { flex: none; width: min(300px, 72vw); aspect-ratio: 4 / 5; height: auto; max-width: 100%;
+  border-radius: 10px; border: 1px solid var(--line); scroll-snap-align: start; background: #0B0F14; }
+.hint { font-size: 13px; color: var(--muted); margin: -6px 0 0; }
+.panes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; }
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pane-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pane-title { font: 500 13px var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.copy { font: 600 14px var(--body); color: var(--accent-ink); background: var(--accent); border: 0;
+  border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+.copy:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.copy.done { background: var(--ok); }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: 15px/1.55 var(--body); }
+.alt { font-size: 14px; color: var(--muted); }
+.alt b { color: var(--fg); font-weight: 600; }
+.nw { white-space: nowrap; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (prefers-reduced-motion: reduce) { .strip { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">PageHub · Instagram</span>
+    <h1>Karuzele na <span class="nw">23-29</span> listopada 2026</h1>
+    <p class="how">Przejrzyj, popraw co chcesz i zaplanuj w <b>Meta Business Suite</b>: wgraj slajdy w kolejności, wklej podpis, ustaw godzinę z etykiety. Wszystkie pliki są też w paczce ZIP w czacie.</p>
+  </header>
+  <article>
+  <div class="meta"><span class="chip when">wtorek 24.11, 14:00</span>
+  <span class="chip">Edukacja i problemy klientów</span><span class="chip">9 slajdów</span></div>
+  <h2>Kłódka i https: 4 rzeczy, przez które przeglądarka ostrzega przed stroną firmy</h2>
+  <div class="strip"><img src="k1/01.png" alt="Okładka karuzeli PageHub: napis Połączenie nie jest prywatne? Tracisz klienta oraz zapowiedź 4 rzeczy do sprawdzenia przy adresie strony." loading="lazy" width="1080" height="1350"><img src="k1/02.png" alt="Slajd 2 z 9" loading="lazy" width="1080" height="1350"><img src="k1/03.png" alt="Slajd 3 z 9" loading="lazy" width="1080" height="1350"><img src="k1/04.png" alt="Slajd 4 z 9" loading="lazy" width="1080" height="1350"><img src="k1/05.png" alt="Slajd 5 z 9" loading="lazy" width="1080" height="1350"><img src="k1/06.png" alt="Slajd 6 z 9" loading="lazy" width="1080" height="1350"><img src="k1/07.png" alt="Slajd 7 z 9" loading="lazy" width="1080" height="1350"><img src="k1/08.png" alt="Slajd 8 z 9" loading="lazy" width="1080" height="1350"><img src="k1/09.png" alt="Slajd 9 z 9" loading="lazy" width="1080" height="1350"></div>
+  <p class="hint">Przewiń w bok. Przytrzymaj grafikę (telefon) albo kliknij prawym (komputer), żeby zapisać.</p>
+  <div class="panes">
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Instagram</span>
+  <button class="copy" type="button" data-target="ig1">Kopiuj</button></div>
+  <p class="text" id="ig1">Czerwony ekran &quot;Połączenie nie jest prywatne&quot; zamiast Twojej strony? Klient nie będzie szukał przyczyny.
+
+Sprawdź 4 rzeczy: czy adres ma https, czy certyfikat jest ważny, czy wersja z http przenosi na https i czy każde zdjęcie ładuje się bezpiecznie. Chrome oznacza strony bez https jako niezabezpieczone. A przy wygasłym certyfikacie klient utknie na ostrzeżeniu, zanim zobaczy choć jedno zdanie z Twojej oferty.
+
+Nasze strony stoją na Netlify. Tam certyfikat odnawia się sam.
+
+Planujesz nową stronę? Napisz HTTPS w komentarzu albo wypełnij formularz na pagehub.pl.
+
+#stronywww #stronainternetowa #stronadlafirmy #małybiznes</p>
+</div>
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Facebook</span>
+  <button class="copy" type="button" data-target="fb1">Kopiuj</button></div>
+  <p class="text" id="fb1">Wchodzisz na stronę firmy, a zamiast niej czerwony ekran i napis &quot;Połączenie nie jest prywatne&quot;. Klikasz dalej czy zamykasz kartę?
+
+Twoi klienci mają ten sam wybór na Twojej stronie, a Ty możesz o tym w ogóle nie wiedzieć, bo mało kto codziennie otwiera własną stronę i patrzy na pasek adresu. Klient patrzy.
+
+4 rzeczy do sprawdzenia w Chrome albo na telefonie:
+- czy adres zaczyna się od https i jest przy nim kłódka,
+- czy certyfikat jest ważny (ma datę, po której wygasa),
+- czy wpisanie adresu z http przenosi na https,
+- czy zdjęcia i skrypty też ładują się przez https.
+
+Kilka minut.
+
+W PageHub strony stawiamy na Netlify, gdzie certyfikat wystawia się i odnawia automatycznie, a wersja z http sama przenosi na https. Planujesz nową stronę? Napisz do nas: https://pagehub.pl/#contact</p>
+</div>
+  </div>
+  <p class="alt"><b>Tekst alternatywny okładki:</b> Okładka karuzeli PageHub: napis Połączenie nie jest prywatne? Tracisz klienta oraz zapowiedź 4 rzeczy do sprawdzenia przy adresie strony.</p>
+</article><article>
+  <div class="meta"><span class="chip when">czwartek 26.11, 14:00</span>
+  <span class="chip">Demonstracje i proces</span><span class="chip">9 slajdów</span></div>
+  <h2>Czyja jest Twoja domena: 4 rzeczy do sprawdzenia i jak ustawiamy domenę</h2>
+  <div class="strip"><img src="k2/01.png" alt="Okładka karuzeli PageHub: napis Domena nie na Ciebie? Możesz stracić adres oraz zapowiedź 4 rzeczy do sprawdzenia przy domenie firmy." loading="lazy" width="1080" height="1350"><img src="k2/02.png" alt="Slajd 2 z 9" loading="lazy" width="1080" height="1350"><img src="k2/03.png" alt="Slajd 3 z 9" loading="lazy" width="1080" height="1350"><img src="k2/04.png" alt="Slajd 4 z 9" loading="lazy" width="1080" height="1350"><img src="k2/05.png" alt="Slajd 5 z 9" loading="lazy" width="1080" height="1350"><img src="k2/06.png" alt="Slajd 6 z 9" loading="lazy" width="1080" height="1350"><img src="k2/07.png" alt="Slajd 7 z 9" loading="lazy" width="1080" height="1350"><img src="k2/08.png" alt="Slajd 8 z 9" loading="lazy" width="1080" height="1350"><img src="k2/09.png" alt="Slajd 9 z 9" loading="lazy" width="1080" height="1350"></div>
+  <p class="hint">Przewiń w bok. Przytrzymaj grafikę (telefon) albo kliknij prawym (komputer), żeby zapisać.</p>
+  <div class="panes">
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Instagram</span>
+  <button class="copy" type="button" data-target="ig2">Kopiuj</button></div>
+  <p class="text" id="ig2">Domena to adres Twojej firmy w internecie. Wiesz, na kogo jest zapisana i kto ma do niej hasło?
+
+Zwykle nikt tego nie sprawdza, dopóki strona nie przestanie działać albo nie trzeba zmienić wykonawcy, a wtedy nagle wychodzi, że abonentem jest ktoś inny, login zna tylko jedna osoba, a termin odnowienia minął kilka dni temu. Nerwy.
+
+W PageHub domenę i DNS ustawiamy po Twojej stronie, w OVH albo Netlify. Domena jest w cenie: na rok przy landing page od 800 zł, na 2 lata przy stronie firmowej od 1500 zł.
+
+Planujesz nową stronę? Napisz DOMENA w komentarzu albo wypełnij formularz na pagehub.pl.
+
+#stronywww #stronadlafirmy #małybiznes #lokalnybiznes</p>
+</div>
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Facebook</span>
+  <button class="copy" type="button" data-target="fb2">Kopiuj</button></div>
+  <p class="text" id="fb2">Domena to adres Twojej firmy w internecie. Na nim stoi strona, często też firmowa poczta. Wiesz, na kogo jest zapisana?
+
+To pytanie zwykle pada dopiero wtedy, gdy coś przestaje działać albo gdy zmieniasz wykonawcę strony, i wtedy bywa nerwowo, bo abonentem jest ktoś inny, hasło zna jedna osoba, a termin odnowienia właśnie minął.
+
+Co sprawdzić:
+- kto jest abonentem domeny (powinna być Twoja firma),
+- czy masz własny login do panelu, w którym opłacasz domenę,
+- kiedy jest odnowienie i kto za nie płaci,
+- czy przy zmianie wykonawcy adres zostanie przy Tobie.
+
+Lepiej wiedzieć wcześniej.
+
+W PageHub domeny i DNS ustawiamy po Twojej stronie, w OVH albo Netlify. W pakietach domena jest w cenie: na rok przy landing page, na 2 lata przy stronie firmowej.
+
+Pytania o domenę przy nowej stronie? Napisz do nas: https://pagehub.pl/#contact</p>
+</div>
+  </div>
+  <p class="alt"><b>Tekst alternatywny okładki:</b> Okładka karuzeli PageHub: napis Domena nie na Ciebie? Możesz stracić adres oraz zapowiedź 4 rzeczy do sprawdzenia przy domenie firmy.</p>
+</article><article>
+  <div class="meta"><span class="chip when">sobota 28.11, 10:00</span>
+  <span class="chip">Oferta i sprzedaż</span><span class="chip">9 slajdów</span></div>
+  <h2>Zanim zamówisz stronę: 4 pytania do wykonawcy i jak odpowiadamy na nie w PageHub</h2>
+  <div class="strip"><img src="k3/01.png" alt="Okładka karuzeli PageHub: napis Zanim zapłacisz za stronę, zadaj 4 pytania oraz zapowiedź, że odpowiedzi powiedzą więcej niż sama cena." loading="lazy" width="1080" height="1350"><img src="k3/02.png" alt="Slajd 2 z 9" loading="lazy" width="1080" height="1350"><img src="k3/03.png" alt="Slajd 3 z 9" loading="lazy" width="1080" height="1350"><img src="k3/04.png" alt="Slajd 4 z 9" loading="lazy" width="1080" height="1350"><img src="k3/05.png" alt="Slajd 5 z 9" loading="lazy" width="1080" height="1350"><img src="k3/06.png" alt="Slajd 6 z 9" loading="lazy" width="1080" height="1350"><img src="k3/07.png" alt="Slajd 7 z 9" loading="lazy" width="1080" height="1350"><img src="k3/08.png" alt="Slajd 8 z 9" loading="lazy" width="1080" height="1350"><img src="k3/09.png" alt="Slajd 9 z 9" loading="lazy" width="1080" height="1350"></div>
+  <p class="hint">Przewiń w bok. Przytrzymaj grafikę (telefon) albo kliknij prawym (komputer), żeby zapisać.</p>
+  <div class="panes">
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Instagram</span>
+  <button class="copy" type="button" data-target="ig3">Kopiuj</button></div>
+  <p class="text" id="ig3">Dwie oferty na stronę z podobną ceną mogą znaczyć coś zupełnie innego. Te 4 pytania pokażą różnicę.
+
+Szablon czy kod od zera? Kto zmieni cennik, gdy przyjdzie nowy sezon? Ile kosztuje utrzymanie strony co roku? I co się dzieje, gdy strona już działa?
+
+U nas: projekt od zera, prosty panel do zmian, hosting na Netlify bez opłat, domena w cenie (rok przy Landing Page od 800 zł, 2 lata przy Stronie Firmowej od 1500 zł). Dokładną cenę ustalamy po rozmowie.
+
+Chcesz wycenę? Napisz OFERTA w komentarzu albo wypełnij formularz na pagehub.pl.
+
+#stronywww #stronadlafirmy #małybiznes #lokalnybiznes</p>
+</div>
+    <div class="pane">
+  <div class="pane-head"><span class="pane-title">Podpis Facebook</span>
+  <button class="copy" type="button" data-target="fb3">Kopiuj</button></div>
+  <p class="text" id="fb3">Zbierasz oferty na stronę firmy i widzisz podobne kwoty? To jeszcze nic nie znaczy.
+
+Różnica wychodzi zwykle później: przy pierwszej zmianie w cenniku, przy rachunku za hosting albo wtedy, gdy coś przestaje działać, a wykonawca nie odbiera. Dlatego warto zapytać wcześniej:
+- czy strona powstaje na szablonie, czy od zera,
+- kto i jak zmieni teksty, zdjęcia i ceny,
+- ile co roku kosztuje utrzymanie (hosting, domena),
+- co dzieje się po wdrożeniu.
+
+U nas: każdy projekt od zera, prosty panel do zmian, hosting na Netlify bez opłat, domena w cenie. Landing Page od 800 zł, Strona Firmowa od 1500 zł z wsparciem po wdrożeniu. Dokładną cenę ustalamy po rozmowie.
+
+Wycena: https://pagehub.pl/#contact</p>
+</div>
+  </div>
+  <p class="alt"><b>Tekst alternatywny okładki:</b> Okładka karuzeli PageHub: napis Zanim zapłacisz za stronę, zadaj 4 pytania oraz zapowiedź, że odpowiedzi powiedzą więcej niż sama cena.</p>
+</article>
+  <footer>Wygenerowano automatycznie. Nic nie zostało opublikowane. Źródła i plan tygodnia: plan.md w repo.</footer>
+</div>
+
+<script>
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.copy');
+  if (!btn) return;
+  const src = document.getElementById(btn.dataset.target);
+  const text = src.innerText;
+  const done = () => { btn.textContent = 'Skopiowano'; btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Kopiuj'; btn.classList.remove('done'); }, 1800); };
+  try { await navigator.clipboard.writeText(text); done(); }
+  catch (_) {
+    const r = document.createRange(); r.selectNodeContents(src);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = 'Zaznaczono, skopiuj ręcznie';
+  }
+});
+</script>

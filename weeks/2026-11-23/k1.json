@@ -1,0 +1,92 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "wtorek 24.11, 14:00",
+    "publish_at": "2026-11-24T14:00:00+01:00",
+    "pillar": "Edukacja i problemy klientów",
+    "topic": "Kłódka i https: 4 rzeczy, przez które przeglądarka ostrzega przed stroną firmy",
+    "goal": "zapisy (lista do sprawdzenia przy własnym adresie)",
+    "cta_keyword": "HTTPS",
+    "reply_hint": "Cześć, dzięki za komentarz! Masz już stronę, czy planujesz nową? Nasze strony stoją na Netlify, gdzie certyfikat wystawia się i odnawia automatycznie. Landing page jest od 800 zł, strona firmowa od 1500 zł, dokładną cenę ustalamy po rozmowie. Napisz, czym zajmuje się Twoja firma, a podpowiemy, który pakiet pasuje.",
+    "caption_ig": "Czerwony ekran \"Połączenie nie jest prywatne\" zamiast Twojej strony? Klient nie będzie szukał przyczyny.\n\nSprawdź 4 rzeczy: czy adres ma https, czy certyfikat jest ważny, czy wersja z http przenosi na https i czy każde zdjęcie ładuje się bezpiecznie. Chrome oznacza strony bez https jako niezabezpieczone. A przy wygasłym certyfikacie klient utknie na ostrzeżeniu, zanim zobaczy choć jedno zdanie z Twojej oferty.\n\nNasze strony stoją na Netlify. Tam certyfikat odnawia się sam.\n\nPlanujesz nową stronę? Napisz HTTPS w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronainternetowa #stronadlafirmy #małybiznes",
+    "caption_reel": "Kłódka przy adresie? Klient widzi ją, zanim przeczyta pierwsze słowo.\n\nBez https Chrome pisze \"Niezabezpieczona\", a po wygaśnięciu certyfikatu pokazuje czerwony ekran. Nasze strony stoją na Netlify, gdzie certyfikat odnawia się sam, a adres z http przenosi na https.\n\nNapisz HTTPS w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes",
+    "reel_pendulum": {
+      "questions": [
+        "BRAK KŁÓDKI PRZY ADRESIE?",
+        "CERTYFIKAT WYGASŁ?",
+        "STARY LINK BEZ KŁÓDKI?",
+        "ZDJĘCIA PSUJĄ KŁÓDKĘ?"
+      ],
+      "answers": [
+        "STRONA TYLKO NA HTTPS.",
+        "ODNAWIA SIĘ SAM.",
+        "PRZEKIEROWANIE NA HTTPS.",
+        "WSZYSTKO PRZEZ HTTPS."
+      ],
+      "closing": "TAK DZIAŁA BEZPIECZNA STRONA.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "Wchodzisz na stronę firmy, a zamiast niej czerwony ekran i napis \"Połączenie nie jest prywatne\". Klikasz dalej czy zamykasz kartę?\n\nTwoi klienci mają ten sam wybór na Twojej stronie, a Ty możesz o tym w ogóle nie wiedzieć, bo mało kto codziennie otwiera własną stronę i patrzy na pasek adresu. Klient patrzy.\n\n4 rzeczy do sprawdzenia w Chrome albo na telefonie:\n- czy adres zaczyna się od https i jest przy nim kłódka,\n- czy certyfikat jest ważny (ma datę, po której wygasa),\n- czy wpisanie adresu z http przenosi na https,\n- czy zdjęcia i skrypty też ładują się przez https.\n\nKilka minut.\n\nW PageHub strony stawiamy na Netlify, gdzie certyfikat wystawia się i odnawia automatycznie, a wersja z http sama przenosi na https. Planujesz nową stronę? Napisz do nas: https://pagehub.pl/#contact",
+    "alt": "Okładka karuzeli PageHub: napis Połączenie nie jest prywatne? Tracisz klienta oraz zapowiedź 4 rzeczy do sprawdzenia przy adresie strony."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "kłódka",
+      "title": "Połączenie nie jest prywatne? Tracisz *klienta*",
+      "subtitle": "4 rzeczy do sprawdzenia przy adresie Twojej strony."
+    },
+    {
+      "type": "text",
+      "title": "Ostrzeżenie zamiast *strony*",
+      "body": "Przeglądarka pokazuje czerwony ekran albo napis \"Niezabezpieczona\". Klient nie wie, o co chodzi. Wie tylko, że *coś jest nie tak*."
+    },
+    {
+      "type": "text",
+      "kicker": "1/4",
+      "title": "Adres zaczyna się od *https*",
+      "body": "Otwórz swoją stronę i spójrz na pasek adresu. Bez https Chrome oznacza ją jako niezabezpieczoną, nawet jeśli cała reszta działa."
+    },
+    {
+      "type": "text",
+      "kicker": "2/4",
+      "title": "Certyfikat *nie wygasł*",
+      "body": "Certyfikat ma datę ważności. Gdy minie, zamiast strony klient widzi ekran z ostrzeżeniem. Żeby wejść dalej, musiałby je świadomie kliknąć."
+    },
+    {
+      "type": "text",
+      "kicker": "3/4",
+      "title": "Stary adres *przekierowuje*",
+      "body": "Wpisz adres z http na początku. Strona powinna sama przejść na https. Inaczej stare linki i wizytówki prowadzą do wersji bez kłódki."
+    },
+    {
+      "type": "text",
+      "kicker": "4/4",
+      "title": "Zdjęcia też *przez https*",
+      "body": "Jedno zdjęcie albo skrypt z adresu http potrafi zepsuć kłódkę na całej stronie. Przeglądarka może taki plik po prostu zablokować."
+    },
+    {
+      "type": "text",
+      "kicker": "jak to robimy",
+      "title": "Certyfikat *bez pilnowania*",
+      "body": "Nasze strony stoją na Netlify. Certyfikat wystawia się tam sam i sam się odnawia, więc data ważności nie spada na *Twoją głowę*."
+    },
+    {
+      "type": "list",
+      "title": "Kłódka: *lista*",
+      "items": [
+        "Adres zaczyna się od https",
+        "Certyfikat jest ważny",
+        "Adres z http przenosi na https",
+        "Zdjęcia i skrypty przez https"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Twoja strona *bez kłódki*?",
+      "body": "Zapisz listę na później. Planujesz nową stronę? Napisz *HTTPS* w komentarzu albo wypełnij formularz na pagehub.pl.",
+      "button": "Napisz HTTPS"
+    }
+  ]
+}

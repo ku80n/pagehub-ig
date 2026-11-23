@@ -1,0 +1,92 @@
+{
+  "handle": "pagehub.pl",
+  "ig": "@pagehub.pl",
+  "meta": {
+    "when": "czwartek 26.11, 14:00",
+    "publish_at": "2026-11-26T14:00:00+01:00",
+    "pillar": "Demonstracje i proces",
+    "topic": "Czyja jest Twoja domena: 4 rzeczy do sprawdzenia i jak ustawiamy domenę",
+    "goal": "zapisy (lista do sprawdzenia przy własnej domenie)",
+    "cta_keyword": "DOMENA",
+    "reply_hint": "Cześć, dzięki za komentarz! Masz już domenę, czy dopiero wybierasz adres? Domeny i DNS ustawiamy po Twojej stronie, w OVH albo Netlify. Domena jest w cenie pakietu: na rok przy landing page (od 800 zł) i na 2 lata przy stronie firmowej (od 1500 zł). Dokładną cenę ustalamy po rozmowie.",
+    "caption_ig": "Domena to adres Twojej firmy w internecie. Wiesz, na kogo jest zapisana i kto ma do niej hasło?\n\nZwykle nikt tego nie sprawdza, dopóki strona nie przestanie działać albo nie trzeba zmienić wykonawcy, a wtedy nagle wychodzi, że abonentem jest ktoś inny, login zna tylko jedna osoba, a termin odnowienia minął kilka dni temu. Nerwy.\n\nW PageHub domenę i DNS ustawiamy po Twojej stronie, w OVH albo Netlify. Domena jest w cenie: na rok przy landing page od 800 zł, na 2 lata przy stronie firmowej od 1500 zł.\n\nPlanujesz nową stronę? Napisz DOMENA w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes #lokalnybiznes",
+    "caption_reel": "Domena na wykonawcę? Przy zmianie firmy możesz zostać bez adresu.\n\nAbonentem powinna być Twoja firma, login do panelu powinien być Twój, a datę odnowienia warto mieć w kalendarzu. Wtedy przy każdej zmianie adres zostaje z Tobą.\n\nNapisz DOMENA w komentarzu albo wypełnij formularz na pagehub.pl.\n\n#stronywww #stronadlafirmy #małybiznes",
+    "reel_pendulum": {
+      "questions": [
+        "DOMENA NA WYKONAWCĘ?",
+        "BEZ DOSTĘPU DO DOMENY?",
+        "DOMENA WYGASŁA?",
+        "ZMIENIASZ WYKONAWCĘ?"
+      ],
+      "answers": [
+        "ABONENTEM JESTEŚ TY.",
+        "WŁASNY LOGIN DO PANELU.",
+        "ODNAWIASZ JĄ NA CZAS.",
+        "ADRES ZOSTAJE Z TOBĄ."
+      ],
+      "closing": "TAK DOMENA ZOSTAJE TWOJA.",
+      "url": "twoja-strona.pl"
+    },
+    "caption_fb": "Domena to adres Twojej firmy w internecie. Na nim stoi strona, często też firmowa poczta. Wiesz, na kogo jest zapisana?\n\nTo pytanie zwykle pada dopiero wtedy, gdy coś przestaje działać albo gdy zmieniasz wykonawcę strony, i wtedy bywa nerwowo, bo abonentem jest ktoś inny, hasło zna jedna osoba, a termin odnowienia właśnie minął.\n\nCo sprawdzić:\n- kto jest abonentem domeny (powinna być Twoja firma),\n- czy masz własny login do panelu, w którym opłacasz domenę,\n- kiedy jest odnowienie i kto za nie płaci,\n- czy przy zmianie wykonawcy adres zostanie przy Tobie.\n\nLepiej wiedzieć wcześniej.\n\nW PageHub domeny i DNS ustawiamy po Twojej stronie, w OVH albo Netlify. W pakietach domena jest w cenie: na rok przy landing page, na 2 lata przy stronie firmowej.\n\nPytania o domenę przy nowej stronie? Napisz do nas: https://pagehub.pl/#contact",
+    "alt": "Okładka karuzeli PageHub: napis Domena nie na Ciebie? Możesz stracić adres oraz zapowiedź 4 rzeczy do sprawdzenia przy domenie firmy."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "domena",
+      "title": "Domena nie na Ciebie? Możesz *stracić* adres",
+      "subtitle": "4 rzeczy, które warto wiedzieć, zanim strona przestanie działać."
+    },
+    {
+      "type": "text",
+      "title": "Adres to Twój *szyld*",
+      "body": "Na domenie stoi strona, często też firmowa poczta. Jeśli nie masz do niej dostępu, przy każdej zmianie *zaczynasz od zera*."
+    },
+    {
+      "type": "text",
+      "kicker": "1/4",
+      "title": "Abonentem jest *Twoja firma*",
+      "body": "W danych domeny powinna być Twoja firma, nie wykonawca strony. Sprawdzisz to w panelu, w którym opłacasz domenę, albo na fakturze."
+    },
+    {
+      "type": "text",
+      "kicker": "2/4",
+      "title": "Masz *własny* login",
+      "body": "Dostęp do panelu domeny na Twój adres e-mail. Hasło, które zna tylko wykonawca, to kłopot przy pierwszej zmianie."
+    },
+    {
+      "type": "text",
+      "kicker": "3/4",
+      "title": "Znasz datę *odnowienia*",
+      "body": "Domenę opłaca się na określony czas. Nieodnowiona wygasa, a razem z nią przestaje działać strona i poczta na tym adresie."
+    },
+    {
+      "type": "text",
+      "kicker": "4/4",
+      "title": "Zmiana wykonawcy *bez nerwów*",
+      "body": "Gdy domena jest na Twoim koncie, nowy wykonawca tylko kieruje adres na nową stronę. Adres zostaje ten sam."
+    },
+    {
+      "type": "text",
+      "kicker": "jak to robimy",
+      "title": "Domena *po Twojej* stronie",
+      "body": "Domeny i DNS ustawiamy po Twojej stronie, w OVH albo Netlify. W pakietach domena jest w cenie: na rok albo na 2 lata."
+    },
+    {
+      "type": "list",
+      "title": "Twoja domena: *lista*",
+      "items": [
+        "Abonent: Twoja firma",
+        "Login do panelu na Twój e-mail",
+        "Data odnowienia w kalendarzu",
+        "Adres zostaje przy zmianie wykonawcy"
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "Domena do *uporządkowania*?",
+      "body": "Zapisz listę na później. Planujesz nową stronę? Napisz *DOMENA* w komentarzu albo wypełnij formularz na pagehub.pl.",
+      "button": "Napisz DOMENA"
+    }
+  ]
+}
